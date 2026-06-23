@@ -1,112 +1,602 @@
 <link rel="stylesheet" href="/css/entregas.css">
 
 <div class="container">
+
   <!-- Header -->
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
     <div>
       <h1>📦 Controle de Entregas, Retiradas e Pagamentos</h1>
-      <p class="muted" style="margin:4px 0 0; font-size:13px;">Gerencie todo o ciclo de vida das locações em um só lugar</p>
+      <p class="muted" style="margin:4px 0 0; font-size:13px;">
+        Gerencie todo o ciclo de vida das locações em um só lugar
+      </p>
     </div>
+
     <div style="display:flex; gap:8px;">
-      <button class="btn"><i class="lucide lucide-download"></i> Exportar</button>
-      <button class="btn-primary btn"><i class="lucide lucide-refresh-cw"></i> Atualizar</button>
+      <button class="btn">📤 Exportar</button>
+      <button class="btn-primary btn" onclick="carregarPedidos()">🔄 Atualizar</button>
     </div>
   </div>
 
   <!-- KPIs -->
   <div class="grid grid-4" style="margin-bottom:20px;">
-    <div class="kpi g-primary"><i class="lucide lucide-package icon"></i><h4>Pedidos Ativos</h4><div class="val" id="kpi-active">0</div><div class="sub">Em andamento</div></div>
-    <div class="kpi g-info"><i class="lucide lucide-truck icon"></i><h4>Entregas Hoje</h4><div class="val" id="kpi-delivery">0</div><div class="sub">Agendadas para hoje</div></div>
-    <div class="kpi g-warning"><i class="lucide lucide-package-check icon"></i><h4>Retiradas Hoje</h4><div class="val" id="kpi-pickup">0</div><div class="sub">Programadas</div></div>
-    <div class="kpi g-success"><i class="lucide lucide-dollar-sign icon"></i><h4>Recebido</h4><div class="val" id="kpi-paid">R$ 0</div><div class="sub">Total recebido</div></div>
-    <div class="kpi g-danger"><i class="lucide lucide-alert-triangle icon"></i><h4>Pagamentos Atrasados</h4><div class="val" id="kpi-late">0</div><div class="sub">Pedidos pendentes</div></div>
-    <div class="kpi g-rose"><i class="lucide lucide-x-circle icon"></i><h4>Saldo Devedor</h4><div class="val" id="kpi-due">R$ 0</div><div class="sub">A receber</div></div>
-    <div class="kpi g-teal"><i class="lucide lucide-check-circle icon"></i><h4>Finalizados</h4><div class="val" id="kpi-done">0</div><div class="sub">Este mês</div></div>
-    <div class="kpi g-slate"><i class="lucide lucide-rotate-ccw icon"></i><h4>Itens p/ Devolver</h4><div class="val" id="kpi-return">0</div><div class="sub">Pendentes</div></div>
+    <div class="kpi g-primary" onclick="filterByKpi('active')" style="cursor:pointer;">
+  <h4>Pedidos Ativos</h4>
+  <div class="val" id="kpi-active">0</div>
+</div>
+
+<div class="kpi g-info" onclick="filterByKpi('delivery')" style="cursor:pointer;">
+  <h4>Entregas Hoje</h4>
+  <div class="val" id="kpi-delivery">0</div>
+</div>
+
+<div class="kpi g-warning" onclick="filterByKpi('pickup')" style="cursor:pointer;">
+  <h4>Retiradas Hoje</h4>
+  <div class="val" id="kpi-pickup">0</div>
+</div>
+
+<div class="kpi g-danger" onclick="filterByKpi('late')" style="cursor:pointer;">
+  <h4>Pagamentos Atrasados</h4>
+  <div class="val" id="kpi-late">0</div>
+</div>
   </div>
 
-  <!-- Alerts -->
+  </div>
+
+  <!-- ALERTAS -->
   <div class="card" style="padding:20px; margin-bottom:20px;">
-    <h2>🚨 Alertas e Pendências</h2>
+    <h2>🚨 Alertas</h2>
     <div class="grid grid-3" id="alerts"></div>
   </div>
 
-  <!-- Filters -->
+  <!-- FILTROS -->
   <div class="card" style="padding:18px; margin-bottom:20px;">
     <h2>🔎 Filtros</h2>
+
     <div class="grid grid-6">
-      <div><label>Buscar</label><input id="f-search" placeholder="Cliente, pedido..." /></div>
-      <div><label>Data inicial</label><input type="date" id="f-from" /></div>
-      <div><label>Data final</label><input type="date" id="f-to" /></div>
-      <div><label>Pagamento</label><select id="f-pay"><option value="">Todos</option><option>Pago Integralmente</option><option>Parcialmente Pago</option><option>Não Pago</option></select></div>
-      <div><label>Entrega</label><select id="f-deliv"><option value="">Todas</option><option>Aguardando Entrega</option><option>Em Rota</option><option>Entregue</option><option>Entrega Atrasada</option></select></div>
-      <div><label>Status</label><select id="f-status"><option value="">Todos</option><option>Agendado</option><option>Em Andamento</option><option>Finalizado</option><option>Pendente</option><option>Cancelado</option></select></div>
+
+      <div>
+        <label>Buscar</label>
+        <input id="f-search" placeholder="Cliente, pedido..." />
+      </div>
+
+      <div>
+        <label>Data inicial</label>
+        <input type="date" id="f-from" />
+      </div>
+
+      <div>
+        <label>Data final</label>
+        <input type="date" id="f-to" />
+      </div>
+
+      <!-- PAGAMENTO -->
+      <div>
+        <label>Pagamento⚠️</label>
+        <select id="f-pay">
+          <option value="">Todos</option>
+          <option value="Pago Integralmente">Pago Integralmente</option>
+          <option value="Parcialmente Pago">Parcialmente Pago</option>
+          <option value="Não Pago">Não Pago</option>
+        </select>
+      </div>
+
+      <!-- ENTREGA -->
+      <div>
+        <label>Entrega⚠️</label>
+        <select id="f-deliv">
+          <option value="">Todas</option>
+          <option value="Aguardando Entrega">Aguardando Entrega</option>
+          <option value="Em Rota">Em Rota</option>
+          <option value="Entregue">Entregue</option>
+          <option value="Entrega Atrasada">Entrega Atrasada</option>
+        </select>
+      </div>
+
+      <!-- STATUS (BANCO) -->
+      <div>
+        <label>Status</label>
+        <select id="f-status">
+          <option value="">Todos</option>
+          <option value="ORCAMENTO">Orçamento</option>
+          <option value="CONFIRMADO">Confirmado</option>
+          <option value="EM_PREPARO">Em Preparo</option>
+          <option value="ENTREGUE">Entregue</option>
+          <option value="RETIRADO">Retirado</option>
+          <option value="FINALIZADO">Finalizado</option>
+          <option value="CANCELADO">Cancelado</option>
+        </select>
+      </div>
+
     </div>
   </div>
 
-  <!-- Table -->
-  <div class="card" style="overflow:hidden;">
-    <div style="padding:18px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-      <h2 style="margin:0;">📋 Pedidos</h2>
-      <span class="badge b-purple" id="count-badge">0 pedidos</span>
+  <!-- TABELA -->
+  <div class="card">
+    <div style="padding:18px; display:flex; justify-content:space-between;">
+      <h2>📋 Pedidos</h2>
+      <span id="count-badge">0 pedidos</span>
     </div>
+
     <div style="overflow-x:auto;">
       <table>
         <thead>
           <tr>
-            <th>Pedido</th><th>Cliente</th><th>Evento</th><th>Entrega</th><th>Retirada</th>
-            <th>Total</th><th>Pagamento</th><th>Status</th><th></th>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Evento</th>
+            <th>Entrega</th>
+            <th>Retirada</th>
+            <th>Total</th>
+            <th>Pago</th>
+            <th>Status</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="orders-tbody"></tbody>
       </table>
     </div>
   </div>
+
 </div>
 
-<!-- Modal -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
+
     <div class="modal-header">
       <div>
-        <div style="font-size:12px; opacity:.85;" id="m-id">PED-0000</div>
-        <div style="font-size:20px; font-weight:700;" id="m-customer">Cliente</div>
+        <div id="m-id">PED-0000</div>
+        <div id="m-customer">Cliente</div>
       </div>
-      <button class="btn-ghost" style="color:#fff;" onclick="closeModal()"><i class="lucide lucide-x" style="font-size:22px;"></i></button>
+      <button onclick="closeModal()">✖</button>
     </div>
+
     <div class="modal-body">
-      <!-- Timeline -->
-      <div class="card" style="padding:20px; margin-bottom:20px;">
-        <h3>⏱️ Linha do Tempo do Pedido</h3>
-        <div class="timeline" id="m-timeline"></div>
-      </div>
+      <div id="m-timeline"></div>
 
-      <!-- Tabs -->
       <div class="tabs">
-        <div class="tab active" data-tab="dados">📄 Dados</div>
-        <div class="tab" data-tab="fin">💰 Financeiro</div>
-        <div class="tab" data-tab="log">🚚 Logística</div>
-        <div class="tab" data-tab="dev">🔄 Devolução</div>
-        <div class="tab" data-tab="oco">⚠️ Ocorrências</div>
+        <div class="tab active" data-tab="dados">Dados</div>
+        <div class="tab" data-tab="fin">Financeiro</div>
+        <div class="tab" data-tab="log">Logística</div>
       </div>
 
-      <div class="tab-panel active" id="tab-dados">
-        <div class="grid grid-2" id="m-dados"></div>
-      </div>
-      <div class="tab-panel" id="tab-fin">
-        <div id="m-fin"></div>
-      </div>
-      <div class="tab-panel" id="tab-log">
-        <div class="grid grid-2" id="m-log"></div>
-      </div>
-      <div class="tab-panel" id="tab-dev">
-        <div id="m-dev"></div>
-      </div>
-      <div class="tab-panel" id="tab-oco">
-        <div id="m-oco"></div>
-      </div>
+      <div class="tab-panel active" id="tab-dados"></div>
+      <div class="tab-panel" id="tab-fin"></div>
+      <div class="tab-panel" id="tab-log"></div>
+
     </div>
   </div>
 </div>
 
-<script src="/js/entregas.js"></script>
+<script>
+
+/* =========================
+   ARMAZENAMENTO GLOBAL
+   ========================= */
+
+// Lista global de pedidos carregados da API
+let ORDERS = [];
+
+// Data de hoje no formato YYYY-MM-DD (usado em comparações)
+const TODAY = new Date().toISOString().split("T")[0];
+
+
+/* =========================
+   FUNÇÕES DE FORMATAÇÃO
+   ========================= */
+
+// Formata valores para moeda brasileira (R$ 1.234,56)
+const fmt = v =>
+  "R$ " + Number(v || 0).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+// Formata datas do formato ISO para DD/MM/YYYY
+const fmtDate = d => {
+  if (!d) return "-";
+  const s = String(d).split("T")[0];
+  const [y, m, da] = s.split("-");
+  return y ? `${da}/${m}/${y}` : d;
+};
+
+
+/* =========================
+   BADGES DE STATUS (UI)
+   ========================= */
+
+// Badge de status de pagamento
+function payBadge(s) {
+  const m = {
+    "Pago Integralmente": "b-success",
+    "Parcialmente Pago": "b-warning",
+    "Não Pago": "b-danger"
+  };
+  return `<span class="badge ${m[s] || "b-muted"}">${s || "-"}</span>`;
+}
+
+// Badge de status de entrega
+function delivBadge(s) {
+  const m = {
+    "Aguardando Entrega": "b-muted",
+    "Em Rota": "b-info",
+    "Entregue": "b-success",
+    "Entrega Atrasada": "b-danger"
+  };
+  return `<span class="badge ${m[s] || "b-muted"}">${s || "-"}</span>`;
+}
+
+// Badge de status geral do pedido
+function statusBadge(s) {
+  const m = {
+    "Agendado": "b-info",
+    "Em Andamento": "b-purple",
+    "Finalizado": "b-success",
+    "Pendente": "b-warning",
+    "Cancelado": "b-danger"
+  };
+  return `<span class="badge ${m[s] || "b-muted"}">${s || "-"}</span>`;
+}
+
+
+/* =========================
+   KPIs (RESUMO DO SISTEMA)
+   ========================= */
+
+// Busca indicadores gerais da API e atualiza cards da tela
+async function renderKPIs() {
+  try {
+    const response = await fetch("/entregas/pedidos");
+    if (!response.ok) throw new Error();
+
+    const orders = await response.json();
+
+    ORDERS = orders; // mantém sincronizado
+
+    const today = new Date().toISOString().split("T")[0];
+
+    let ativos = 0;
+    let entregasHoje = 0;
+    let retiradasHoje = 0;
+    let pagos = 0;
+    let atrasados = 0;
+
+    orders.forEach(o => {
+      const total = Number(o.valor_total || 0);
+      const paid = Number(o.valor_pago || 0);
+
+      // 🟦 pedidos ativos
+      if (o.status !== "FINALIZADO" && o.status !== "CANCELADO") {
+        ativos++;
+      }
+
+      // 🚚 entregas hoje
+      if (o.data_entrega && o.data_entrega.split("T")[0] === today) {
+        entregasHoje++;
+      }
+
+      // 📦 retiradas hoje
+      if (o.data_retirada && o.data_retirada.split("T")[0] === today) {
+        retiradasHoje++;
+      }
+
+      // 💰 pagos
+      pagos += paid;
+
+      // ⚠️ atrasados (saldo aberto)
+      if (o.status !== "FINALIZADO" && paid < total) atrasados++;
+    });
+
+    // 👉 atualiza UI
+    document.getElementById("kpi-active").textContent = ativos;
+    document.getElementById("kpi-delivery").textContent = entregasHoje;
+    document.getElementById("kpi-pickup").textContent = retiradasHoje;
+    document.getElementById("kpi-late").textContent = atrasados;
+
+  } catch (e) {
+    console.error("Erro KPIs:", e);
+  }
+}
+
+
+/* =========================
+   ALERTAS DA DASHBOARD
+   ========================= */
+
+// Gera alertas baseados nos pedidos carregados
+function renderAlerts() {
+  const a = [];
+
+  // Filtra pedidos com saldo em aberto
+  const due = ORDERS.filter(o =>
+    (Number(o.valor_total || 0) - Number(o.valor_pago || 0)) > 0
+  );
+
+  // Se houver pendências financeiras
+  if (due.length) {
+    a.push({
+      c: "a-warning",
+      i: "dollar-sign",
+      t: `${due.length} pedidos com saldo`,
+      d: fmt(due.reduce((s, o) =>
+        s + (Number(o.valor_total || 0) - Number(o.valor_pago || 0)), 0))
+    });
+  }
+
+  // Se não houver alertas
+  if (!a.length) {
+    a.push({
+      c: "a-success",
+      i: "check-circle",
+      t: "Tudo em ordem!",
+      d: "Sem pendências"
+    });
+  }
+
+  // Renderiza HTML dos alertas
+  document.getElementById("alerts").innerHTML =
+    a.map(x => `
+      <div class="alert ${x.c}">
+        <i class="lucide lucide-${x.i}"></i>
+        <div>
+          <div class="title">${x.t}</div>
+          <div class="desc">${x.d}</div>
+        </div>
+      </div>
+    `).join("");
+}
+
+
+/* =========================
+   FILTRO DE PEDIDOS
+   ========================= */
+
+// Aplica filtros de busca e datas
+function getFiltered() {
+  return ORDERS.filter(o => {
+
+    const status = document.getElementById("f-status").value;
+    const pay = document.getElementById("f-pay").value;
+    const delivery = document.getElementById("f-deliv").value;
+
+    const total = Number(o.valor_total || 0);
+    const paid = Number(o.valor_pago || 0);
+
+    const today = new Date();
+    const todayStr = today.getFullYear() + "-" +
+      String(today.getMonth() + 1).padStart(2, "0") + "-" +
+      String(today.getDate()).padStart(2, "0");
+
+    function normalizeDate(d) {
+      if (!d) return null;
+      return String(d).split("T")[0];
+    }
+
+    // =========================
+    // FILTROS NORMAIS
+    // =========================
+
+    if (status && o.status !== status) return false;
+
+    let payStatus =
+      paid === 0 ? "Não Pago" :
+      paid < total ? "Parcialmente Pago" :
+      "Pago Integralmente";
+
+    if (pay && payStatus !== pay) return false;
+
+    // ⚠️ ajuste aqui se tiver campo correto
+    if (delivery && o.deliveryStatus && o.deliveryStatus !== delivery) return false;
+
+    // =========================
+    // KPI FILTER
+    // =========================
+
+    if (ACTIVE_KPI_FILTER === "active") {
+      if (o.status === "FINALIZADO" || o.status === "CANCELADO") return false;
+    }
+
+    if (ACTIVE_KPI_FILTER === "delivery") {
+      const d = normalizeDate(o.data_entrega);
+      if (d !== todayStr) return false;
+    }
+
+    if (ACTIVE_KPI_FILTER === "pickup") {
+      const r = normalizeDate(o.data_retirada);
+      if (r !== todayStr) return false;
+    }
+
+    if (ACTIVE_KPI_FILTER === "late") {
+      if (paid >= total) return false;
+    }
+
+    return true;
+  });
+}
+
+
+/* =========================
+   TABELA PRINCIPAL
+   ========================= */
+
+// Renderiza tabela de pedidos na tela
+function renderTable() {
+  const list = getFiltered();
+
+  document.getElementById("count-badge").textContent =
+    list.length + " pedidos";
+
+  document.getElementById("orders-tbody").innerHTML = list.map(o => {
+
+    const total = Number(o.valor_total ?? 0);
+    const paid  = Number(o.valor_pago ?? 0);
+
+    // porcentagem paga
+    const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
+
+    return `
+      <tr>
+        <td><strong>${o.id || "SEM ID"}</strong></td>
+
+        <td>
+          <div style="font-weight:600;">${o.cliente || "-"}</div>
+          <div class="muted">${o.telefone || "-"}</div>
+        </td>
+
+        <td>${fmtDate(o.data_evento)}</td>
+        <td>${fmtDate(o.data_entrega)}</td>
+        <td>${fmtDate(o.data_retirada)}</td>
+
+        <td>
+          <strong>${fmt(total)}</strong>
+          <div class="progress"><div style="width:${pct}%"></div></div>
+          <div class="muted">${pct}% pago</div>
+        </td>
+
+        <td>${fmt(paid)}</td>
+
+        <td>${statusBadge(o.status)}</td>
+
+        <td>
+          <button class="btn" onclick="openModal('${o.id}')">Ver</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+
+/* =========================
+   MODAL DE DETALHES
+   ========================= */
+
+// Abre modal e carrega detalhes completos do pedido
+async function openModal(id) {
+  try {
+    const response = await fetch(`/entregas/pedidos/${id}`);
+    if (!response.ok) throw new Error();
+
+    const o = await response.json();
+    if (!o) return;
+
+    /* ---- normalização de dados (backend pode variar nomes) ---- */
+    o.customer = o.customer || o.cliente || "-";
+    o.phone    = o.phone    || o.telefone || "-";
+    o.total    = Number(o.total ?? o.valor_total ?? 0);
+    o.paid     = Number(o.paid  ?? o.valor_pago ?? 0);
+
+    /* ---- timeline do pedido ---- */
+    const steps = [
+      { t: "Pedido Criado", done: true },
+      { t: "Pagamento Inicial", done: o.paymentHistory?.length > 0 },
+      { t: "Entrega", done: !!o.deliveryDoneAt },
+      { t: "Evento", done: o.partyDate < TODAY },
+      { t: "Retirada", done: !!o.pickupDoneAt }
+    ];
+
+    document.getElementById("modal").classList.add("open");
+
+  } catch (err) {
+    console.error(err);
+    alert("Não foi possível carregar o pedido.");
+  }
+}
+
+
+/* =========================
+   FECHAR MODAL
+   ========================= */
+
+function closeModal() {
+  document.getElementById("modal").classList.remove("open");
+}
+
+
+/* =========================
+   ABAS (TABS)
+   ========================= */
+
+// Alterna entre abas da interface
+document.querySelectorAll(".tab").forEach(t =>
+  t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(x => x.classList.remove("active"));
+
+    t.classList.add("active");
+    document.getElementById("tab-" + t.dataset.tab).classList.add("active");
+  })
+);
+
+
+/* =========================
+   CARREGAMENTO INICIAL
+   ========================= */
+
+// Busca pedidos da API
+async function carregarPedidos() {
+  const params = new URLSearchParams();
+
+  const search = document.getElementById("f-search").value;
+  const from = document.getElementById("f-from").value;
+  const to = document.getElementById("f-to").value;
+  const status = document.getElementById("f-status").value;
+  const pay = document.getElementById("f-pay").value;
+  const delivery = document.getElementById("f-deliv").value;
+
+  if (search) params.append("search", search);
+  if (from) params.append("from", from);
+  if (to) params.append("to", to);
+  if (status) params.append("status", status);
+  if (pay) params.append("pay", pay);
+  if (delivery) params.append("delivery", delivery);
+
+  const res = await fetch(`/entregas/pedidos?${params}`);
+  ORDERS = await res.json();
+
+  renderKPIs();
+  renderAlerts();
+  renderTable();
+}
+// Inicializa sistema
+carregarPedidos();
+
+
+/* =========================
+   EVENTOS DE FILTRO
+   ========================= */
+
+/* =========================
+   EVENTOS DE FILTRO
+   ========================= */
+
+// debounce simples pra busca textual
+let searchTimer;
+
+document.getElementById("f-search").addEventListener("input", () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(carregarPedidos, 300);
+});
+
+// datas e selects -> recarrega na hora
+["f-from", "f-to", "f-status", "f-pay", "f-deliv"].forEach(id => {
+  document.getElementById(id).addEventListener("change", carregarPedidos);
+});
+
+// Fecha modal ao clicar fora
+document.getElementById("modal").addEventListener("click", e => {
+  if (e.target.id === "modal") closeModal();
+});
+// Fecha modal ao clicar fora
+document.getElementById("modal").addEventListener("click", e => {
+  if (e.target.id === "modal") closeModal();
+});
+
+let ACTIVE_KPI_FILTER = null;
+
+function filterByKpi(type) {
+  ACTIVE_KPI_FILTER = type;
+
+  renderTable(); // re-renderiza tabela com filtro aplicado
+}
+
+</script>

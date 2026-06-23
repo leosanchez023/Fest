@@ -98,7 +98,7 @@ function togglePainel(abrir) {
 
       <div class="tabs">
         <button type="button" id="tab-buscar">🔍 Buscar</button>
-        <button type="button" id="tab-cadastrar">➕ Cadastrar</button>
+        <button type="button" id="tab-cadastrar">➕ Cadastrar⚠️</button>
       </div>
 
       <div id="painel-body"></div>
@@ -746,7 +746,7 @@ function abrirModalConfirmacao() {
         <div class="section-title">👤 Cliente</div>
         <b>${pedido.cliente?.nome || ''}</b><br>
         <small>
-        CPF: ${pedido.cliente?.cpf || '-'} <br>
+        ⚠️CPF: ${pedido.cliente?.cpf || '-'} <br>
         📞 ${pedido.cliente?.telefone || '-'} <br>
         ✉️ ${pedido.cliente?.email || '-'}
         </small>
