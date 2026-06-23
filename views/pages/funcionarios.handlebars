@@ -1,0 +1,99 @@
+<link rel="stylesheet" href="/css/funcionario.css">
+
+<header>
+  <h1>👤 Funcionários</h1>
+</header>
+
+<div class="container">
+
+  <!-- 🔥 ERROS -->
+  {{#if erros}}
+    {{#each erros}}
+      <div style="color:red;">{{texto}}</div>
+    {{/each}}
+  {{/if}}
+
+  <!-- ✅ FORM REAL -->
+  <div class="box">
+    <h2>Cadastrar Funcionário</h2>
+
+    <form action="/usuarios/registro" method="POST">
+
+      <div class="form-grid">
+        <div>
+          <label>Nome</label>
+          <input type="text" name="nome" required>
+        </div>
+
+        <div>
+          <label>Email</label>
+          <input type="email" name="email" required>
+        </div>
+
+        <div>
+          <label>Senha</label>
+          <input type="password" name="senha" required>
+        </div>
+
+        <div>
+          <label>Confirmar senha</label>
+          <input type="password" name="senha2" required>
+        </div>
+      </div>
+
+      <h3>Permissões</h3>
+
+      <label><input type="checkbox" name="dashboard"> Dashboard</label><br>
+      <label><input type="checkbox" name="pedidos"> Pedidos</label><br>
+      <label><input type="checkbox" name="clientes"> Clientes</label><br>
+      <label><input type="checkbox" name="endregas"> Entregas</label><br>
+      <label><input type="checkbox" name="produtos"> Produtos</label><br>
+      <label><input type="checkbox" name="fornecedores"> Produtos</label><br>
+      <label><input type="checkbox" name="relatorios"> Relatórios</label><br>
+      <label><input type="checkbox" name="funcionarios"> Funcionários</label><br>
+
+      <br>
+      <button type="submit">Salvar</button>
+    </form>
+  </div>
+
+  <!-- ✅ LISTA REAL DO BANCO -->
+  <div class="box">
+    <h2>Lista de Funcionários</h2>
+
+    <table>
+  <thead>
+    <tr>
+      <th>Nome</th>
+      <th>Email</th>
+      <th>Dashboard</th>
+      <th>Clientes</th>
+      <th>Produtos</th>
+      <th>Pedidos</th>
+      <th>Relatórios</th>
+      <th>Funcionários</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {{#each usuarios}}
+      <tr>
+        <td>{{nome}}</td>
+        <td>{{email}}</td>
+
+        <td>{{#if dashboard}}✅{{else}}❌{{/if}}</td>
+        <td>{{#if clientes}}✅{{else}}❌{{/if}}</td>
+        <td>{{#if produtos}}✅{{else}}❌{{/if}}</td>
+        <td>{{#if pedidos}}✅{{else}}❌{{/if}}</td>
+        <td>{{#if relatorios}}✅{{else}}❌{{/if}}</td>
+        <td>{{#if funcionarios}}✅{{else}}❌{{/if}}</td>
+
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
+  </div>
+
+</div>
+
+

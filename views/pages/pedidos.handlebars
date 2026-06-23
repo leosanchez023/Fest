@@ -1,0 +1,291 @@
+<link rel="stylesheet" href="/css/pedidos.css">
+
+<div class="container">
+
+  <h1>Cadastro de Pedido</h1>
+  <p class="subtitle">Preencha os dados para registrar um novo pedido</p>
+
+  <!-- ====================================================
+       CARD: DADOS DO PEDIDO
+  ===================================================== -->
+  <div class="card">
+    <div class="card-title">Dados do Pedido</div>
+
+    <!-- Área de cliente: botão inicial + painel expansível -->
+    <div class="field" style="margin-bottom:1rem">
+      <label>Cliente</label>
+      <div id="cliente-display"></div>
+      <div id="cliente-painel" style="display:none; margin-top:10px;"></div>
+    </div>
+
+    <div class="grid-3">
+      <div class="field">
+        <label>Telefone do Cliente</label>
+        <input id="tel-cliente" class="input" type="tel" placeholder="(00) 00000-0000" />
+      </div>
+
+      <div class="field">
+        <label>Telefone para Contato</label>
+        <input id="tel-contato" class="input" type="tel" placeholder="(00) 00000-0000" />
+        <div class="muted">Telefone alternativo (ex.: organizador, cerimonialista)</div>
+      </div>
+
+      <div class="field">
+        <label>Data do Evento</label>
+        <input id="data-evento" class="input" type="date" />
+      </div>
+
+      <div class="field">
+        <label>Data de Entrega</label>
+        <input id="data-entrega" class="input" type="date" />
+      </div>
+
+      <div class="field">
+        <label>Data de Retirada</label>
+        <input id="data-retirada" class="input" type="date" />
+      </div>
+
+      <div class="field">
+        <label>Tipo do Pedido</label>
+        <select id="tipo-pedido" class="input">
+          <option value="VENDA">Venda</option>
+          <option value="ALUGUEL" selected>Aluguel</option>
+          <option value="MISTO">Misto</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Status do Pedido</label>
+        <select id="status-pedido" class="input">
+          <option value="ORCAMENTO">Orçamento</option>
+          <option value="CONFIRMADO">Confirmado</option>
+          <option value="EM_PREPARO">Em preparo</option>
+          <option value="ENTREGUE">Entregue</option>
+          <option value="CANCELADO">Cancelado</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       CARD: ITENS DO PEDIDO
+  ===================================================== -->
+ <div class="card">
+  <div class="card-title">Itens do Pedido</div>
+
+  <div class="grid-3" style="align-items:end">
+    <div class="field">
+      <label>Produto</label>
+      <div class="autocomplete-wrap">
+        <input
+          id="prod-query"
+          class="input"
+          placeholder="Digite para buscar..."
+          autocomplete="off"
+        />
+        <div id="prod-list" class="autocomplete-list"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Quantidade</label>
+      <input
+        id="prod-qtd"
+        class="input"
+        type="number"
+        min="1"
+        value="1"
+      />
+    </div>
+
+    <button id="btn-add-item" class="btn btn-teal">
+      + Adicionar
+    </button>
+  </div>
+
+  <div class="table-wrap" style="margin-top:1rem">
+    <table>
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th class="text-center">Qtd</th>
+          <th class="text-right">Valor Unit.</th>
+          <th class="text-right">Subtotal</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody id="itens-tbody">
+        <!-- Os itens serão inseridos pelo JavaScript -->
+      </tbody>
+
+    </table>
+  </div>
+</div>
+  <!-- ====================================================
+       CARD: FRETE E ENDEREÇO
+  ===================================================== -->
+  <div class="card">
+  <div class="card-title">Frete e Endereço de Entrega</div>
+
+    <div style="position: relative;">
+    <label>Rua / Logradouro</label>
+      <input type="text" id="end-rua" autocomplete="off" />
+      <ul id="end-list" class="autocomplete-list" style="display:none;"></ul>
+      <div id="painel-endereco" class="lista-clientes" style="display:none;"></div>
+    </div>
+    
+    <div class="field">
+      <label>Número</label>
+      <input id="end-numero" class="input" placeholder="1000" />
+    </div>
+
+    <div class="field">
+      <label>Bairro</label>
+      <input id="end-bairro" class="input" placeholder="Bela Vista" />
+    </div>
+
+    <div class="field">
+      <label>Cidade</label>
+      <input id="end-cidade" class="input" placeholder="São Paulo" />
+    </div>
+
+    <div class="field">
+      <label>Estado</label>
+      <input id="end-estado" class="input" placeholder="SP" maxlength="2" />
+    </div>
+    <button type="button" id="btn-endereco">
+  🔍 Buscar endereço
+</button>
+
+  </div>
+
+  <!-- FRETE INTELIGENTE -->
+  <div class="frete-box">
+
+    <div class="grid-3" style="margin-top:1rem; align-items:end">
+
+      <div class="field">
+        <label>Distância (KM)</label>
+        <input id="distancia-km" class="input" type="number" min="0" step="0.1" value="0" />
+      </div>
+
+      <div class="field">
+        <label>Frete (R$)</label>
+        <input id="frete" class="input" type="number" min="0" step="0.01" value="0" />
+      </div>
+
+      <button id="btn-calc-frete" class="btn btn-blue">
+        📍 Calcular
+      </button>
+
+    </div>
+
+    <!-- preview do cálculo -->
+    <div id="info-frete" class="info-frete" style="margin-top:8px;"></div>
+
+  </div>
+
+  <div class="muted">
+    Informe a distância em KM ou ajuste o valor do frete manualmente.
+  </div>
+</div>
+
+  <!-- ====================================================
+       CARD: PAGAMENTO E OBSERVAÇÕES
+  ===================================================== -->
+  <div class="card">
+    <div class="card-title">Pagamento e Observações</div>
+
+    <div class="grid-3">
+      <div class="field">
+        <label>Desconto (R$)</label>
+        <input id="desconto" class="input" type="number" min="0" step="0.01" value="0" />
+      </div>
+      <div class="field">
+        <label>Valor Pago (R$)</label>
+        <input id="pago" class="input" type="number" min="0" step="0.01" value="0" />
+      </div>
+      <div class="field">
+        <label>Forma de Pagamento</label>
+        <select id="forma-pagamento" class="input">
+          <option value="PIX">PIX</option>
+          <option value="DINHEIRO">Dinheiro</option>
+          <option value="CARTAO_DEBITO">Cartão Débito</option>
+          <option value="CARTAO_CREDITO">Cartão Crédito</option>
+          <option value="TRANSFERENCIA">Transferência</option>
+        </select>
+      </div>
+
+      <div class="field" style="grid-column: span 3">
+        <label>Observação do Pagamento</label>
+        <input id="obs-pagamento" class="input" placeholder="Ex: Entrada de 50%, sinal, pagamento na entrega, etc." />
+      </div>
+
+      <div class="field" style="grid-column: span 3">
+        <label>Observações do Pedido</label>
+        <textarea id="observacoes" class="input" rows="5"
+          placeholder="Informações importantes sobre o evento, entrega, retirada, montagem, itens extras, danos, observações do cliente, etc."></textarea>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ====================================================
+       CARD: RESUMO DO PEDIDO
+  ===================================================== -->
+  <div class="card">
+    <div class="card-title">Resumo do Pedido</div>
+    <div class="resumo">
+      <div class="resumo-row"><span>Valor dos Produtos</span><span id="r-produtos">R$ 0,00</span></div>
+      <div class="resumo-row"><span>Frete</span><span id="r-frete">R$ 0,00</span></div>
+      <div class="resumo-row"><span>Desconto</span><span id="r-desconto">- R$ 0,00</span></div>
+      <div class="resumo-row"><span>Valor Pago</span><span id="r-pago">R$ 0,00</span></div>
+      <div class="resumo-row"><span>Valor Restante</span><span id="r-restante">R$ 0,00</span></div>
+      <div class="resumo-total"><span>Total</span><span id="r-total">R$ 0,00</span></div>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       BOTÕES DE AÇÃO FINAIS
+  ===================================================== -->
+  <div class="actions">
+    <button id="btn-confirmar-pedido" class="btn btn-green" type="button">✅ Confirmar Pedido</button>
+    <button class="btn btn-blue" type="button">📄 Gerar Orçamento</button>
+    <button class="btn btn-gray" type="button" onclick="window.print()">🖨️ Imprimir</button>
+  </div>
+
+    <!-- MODAL DE CONFIRMAÇÃO -->
+  <div id="modal-confirmacao" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2>Confirmar Pedido</h2>
+      <div id="resumo-confirmacao"></div>
+      <div class="footer">
+        <button id="btn-fechar-modal" class="btn btn-gray">Cancelar</button>
+        <button id="btn-salvar-final" class="btn btn-green">✅ Salvar Pedido</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="/js/pedidos.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

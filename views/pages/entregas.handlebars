@@ -1,0 +1,112 @@
+<link rel="stylesheet" href="/css/entregas.css">
+
+<div class="container">
+  <!-- Header -->
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <div>
+      <h1>📦 Controle de Entregas, Retiradas e Pagamentos</h1>
+      <p class="muted" style="margin:4px 0 0; font-size:13px;">Gerencie todo o ciclo de vida das locações em um só lugar</p>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn"><i class="lucide lucide-download"></i> Exportar</button>
+      <button class="btn-primary btn"><i class="lucide lucide-refresh-cw"></i> Atualizar</button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid grid-4" style="margin-bottom:20px;">
+    <div class="kpi g-primary"><i class="lucide lucide-package icon"></i><h4>Pedidos Ativos</h4><div class="val" id="kpi-active">0</div><div class="sub">Em andamento</div></div>
+    <div class="kpi g-info"><i class="lucide lucide-truck icon"></i><h4>Entregas Hoje</h4><div class="val" id="kpi-delivery">0</div><div class="sub">Agendadas para hoje</div></div>
+    <div class="kpi g-warning"><i class="lucide lucide-package-check icon"></i><h4>Retiradas Hoje</h4><div class="val" id="kpi-pickup">0</div><div class="sub">Programadas</div></div>
+    <div class="kpi g-success"><i class="lucide lucide-dollar-sign icon"></i><h4>Recebido</h4><div class="val" id="kpi-paid">R$ 0</div><div class="sub">Total recebido</div></div>
+    <div class="kpi g-danger"><i class="lucide lucide-alert-triangle icon"></i><h4>Pagamentos Atrasados</h4><div class="val" id="kpi-late">0</div><div class="sub">Pedidos pendentes</div></div>
+    <div class="kpi g-rose"><i class="lucide lucide-x-circle icon"></i><h4>Saldo Devedor</h4><div class="val" id="kpi-due">R$ 0</div><div class="sub">A receber</div></div>
+    <div class="kpi g-teal"><i class="lucide lucide-check-circle icon"></i><h4>Finalizados</h4><div class="val" id="kpi-done">0</div><div class="sub">Este mês</div></div>
+    <div class="kpi g-slate"><i class="lucide lucide-rotate-ccw icon"></i><h4>Itens p/ Devolver</h4><div class="val" id="kpi-return">0</div><div class="sub">Pendentes</div></div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="card" style="padding:20px; margin-bottom:20px;">
+    <h2>🚨 Alertas e Pendências</h2>
+    <div class="grid grid-3" id="alerts"></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card" style="padding:18px; margin-bottom:20px;">
+    <h2>🔎 Filtros</h2>
+    <div class="grid grid-6">
+      <div><label>Buscar</label><input id="f-search" placeholder="Cliente, pedido..." /></div>
+      <div><label>Data inicial</label><input type="date" id="f-from" /></div>
+      <div><label>Data final</label><input type="date" id="f-to" /></div>
+      <div><label>Pagamento</label><select id="f-pay"><option value="">Todos</option><option>Pago Integralmente</option><option>Parcialmente Pago</option><option>Não Pago</option></select></div>
+      <div><label>Entrega</label><select id="f-deliv"><option value="">Todas</option><option>Aguardando Entrega</option><option>Em Rota</option><option>Entregue</option><option>Entrega Atrasada</option></select></div>
+      <div><label>Status</label><select id="f-status"><option value="">Todos</option><option>Agendado</option><option>Em Andamento</option><option>Finalizado</option><option>Pendente</option><option>Cancelado</option></select></div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card" style="overflow:hidden;">
+    <div style="padding:18px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="margin:0;">📋 Pedidos</h2>
+      <span class="badge b-purple" id="count-badge">0 pedidos</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Pedido</th><th>Cliente</th><th>Evento</th><th>Entrega</th><th>Retirada</th>
+            <th>Total</th><th>Pagamento</th><th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="orders-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div style="font-size:12px; opacity:.85;" id="m-id">PED-0000</div>
+        <div style="font-size:20px; font-weight:700;" id="m-customer">Cliente</div>
+      </div>
+      <button class="btn-ghost" style="color:#fff;" onclick="closeModal()"><i class="lucide lucide-x" style="font-size:22px;"></i></button>
+    </div>
+    <div class="modal-body">
+      <!-- Timeline -->
+      <div class="card" style="padding:20px; margin-bottom:20px;">
+        <h3>⏱️ Linha do Tempo do Pedido</h3>
+        <div class="timeline" id="m-timeline"></div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" data-tab="dados">📄 Dados</div>
+        <div class="tab" data-tab="fin">💰 Financeiro</div>
+        <div class="tab" data-tab="log">🚚 Logística</div>
+        <div class="tab" data-tab="dev">🔄 Devolução</div>
+        <div class="tab" data-tab="oco">⚠️ Ocorrências</div>
+      </div>
+
+      <div class="tab-panel active" id="tab-dados">
+        <div class="grid grid-2" id="m-dados"></div>
+      </div>
+      <div class="tab-panel" id="tab-fin">
+        <div id="m-fin"></div>
+      </div>
+      <div class="tab-panel" id="tab-log">
+        <div class="grid grid-2" id="m-log"></div>
+      </div>
+      <div class="tab-panel" id="tab-dev">
+        <div id="m-dev"></div>
+      </div>
+      <div class="tab-panel" id="tab-oco">
+        <div id="m-oco"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/entregas.js"></script>

@@ -1,0 +1,303 @@
+# Fest - Sistema de Gestão de Locações para Eventos
+
+## Visão Geral
+
+O Fest é uma aplicação web desenvolvida para automatizar e centralizar o gerenciamento de locações de produtos para festas e eventos.
+
+O sistema foi projetado para auxiliar empresas do setor na administração de clientes, produtos, estoque, pedidos, pagamentos e devoluções, proporcionando maior controle operacional, rastreabilidade das informações e redução de erros manuais.
+
+---
+
+## Objetivos do Projeto
+
+* Centralizar informações de clientes e pedidos.
+* Controlar o estoque de produtos disponíveis para locação.
+* Gerenciar pagamentos e devoluções.
+* Facilitar o acompanhamento das operações da empresa.
+* Garantir integridade e organização dos dados.
+
+---
+
+## Principais Funcionalidades
+
+### Gestão de Clientes
+
+* Cadastro de clientes.
+* Atualização de informações cadastrais.
+* Consulta e pesquisa de clientes.
+* Exclusão de registros.
+
+### Gestão de Endereços
+
+* Cadastro de múltiplos endereços.
+* Associação de endereços aos pedidos.
+* Reutilização de endereços existentes.
+
+### Gestão de Produtos
+
+* Cadastro de produtos para locação.
+* Controle de disponibilidade.
+* Controle de estoque.
+
+### Gestão de Pedidos
+
+* Criação de pedidos.
+* Associação de clientes.
+* Associação do endereço do evento.
+* Inclusão de múltiplos itens.
+* Controle do ciclo de vida da locação.
+
+### Gestão Financeira
+
+* Registro de pagamentos.
+* Controle de valores recebidos.
+* Consulta de histórico financeiro.
+
+### Gestão de Devoluções
+
+* Registro de devoluções.
+* Atualização automática do estoque.
+* Histórico completo das devoluções.
+
+### Gestão de Usuários
+
+* Autenticação de usuários.
+* Controle de sessão.
+* Restrição de acesso a áreas protegidas.
+
+---
+
+## Arquitetura da Aplicação
+
+O projeto segue o padrão MVC (Model-View-Controller), promovendo separação de responsabilidades, organização do código e facilidade de manutenção.
+
+```text
+Cliente (Navegador)
+        │
+        ▼
+      Rotas
+        │
+        ▼
+   Controllers
+        │
+        ▼
+     Models
+        │
+        ▼
+      MySQL
+```
+
+---
+
+## Tecnologias Utilizadas
+
+### Back-end
+
+* Node.js
+* Express.js
+* MySQL2
+* Passport.js
+* Express Session
+* Connect Flash
+* Dotenv
+
+### Front-end
+
+* HTML5
+* CSS3
+* JavaScript
+* Handlebars
+
+### Banco de Dados
+
+* MySQL 8+
+
+### Ferramentas de Desenvolvimento
+
+* Git
+* GitHub
+* Visual Studio Code
+* Nodemon
+
+---
+
+## Estrutura do Projeto
+
+```text
+fest/
+│
+├── backups/
+├── config/
+├── controllers/
+├── database/
+├── middleware/
+├── models/
+├── public/
+│   ├── css/
+│   ├── js/
+│   ├── img/
+│   └── uploads/
+├── routes/
+├── views/
+├── .env
+├── .gitignore
+├── app.js
+├── package.json
+└── README.md
+```
+
+---
+
+## Modelo de Dados
+
+Principais entidades do sistema:
+
+* Usuários
+* Clientes
+* Endereços
+* Produtos
+* Pedidos
+* Itens do Pedido
+* Pagamentos
+* Devoluções
+
+Relacionamentos principais:
+
+* Um cliente pode possuir vários pedidos.
+* Um endereço pode ser utilizado em vários pedidos.
+* Um pedido pode conter vários produtos.
+* Um pedido pode possuir pagamentos.
+* Um pedido pode gerar devoluções.
+
+---
+
+## Requisitos
+
+### Software
+
+* Node.js 22 ou superior
+* MySQL 8 ou superior
+* Git
+
+### Sistema Operacional
+
+* Windows 10/11
+* Linux
+* macOS
+
+---
+
+## Instalação
+
+### Clonar o Repositório
+
+```bash
+git clone https://github.com/seu-usuario/fest.git
+```
+
+### Acessar o Projeto
+
+```bash
+cd fest
+```
+
+### Instalar Dependências
+
+```bash
+npm install
+```
+
+### Configurar Variáveis de Ambiente
+
+Criar o arquivo `.env` na raiz do projeto:
+
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=sua_senha
+DB_NAME=fest
+
+PORT=3000
+
+SESSION_SECRET=sua_chave_secreta
+```
+
+### Criar Banco de Dados
+
+```sql
+CREATE DATABASE fest;
+```
+
+### Restaurar Backup
+
+```bash
+mysql -u root -p fest < backups/fest_backup.sql
+```
+
+### Executar o Projeto
+
+```bash
+npm start
+```
+
+ou
+
+```bash
+nodemon app.js
+```
+
+---
+
+## Segurança
+
+O sistema implementa:
+
+* Variáveis de ambiente protegidas.
+* Controle de autenticação.
+* Gerenciamento de sessão.
+* Proteção de rotas privadas.
+* Organização modular do código.
+
+---
+
+## Boas Práticas Aplicadas
+
+* Arquitetura MVC.
+* Separação entre regras de negócio e interface.
+* Utilização de variáveis de ambiente.
+* Versionamento com Git.
+* Estrutura modular.
+* Código reutilizável e escalável.
+
+---
+
+## Roadmap
+
+### Em Desenvolvimento
+
+* Dashboard administrativo.
+* Indicadores financeiros.
+* Relatórios gerenciais.
+
+### Futuras Implementações
+
+* Exportação para Excel.
+* Exportação para PDF.
+* Integração com WhatsApp.
+* API REST.
+* Controle de permissões por perfil.
+* Sistema de notificações.
+
+---
+
+## Autor
+
+Leonardo Sanchez
+
+Desenvolvedor em formação com foco em desenvolvimento web utilizando Node.js, JavaScript, MySQL e arquitetura MVC.
+
+---
+
+## Licença
+
+Este projeto foi desenvolvido para fins educacionais, acadêmicos e de aperfeiçoamento profissional.

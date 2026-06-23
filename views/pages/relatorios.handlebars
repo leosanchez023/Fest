@@ -1,0 +1,114 @@
+<link rel="stylesheet" href="/css/relatorios.css">
+<header>
+  <h1>📊 Relatórios</h1>
+</header>
+
+<div class="container">
+
+  <!-- FILTROS -->
+  <div class="box">
+    <h2>Filtros</h2>
+    <div class="filters">
+      <div>
+        <label>Período</label>
+        <input type="month" id="periodo">
+      </div>
+
+      <div>
+        <label>Cliente</label>
+        <select id="cliente">
+          <option value="">Todos</option>
+          <option>João Silva</option>
+          <option>Maria Santos</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Status do pedido</label>
+        <select id="status">
+          <option value="">Todos</option>
+          <option>Confirmado</option>
+          <option>Pendente</option>
+          <option>Cancelado</option>
+        </select>
+      </div>
+    </div>
+
+    <button onclick="gerarRelatorios()">Gerar Relatórios</button>
+  </div>
+
+  <!-- FATURAMENTO -->
+  <div class="box">
+    <h2>Faturamento Mensal</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Total faturado</h3>
+        <p id="faturamento">R$ 0,00</p>
+      </div>
+      <div class="card">
+        <h3>Total de pedidos</h3>
+        <p id="totalPedidos">0</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PEDIDOS POR PERÍODO -->
+  <div class="box">
+    <h2>Pedidos por Período</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nº Pedido</th>
+          <th>Cliente</th>
+          <th>Data</th>
+          <th>Valor</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaPedidos"></tbody>
+    </table>
+  </div>
+
+  <!-- PRODUTOS MAIS ALUGADOS -->
+  <div class="box">
+    <h2>Produtos Mais Alugados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Quantidade</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Mesa Plástica</td><td>35</td></tr>
+        <tr><td>Cadeira</td><td>120</td></tr>
+        <tr><td>Caixa Térmica</td><td>18</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ITENS NÃO RETIRADOS -->
+  <div class="box">
+    <h2>Itens Não Retirados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Pedido</th>
+          <th>Cliente</th>
+          <th>Produto</th>
+          <th>Data prevista</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>#002</td><td>Maria Santos</td><td>Cadeira</td><td>22/03/2026</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  Sistema de Venda e Aluguel para Festas © 2026
+</footer>
+
+<script src="/js/relatorios.js"></script>

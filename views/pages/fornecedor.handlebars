@@ -1,0 +1,139 @@
+<link rel="stylesheet" href="/css/fornecedores.css">
+
+ <main class="main">
+      <!-- Header -->
+      <div class="page-header">
+        <div>
+          <h1>Fornecedores</h1>
+          <p class="subtitle">Gerencie seus fornecedores e parceiros comerciais</p>
+        </div>
+        <button class="btn btn-primary" onclick="openForm()">+ Adicionar Fornecedor</button>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total de Fornecedores</span>
+          <span class="kpi-value" id="kpi-total">0</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Fornecedores Ativos</span>
+          <span class="kpi-value" id="kpi-active">0</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Novos este mês</span>
+          <span class="kpi-value" id="kpi-new">0</span>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <input type="text" class="search-input" placeholder="Buscar fornecedores..." id="search" oninput="renderTable()">
+        <select id="filter-category" onchange="renderTable()">
+          <option value="">Todas as categorias</option>
+          <option value="Alimentos">Alimentos</option>
+          <option value="Bebidas">Bebidas</option>
+          <option value="Decoração">Decoração</option>
+          <option value="Equipamentos">Equipamentos</option>
+          <option value="Transporte">Transporte</option>
+        </select>
+        <select id="filter-status" onchange="renderTable()">
+          <option value="">Todos os status</option>
+          <option value="Ativo">Ativo</option>
+          <option value="Inativo">Inativo</option>
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Fornecedor</th>
+              <th>Categoria</th>
+              <th>Telefone</th>
+              <th>E-mail</th>
+              <th>Cidade</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="supplier-tbody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </main>
+  </div>
+
+  <!-- Modal Form -->
+  <div class="modal-overlay" id="modal-form" onclick="closeFormOutside(event)">
+    <div class="modal">
+      <h2 id="form-title">Novo Fornecedor</h2>
+      <form id="supplier-form" onsubmit="saveSupplier(event)">
+        <input type="hidden" id="f-id">
+
+        <div class="form-section">Dados da Empresa</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Nome *</label><input type="text" id="f-name" required></div>
+          <div class="form-group"><label>CNPJ/CPF *</label><input type="text" id="f-cnpj" required></div>
+          <div class="form-group"><label>Responsável</label><input type="text" id="f-responsavel"></div>
+          <div class="form-group">
+            <label>Categoria *</label>
+            <select id="f-category" required>
+              <option value="">Selecione</option>
+              <option>Alimentos</option><option>Bebidas</option><option>Decoração</option>
+              <option>Equipamentos</option><option>Transporte</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Telefone *</label><input type="text" id="f-phone" required></div>
+          <div class="form-group"><label>WhatsApp</label><input type="text" id="f-whatsapp"></div>
+          <div class="form-group"><label>E-mail *</label><input type="email" id="f-email" required></div>
+          <div class="form-group"><label>Website</label><input type="text" id="f-website"></div>
+        </div>
+
+        <div class="form-section">Endereço</div>
+        <div class="form-grid">
+          <div class="form-group full"><label>Rua / Avenida</label><input type="text" id="f-street"></div>
+          <div class="form-group"><label>Número</label><input type="text" id="f-number"></div>
+          <div class="form-group"><label>Bairro</label><input type="text" id="f-neighborhood"></div>
+          <div class="form-group"><label>Cidade</label><input type="text" id="f-city"></div>
+          <div class="form-group"><label>Estado</label><input type="text" id="f-state"></div>
+          <div class="form-group"><label>CEP</label><input type="text" id="f-cep"></div>
+        </div>
+
+        <div class="form-section">Informações Comerciais</div>
+        <div class="form-grid">
+          <div class="form-group full"><label>Produto/Serviço</label><input type="text" id="f-product"></div>
+          <div class="form-group"><label>Prazo de Entrega</label><input type="text" id="f-delivery"></div>
+          <div class="form-group"><label>Cond. Pagamento</label><input type="text" id="f-payment"></div>
+          <div class="form-group full"><label>Observações</label><textarea id="f-notes" rows="3"></textarea></div>
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="Ativo">Ativo</option>
+            <option value="Inativo">Inativo</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeForm()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Profile -->
+  <div class="modal-overlay" id="modal-profile" onclick="closeProfileOutside(event)">
+    <div class="modal">
+      <h2>Perfil do Fornecedor</h2>
+      <div id="profile-content"></div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeProfile()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/fornecedor.js"></script>
