@@ -1,5 +1,5 @@
 // usuarios.model.js
-import db from "../../database/connection.js";
+import db from "../../../database/connection.js";
 
 
 // 🔍 BUSCAR TODOS OS USUÁRIOS + PERMISSÕES

@@ -1,4 +1,4 @@
-import db from "../../database/connection.js";
+import db from "../../../database/connection.js";
 
 // ---------------- CLIENTES ----------------
 export async function buscarClientes(termo) {

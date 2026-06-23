@@ -1,4 +1,4 @@
-import db from "../../database/connection.js";
+import db from "../../../database/connection.js";
 
 export async function findAll() {
   const [rows] = await db.query(

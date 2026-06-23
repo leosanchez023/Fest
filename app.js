@@ -13,7 +13,7 @@ import auth from "./src/config/auth.js";
 const app = express();
 
 //model
- import "./src/database/connection.js"
+ import "./database/connection.js"
 
 // corrigir __dirname para ES modules
 const __filename = fileURLToPath(import.meta.url);

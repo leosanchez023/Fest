@@ -1,6 +1,6 @@
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcrypt";
-import db from "../database/connection.js";
+import db from "../../database/connection.js";
 
 export default function (passport) {
 
