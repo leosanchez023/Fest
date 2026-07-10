@@ -1,108 +1,167 @@
 <link rel="stylesheet" href="/css/produtos.css">
+<link rel="stylesheet" href="/css/pages/produtos.css">
 
-  {{#if error_msg}}
-  <div style="color: red; margin-bottom: 10px;">
-    {{error_msg}}
+{{#if error_msg}}
+  <div style="color: red; margin-bottom: 10px;">{{error_msg}}</div>
+{{/if}}
+{{#if success_msg}}
+  <div style="color: green; margin-bottom: 10px;">{{success_msg}}</div>
+{{/if}}
+
+<div class="container">
+  <header>
+    <h1>Cadastro de Produtos</h1>
+    <p class="subtitle">Gerencie o inventário de produtos para venda e aluguel.</p>
+  </header>
+
+  <!-- FORM -->
+  <div class="card">
+    <form action="{{#if produto}}/produtos/editar/{{produto.id}}{{else}}/produtos/criar{{/if}}" method="POST">
+      <div class="form-grid">
+        <div>
+          <label>Nome do Produto</label>
+          <input name="nome" placeholder="Ex: Mesa redonda" value="{{produto.nome}}">
+        </div>
+
+        <div>
+          <label>Categoria</label>
+          <input
+            name="categoria"
+            list="categorias-list"
+            placeholder="Ex: Mesas, Cadeiras, Decoração..."
+            value="{{produto.categoria}}"
+          >
+          <datalist id="categorias-list">
+            {{#each categorias}}
+              <option value="{{this}}"></option>
+            {{/each}}
+          </datalist>
+        </div>
+
+        <div>
+          <label>Tipo</label>
+          <select name="tipo">
+            <option {{#if (eq produto.tipo "Venda")}}selected{{/if}}>Venda</option>
+            <option {{#if (eq produto.tipo "Aluguel")}}selected{{/if}}>Aluguel</option>
+            <option {{#if (eq produto.tipo "Ambos")}}selected{{/if}}>Ambos</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Estoque</label>
+          <input name="estoque" type="number" min="0" value="{{produto.estoque}}">
+        </div>
+
+        <div>
+          <label>Preço Venda (R$)</label>
+          <input name="precoVenda" type="number" min="0" step="0.01" value="{{produto.preco_venda}}">
+        </div>
+
+        <div>
+          <label>Preço Aluguel (R$)</label>
+          <input name="precoAluguel" type="number" min="0" step="0.01" value="{{produto.preco_aluguel}}">
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" type="submit">
+          {{#if produto}}Atualizar{{else}}Salvar{{/if}}
+        </button>
+        <a href="/produtos" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
   </div>
-  {{/if}}
 
-  {{#if success_msg}}
-    <div style="color: green; margin-bottom: 10px;">
-      {{success_msg}}
-    </div>
-  {{/if}}
+  <!-- FILTRO + TABELA -->
+  <div class="card">
+    <form method="GET" action="/produtos" class="filtro-bar">
+      <input
+        type="text"
+        name="busca"
+        placeholder="Buscar por nome..."
+        value="{{filtros.busca}}"
+      >
+      <select name="categoria">
+        <option value="">Todas as categorias</option>
+        {{#each categorias}}
+          <option value="{{this}}" {{#if (eq ../filtros.categoria this)}}selected{{/if}}>{{this}}</option>
+        {{/each}}
+      </select>
+      <button class="btn btn-primary" type="submit">Filtrar</button>
+      <a href="/produtos" class="btn btn-secondary">Limpar</a>
+    </form>
 
-
-
-  <div class="container">
-    <header>
-      <h1>Cadastro de Produtos</h1>
-      <p class="subtitle">Gerencie o inventário de produtos para venda e aluguel.</p>
-    </header>
-
-    <!-- FORM -->
-    <div class="card">
-      <form action="{{#if produto}}/produtos/editar/{{produto.id}} {{else}}/produtos/criar{{/if}}" method="POST">
-        
-        <div class="form-grid">
-          <div>
-            <label>Nome do Produto</label>
-            <input name="nome" placeholder="Ex: Mesa redonda" value="{{produto.nome}}">
-          </div>
-
-          <div>
-            <label>Tipo</label>
-            <select name="tipo">
-              <option {{#if (eq produto.tipo "Venda")}}selected{{/if}}>Venda</option>
-              <option {{#if (eq produto.tipo "Aluguel")}}selected{{/if}}>Aluguel</option>
-              <option {{#if (eq produto.tipo "Ambos")}}selected{{/if}}>Ambos</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Estoque</label>
-            <input name="estoque" type="number" min="0" value="{{produto.estoque}}">
-          </div>
-
-          <div>
-            <label>Preço Venda (R$)</label>
-            <input name="precoVenda" type="number" min="0" step="0.01" value="{{produto.preco_venda}}">
-          </div>
-
-          <div>
-            <label>Preço Aluguel (R$)</label>
-            <input name="precoAluguel" type="number" min="0" step="0.01" value="{{produto.preco_aluguel}}">
-          </div>
-        </div>
-
-        <div class="btn-group">
-          <button class="btn btn-primary" type="submit">
-            {{#if produto}}Atualizar{{else}}Salvar{{/if}}
-          </button>
-
-          <a href="/produtos" class="btn btn-secondary">Cancelar</a>
-        </div>
-
-      </form>
-    </div>
-
-    <!-- TABELA -->
-    <div class="card">
-      <table>
-        <thead>
+    <table>
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Categoria</th>
+          <th>Estoque</th>
+          <th>Venda (R$)</th>
+          <th>Aluguel (R$)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each produtos}}
           <tr>
-            <th>Produto</th>
-            <th>Tipo</th>
-            <th>Estoque</th>
-            <th>Venda (R$)</th>
-            <th>Aluguel (R$)</th>
-            <th></th>
+            <td>{{this.nome}}</td>
+            <td>{{this.categoria}}</td>
+            <td>{{this.estoque}}</td>
+            <td>{{moeda this.preco_venda}} R$</td>
+            <td>{{moeda this.preco_aluguel}} R$</td>
+            <td class="actions">
+              <a href="/produtos/editar/{{this.id}}" class="btn-edit">Editar</a>
+              <button onclick="deletarProduto({{this.id}})" class="btn-delete">Excluir</button>
+            </td>
           </tr>
-        </thead>
+        {{/each}}
+      </tbody>
+    </table>
 
-        <tbody>
-          {{#each produtos}}
-            <tr>
-              <td>{{this.nome}}</td>
-              <td>{{this.tipo}}</td>
-              <td>{{this.estoque}}</td>
-              <td>{{moeda this.preco_venda}} R$</td>
-              <td>{{moeda this.preco_aluguel}} R$</td>
-              <td class="actions">
-                <a href="/produtos/editar/{{this.id}}" class="btn-edit">Editar</a>
-                <button onclick="deletarProduto({{this.id}})" class="btn-delete">Excluir</button>
-              </td>
-            </tr>
-          {{/each}}
-        </tbody>
-      </table>
-
-      {{#if produtos.length}}
-      {{else}}
-        <div class="empty">Nenhum produto cadastrado.</div>
-      {{/if}}
-
-    </div>
+    {{#unless produtos.length}}
+      <div class="empty">Nenhum produto encontrado.</div>
+    {{/unless}}
   </div>
+</div>
 
 <script src="/js/produtos.js"></script>
+
+<script>
+  // routes/produtos.js
+router.get('/', async (req, res) => {
+  const { busca = '', categoria = '' } = req.query;
+
+  const params = [];
+  const where = [];
+
+  if (busca) {
+    params.push(`%${busca}%`);
+    where.push(`nome ILIKE $${params.length}`);
+  }
+  if (categoria) {
+    params.push(categoria);
+    where.push(`categoria = $${params.length}`);
+  }
+
+  const sql = `
+    SELECT * FROM produtos
+    ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+    ORDER BY nome ASC
+  `;
+  const { rows: produtos } = await db.query(sql, params);
+
+  // lista de categorias distintas para o select e o datalist
+  const { rows: cats } = await db.query(
+    `SELECT DISTINCT categoria FROM produtos WHERE categoria IS NOT NULL AND categoria <> '' ORDER BY categoria`
+  );
+  const categorias = cats.map(c => c.categoria);
+
+  res.render('produtos', {
+    produtos,
+    categorias,
+    filtros: { busca, categoria },
+  });
+});
+
+</script>

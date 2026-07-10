@@ -1,0 +1,58 @@
+/* ===== KPI ===== */
+
+.kpi,
+.kpi-card {
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.kpi {
+    color: #fff;
+    box-shadow: var(--shadow-lg);
+}
+
+.kpi h4 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.kpi .val {
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.g-primary { background: var(--grad-primary); }
+.g-warning { background: var(--grad-warning); }
+.g-danger  { background: var(--grad-danger); }
+.g-info    { background: var(--grad-info); }
+
+
+/* ===== KPI Cards ===== */
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.kpi-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+}

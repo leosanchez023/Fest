@@ -1,0 +1,21 @@
+@media (max-width:768px) {
+
+  .main {
+    padding:20px;
+  }
+
+  .kpi-grid {
+    grid-template-columns:1fr;
+  }
+
+  .form-grid {
+    grid-template-columns:1fr;
+  }
+
+  .page-header {
+    flex-direction:column;
+    align-items:flex-start;
+    gap:12px;
+  }
+
+}

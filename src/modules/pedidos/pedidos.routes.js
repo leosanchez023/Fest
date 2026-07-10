@@ -21,4 +21,10 @@ router.get("/buscar-enderecos", controller.buscarEnderecos);
 
 router.post("/criarEndereco", controller.criarEndereco);
 
+router.get("/cadastro_cliente", (req, res) => {
+    res.render("partials/cadastro_cliente", {
+        layout: false
+    });
+});
+
 export default router;

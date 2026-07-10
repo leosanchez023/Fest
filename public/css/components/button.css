@@ -1,0 +1,97 @@
+/* =========================
+   BOTÕES
+========================= */
+
+.btn {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 13px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s, transform .2s;
+}
+
+.btn:hover {
+    opacity: .9;
+    transform: translateY(-1px);
+}
+
+.btn:disabled {
+    opacity: .7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Cores */
+
+.btn-primary {
+    background: var(--primary);
+    color: var(--primary-fg);
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: var(--fg);
+    border: 1px solid #d0d5dd;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+}
+
+.btn-edit {
+    background: #f5a623;
+    color: #fff;
+}
+
+.btn-delete {
+    background: #d92d20;
+    color: #fff;
+}
+
+.btn-teal {
+    background: #14b8a6;
+    color: #fff;
+}
+
+.btn-blue {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.btn-green {
+    background: #22c55e;
+    color: #fff;
+}
+
+.btn-gray {
+    background: #6b7280;
+    color: #fff;
+}
+
+/* =========================
+   CLIENTE
+========================= */
+
+.btn-dashed {
+    width: 100%;
+    padding: 1rem;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f9fafb;
+    color: #4b5563;
+    cursor: pointer;
+}
+
+.btn-dashed:hover {
+    border-color: #14b8a6;
+    color: #14b8a6;
+    background: #ecfeff;
+}

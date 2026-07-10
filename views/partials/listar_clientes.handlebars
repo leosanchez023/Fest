@@ -1,0 +1,41 @@
+{{#if clientes.length}}
+  {{#each clientes}}
+    <div class="client-card">
+
+      <div class="client-header">
+        <h3>👤 {{this.nome}}</h3>
+      </div>
+
+      <p>📧 {{this.email}}</p>
+      <p>📞 {{this.telefone}}</p>
+      <p>📍 {{this.rua}}, {{this.numero}} — {{this.cidade}} / {{this.estado}}</p>
+
+      <div class="client-actions">
+        <button 
+  type="button"
+  class="btn-edit"
+  onclick="editClient(this)"
+  data-id="{{this.cliente_id}}"
+  data-nome="{{this.nome}}"
+  data-cpf="{{this.cpf}}"
+  data-email="{{this.email}}"
+  data-telefone="{{this.telefone}}"
+  data-nascimento="{{this.nascimento}}"
+  data-rua="{{this.rua}}"
+  data-numero="{{this.numero}}"
+  data-cidade="{{this.cidade}}"
+  data-estado="{{this.estado}}">
+  Editar
+</button>
+
+        <form action="/clientes/excluir/{{this.cliente_id}}" method="POST"
+              onsubmit="return confirm('Deseja excluir este cliente?')">
+          <button type="submit" class="btn-delete">Excluir</button>
+        </form>
+      </div>
+
+    </div>
+  {{/each}}
+{{else}}
+  <p>Nenhum cliente cadastrado.</p>
+{{/if}}

@@ -1,0 +1,58 @@
+/* ==================================
+   CLIENTES
+================================== */
+
+.client-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.client-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    transition: .2s;
+}
+
+.client-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+.client-header {
+    margin-bottom: 12px;
+}
+
+.client-header h3 {
+    font-size: .95rem;
+    font-weight: 700;
+}
+
+.client-card p {
+    margin-bottom: 8px;
+    font-size: .875rem;
+    color: #64748b;
+}
+
+.client-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.client-actions form {
+    margin: 0;
+}
+
+@media (max-width:700px){
+
+    .client-grid{
+        grid-template-columns:1fr;
+    }
+
+}

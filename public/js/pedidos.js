@@ -79,37 +79,21 @@ function renderCliente() {
 ====================================================== */
 
 function togglePainel(abrir) {
-  const painel = $('cliente-painel');
-  if (!painel) return;
 
-  if (!abrir) {
-    painel.style.display = 'none';
-    return;
-  }
+    const painel = $('cliente-painel');
 
-  // Monta a estrutura interna do painel (header + tabs + corpo)
-  painel.style.display = 'block';
-  painel.innerHTML = `
-    <div class="client-panel">
-      <div class="client-panel-header">
-        <strong>Buscar ou cadastrar cliente</strong>
-        <button type="button" class="btn-close" id="btn-fechar-painel">✖</button>
-      </div>
+    painel.style.display = abrir ? 'block' : 'none';
 
-      <div class="tabs">
-        <button type="button" id="tab-buscar">🔍 Buscar</button>
-        <button type="button" id="tab-cadastrar">➕ Cadastrar⚠️</button>
-      </div>
+    if (!abrir) return;
 
-      <div id="painel-body"></div>
-    </div>
-  `;
+    $('btn-fechar-painel').onclick = () => togglePainel(false);
 
-  $('btn-fechar-painel').onclick = () => togglePainel(false);
-  $('tab-buscar').onclick        = () => setClientTab('buscar');
-  $('tab-cadastrar').onclick     = () => setClientTab('cadastrar');
+    $('tab-buscar').onclick = () => renderBuscaCliente();
 
-  setClientTab(tabAtiva);
+    $('tab-cadastrar').onclick = () => renderCadastroCliente();
+
+    renderBuscaCliente();
+
 }
 
 function setClientTab(tab) {
@@ -217,74 +201,48 @@ function preencherClienteSelecionado() {
    CLIENTE - CADASTRO (usa endpoint /pedidos/criarCliente)
 ====================================================== */
 
-function renderCadastroCliente() {
-  const body = $('painel-body');
+async function renderCadastroCliente() {
+    const body = $('painel-body');
 
-  body.innerHTML = `
-    <form id="form-novo" class="form-grid-clientes">
+    const response = await fetch('/pedidos/cadastro_cliente');
 
-  <div class="field">
-    <label>Nome completo</label>
-    <input name="nome" class="input" placeholder="Nome completo" required />
-  </div>
+    body.innerHTML = await response.text();
 
-  <div class="field">
-    <label>CPF</label>
-    <input name="cpf" class="input" placeholder="000.000.000-00" />
-  </div>
+    $('form-novo').onsubmit = async (e) => {
+        e.preventDefault();
 
-  <div class="field">
-    <label>Telefone</label>
-    <input name="telefone" class="input" placeholder="(00) 00000-0000" />
-  </div>
+        const f = e.target;
 
-  <div class="field">
-    <label>Email</label>
-    <input name="email" class="input" placeholder="email@exemplo.com" />
-  </div>
+        const novo = {
+            nome: f.nome.value.trim(),
+            cpf: f.cpf.value.trim(),
+            telefone: f.telefone.value.trim(),
+            email: f.email.value.trim(),
+            endereco: f.endereco.value.trim()
+        };
 
-  <div class="field full">
-    <label>Endereço</label>
-    <input name="endereco" class="input" placeholder="Rua, número, bairro, cidade" />
-  </div>
+        try {
+            const res = await fetch('/pedidos/criarCliente', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(novo)
+            });
 
-  <div class="form-actions-client">
-    <button type="submit" class="btn btn-teal">Salvar cliente</button>
-  </div>
+            if (!res.ok) throw new Error('Erro ao cadastrar');
 
-</form>
-  `;
+            const clienteSalvo = await res.json();
 
-  $('form-novo').onsubmit = async (e) => {
-    e.preventDefault();
-    const f = e.target;
+            clienteSelecionado = clienteSalvo;
+            renderCliente();
+            togglePainel(false);
 
-    const novo = {
-      nome:     f.nome.value.trim(),
-      cpf:      f.cpf.value.trim(),
-      telefone: f.telefone.value.trim(),
-      email:    f.email.value.trim(),
-      endereco: f.endereco.value.trim()
+        } catch (err) {
+            console.error(err);
+            alert('Erro ao cadastrar cliente');
+        }
     };
-
-    try {
-      const res = await fetch('/pedidos/criarCliente', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(novo)
-      });
-      if (!res.ok) throw new Error('Erro ao cadastrar');
-
-      // Backend deve retornar o cliente salvo (com id)
-      const clienteSalvo = await res.json();
-      clienteSelecionado = clienteSalvo;
-      renderCliente();
-      togglePainel(false);
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao cadastrar cliente');
-    }
-  };
 }
 
 

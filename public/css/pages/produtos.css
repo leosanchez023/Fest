@@ -1,0 +1,27 @@
+/* ==========================================
+   PRODUTOS
+========================================== */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.actions {
+    display: flex;
+    gap: 6px;
+}
+
+.empty {
+    text-align: center;
+    padding: 40px;
+    color: #98a2b3;
+    font-size: .875rem;
+}

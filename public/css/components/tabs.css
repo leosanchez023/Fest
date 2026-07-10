@@ -1,0 +1,39 @@
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tabs button {
+  flex: none;
+  width: 140px;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
+}
+
+.tabs button.active {
+  background: #14b8a6;
+  color: #fff;
+  border-color: #14b8a6;
+}
+
+/* BADGE BASE */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* BADGE VARIANTS */
+.badge-success { background: #dcfce7; color: #047857; }
+.badge-warning { background: #fef3c7; color: #92400e; }
+.badge-danger  { background: #fee2e2; color: #b91c1c; }
+.badge-info    { background: #dbeafe; color: #1d4ed8; }
+.badge-muted   { background: #f1f5f9; color: #475569; }
+.badge-purple  { background: #ede9fe; color: #6d28d9; }

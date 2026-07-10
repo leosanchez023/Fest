@@ -1,0 +1,40 @@
+/* ==========================================
+   SIDEBAR NAV
+========================================== */
+
+.sidebar-nav {
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* ==========================================
+   NAV ITEM
+========================================== */
+
+.nav-item {
+    all: unset;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--muted);
+    transition: all .15s;
+}
+
+/* HOVER */
+.nav-item:hover {
+    background: #f3f4f6;
+    color: var(--fg);
+}
+
+/* ACTIVE */
+.nav-item.active {
+    background: rgba(59, 130, 246, .1);
+    color: var(--primary);
+    font-weight: 500;
+}
