@@ -2,11 +2,45 @@ import * as service from "./clientes.service.js"
 
 export async function listar(req, res) {
   try {
-    const clientes = await service.listar()
-    res.render("pages/clientes", { clientes })
+    const q = req.query.q || "";
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const data = await service.listar({ q, page, limit });
+
+    const pageNum = Number(data.page) || 1;
+    const totalPages = Number(data.totalPages) || 1;
+    const prevPage = pageNum > 1 ? pageNum - 1 : 1;
+    const nextPage = pageNum < totalPages ? pageNum + 1 : totalPages;
+
+    return res.render("pages/clientes", {
+      clientes: data.clientes,
+      total: data.total,
+      page: pageNum,
+      limit: data.limit,
+      totalPages,
+      prevPage,
+      nextPage,
+      isFirst: pageNum <= 1,
+      isLast: pageNum >= totalPages,
+      q
+    });
   } catch (err) {
     req.flash("error_msg", err.message)
     res.redirect("/clientes")
+  }
+}
+
+export async function apiList(req, res) {
+  try {
+    const q = req.query.q || "";
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+
+    const data = await service.listar({ q, page, limit });
+    return res.json(data);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 }
 

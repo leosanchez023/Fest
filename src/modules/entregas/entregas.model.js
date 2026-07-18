@@ -77,10 +77,20 @@ export async function buscarPedidoPorId(id) {
   const [rows] = await db.query(`
     SELECT
       p.*,
-      c.nome AS cliente, c.telefone, c.email, c.cpf,
+      c.nome AS cliente,
+      c.telefone,
+      c.email,
+      c.cpf,
+      e.rua AS endereco_rua,
+      e.numero AS endereco_numero,
+      e.bairro AS endereco_bairro,
+      e.cidade AS endereco_cidade,
+      e.estado AS endereco_estado,
+      e.cep AS endereco_cep,
       COALESCE((SELECT SUM(valor) FROM pagamentos WHERE pedido_id = p.id), 0) AS valor_pago
     FROM pedidos p
     LEFT JOIN cliente c ON c.id = p.cliente_id
+    LEFT JOIN endereco e ON e.id = p.endereco_id
     WHERE p.id = ?
   `, [id]);
   return rows[0] || null;
@@ -102,6 +112,47 @@ export async function pagamentosDoPedido(pedidoId) {
     [pedidoId]
   );
   return rows;
+}
+
+export async function inserirPagamento(pedidoId, dados) {
+  const { valor, forma_pagamento, observacao, usuario_id } = dados;
+  const [result] = await db.query(
+    `INSERT INTO pagamentos (pedido_id, usuario_id, valor, forma_pagamento, observacao) VALUES (?, ?, ?, ?, ?)`,
+    [pedidoId, usuario_id || null, valor, forma_pagamento || null, observacao || null]
+  );
+  return result;
+}
+
+export async function marcarEntregue(pedidoId, dados) {
+  const { motorista, veiculo, responsavel_entrega } = dados;
+  const [result] = await db.query(
+    `UPDATE pedidos SET status = 'ENTREGUE', data_entrega = CURDATE(), motorista = ?, veiculo = ?, responsavel_entrega = ? WHERE id = ?`,
+    [motorista || null, veiculo || null, responsavel_entrega || null, pedidoId]
+  );
+  return result;
+}
+
+export async function marcarRetirado(pedidoId, dados) {
+  const { responsavel_retirada } = dados;
+  const [result] = await db.query(
+    `UPDATE pedidos SET status = 'RETIRADO', data_retirada = CURDATE(), responsavel_retirada = ? WHERE id = ?`,
+    [responsavel_retirada || null, pedidoId]
+  );
+  return result;
+}
+
+export async function finalizarConferencia(pedidoId) {
+  const [result] = await db.query(`UPDATE pedidos SET status = 'FINALIZADO' WHERE id = ?`, [pedidoId]);
+  return result;
+}
+
+export async function inserirOcorrencia(pedidoId, dados) {
+  const { tipo, descricao, valor, usuario_id } = dados;
+  const [result] = await db.query(
+    `INSERT INTO ocorrencias (pedido_id, usuario_id, tipo, descricao, valor) VALUES (?, ?, ?, ?, ?)`,
+    [pedidoId, usuario_id || null, tipo || 'Geral', descricao || null, valor || 0]
+  );
+  return result;
 }
 
 export async function kpis() {

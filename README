@@ -290,6 +290,20 @@ O sistema implementa:
 
 ---
 
+## Mudanças recentes (Clientes)
+
+Implementado filtro e paginação na tela de `Clientes` com lógica backend:
+
+- Listagem exibida em tabela em vez de cards.
+- Busca por nome, email ou CPF executada no servidor.
+- Paginação por `page` e `limit`, com navegação anterior/próxima.
+- A interface mantém o formulário atual de cadastro/edição.
+- Rota adicional `/clientes/data` disponível para retornar JSON paginado.
+
+Essa atualização reforça a lógica de busca no backend e mantém o CSS local da tela de clientes.
+
+---
+
 ## Autor
 
 Leonardo Sanchez

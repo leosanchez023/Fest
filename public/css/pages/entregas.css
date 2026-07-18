@@ -131,18 +131,102 @@
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1rem;
+    flex-wrap: wrap;
 }
 
-.tabs button {
+ .tabs .tab {
     flex: none;
-    width: 140px;
-    padding: 0.45rem 0.7rem;
-    font-size: 0.85rem;
-    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #334155;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
 
-.tabs button.active {
-    background: #14b8a6;
-    color: #fff;
-    border-color: #14b8a6;
+.tabs .tab:hover {
+    background: #eef2ff;
+}
+
+.tabs .tab.active {
+    background: #eff6ff;
+    color: #2563eb;
+    border-color: #bfdbfe;
+    box-shadow: inset 0 -1px 0 0 #bfdbfe;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.section-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.timeline-steps {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.timeline-step {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.timeline-step.done {
+  border-color: #34d399;
+  background: #ecfdf5;
+}
+
+.timeline-step.pending {
+  border-color: #e5e7eb;
+}
+
+.timeline-step .marker {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e5e7eb;
+  font-weight: 700;
+}
+
+.timeline-step.done .marker {
+  background: #34d399;
+  color: #fff;
+}
+
+.step-title {
+  font-weight: 600;
+}
+
+.step-meta {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-top: 4px;
 }

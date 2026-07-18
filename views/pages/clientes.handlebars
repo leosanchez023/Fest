@@ -12,11 +12,11 @@
 
       <div>
         <h1>Cadastro de Clientes</h1>
-        <small id="clientCount">{{clientes.length}} clientes</small>
+        <small id="clientCount">{{total}} clientes</small>
       </div>
     </div>
 
-    <button type="button" class="btn btn-primary" onclick="toggleForm()">
+    <button type="button" class="btn btn-primary" onclick="openForm()">
       <i class="fas fa-plus"></i>
       Novo Cliente
     </button>
@@ -25,57 +25,89 @@
 
 <main>
 
-  <!-- FORMULÁRIO (COMEÇA OCULTO) -->
+  <section class="client-filter-row">
+    <form class="filter-form" onsubmit="submitFilter(event)">
+      <input id="searchInput" name="q" type="search" placeholder="Pesquisar nome, email ou CPF" value="{{q}}">
+      <select id="limitSelect" name="limit">
+        <option value="10">10 por página</option>
+        <option value="25">25 por página</option>
+        <option value="50">50 por página</option>
+      </select>
+      <button class="btn btn-secondary" type="submit">Buscar</button>
+    </form>
+  </section>
+
   <div id="formContainer" style="display:none;">
     {{> cadastro_cliente}}
   </div>
-    
-  <!-- LISTA DE CLIENTES (CARREGA AUTOMATICO) -->
-  <div class="client-grid">
-    {{> listar_clientes}}
+
+  <div class="table-wrap">
+    <table class="client-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Telefone</th>
+          <th>CPF</th>
+          <th>Endereço</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#if clientes.length}}
+          {{#each clientes}}
+            <tr>
+              <td>{{this.cliente_id}}</td>
+              <td>{{this.nome}}</td>
+              <td>{{this.email}}</td>
+              <td>{{this.telefone}}</td>
+              <td>{{this.cpf}}</td>
+              <td>{{this.rua}} {{this.numero}} - {{this.cidade}}/{{this.estado}}</td>
+              <td>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="editClient(this)"
+                  data-id="{{this.cliente_id}}"
+                  data-nome="{{this.nome}}"
+                  data-email="{{this.email}}"
+                  data-telefone="{{this.telefone}}"
+                  data-cpf="{{this.cpf}}"
+                  data-nascimento="{{this.nascimento}}"
+                  data-rua="{{this.rua}}"
+                  data-numero="{{this.numero}}"
+                  data-cidade="{{this.cidade}}"
+                  data-estado="{{this.estado}}">
+                  Editar
+                </button>
+                <form class="inline-form" method="post" action="/clientes/excluir/{{this.cliente_id}}" onsubmit="return confirm('Deseja excluir este cliente?')">
+                  <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                </form>
+              </td>
+            </tr>
+          {{/each}}
+        {{else}}
+          <tr>
+            <td colspan="7" class="empty-row">Nenhum cliente encontrado.</td>
+          </tr>
+        {{/if}}
+      </tbody>
+    </table>
   </div>
 
+  <div class="pagination-row">
+    <button class="btn" type="button" onclick="goToPage({{prevPage}})" {{#if isFirst}}disabled{{/if}}>Anterior</button>
+    <span>Página {{page}} de {{totalPages}}</span>
+    <button class="btn" type="button" onclick="goToPage({{nextPage}})" {{#if isLast}}disabled{{/if}}>Próxima</button>
+  </div>
 
 </main>
 
+<script src="/js/clientes.js"></script>
 <script>
-  function toggleForm() {
-  const form = document.getElementById("formContainer");
-
-  if (!form) return;
-
-  const isHidden = form.style.display === "none" || form.style.display === "";
-
-  form.style.display = isHidden ? "block" : "none";
-}
-function editClient(btn) {
-  const container = document.getElementById("formContainer");
-  const form = container.querySelector("form");
-
-  // 1. abre formulário
-  container.style.display = "block";
-
-  // 2. muda rota do submit para edição
-  form.action = "/clientes/editar/" + btn.dataset.id;
-
-  // 3. preenche campos automaticamente
-  form.querySelector("[name='nome']").value = btn.dataset.nome || "";
-  form.querySelector("[name='cpf']").value = btn.dataset.cpf || "";
-  form.querySelector("[name='email']").value = btn.dataset.email || "";
-  form.querySelector("[name='telefone']").value = btn.dataset.telefone || "";
-  form.querySelector("[name='nascimento']").value = btn.dataset.nascimento || "";
-  form.querySelector("[name='rua']").value = btn.dataset.rua || "";
-  form.querySelector("[name='numero']").value = btn.dataset.numero || "";
-  form.querySelector("[name='cidade']").value = btn.dataset.cidade || "";
-  form.querySelector("[name='estado']").value = btn.dataset.estado || "";
-}
-function openForm() {
-  const container = document.getElementById("formContainer");
-  const form = container.querySelector("form");
-
-  form.reset();
-  form.action = "/clientes/criar";
-
-  container.style.display = "block";
-}
+  (function(){
+    const limitSelect = document.getElementById('limitSelect');
+    const currentLimit = '{{limit}}';
+    if (limitSelect && currentLimit) {
+      limitSelect.value = currentLimit;
+    }
+  })();
 </script>

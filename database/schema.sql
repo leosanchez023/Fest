@@ -8,8 +8,10 @@ CREATE TABLE endereco (
   id INT NOT NULL AUTO_INCREMENT,
   rua VARCHAR(150),
   numero VARCHAR(10),
+  bairro VARCHAR(100),
   cidade VARCHAR(100),
   estado VARCHAR(2),
+  cep VARCHAR(12),
   PRIMARY KEY (id)
 );
 CREATE TABLE usuario (
@@ -48,6 +50,7 @@ CREATE TABLE cliente (
 CREATE TABLE pedidos (
   id INT NOT NULL AUTO_INCREMENT,
   cliente_id INT NOT NULL,
+  endereco_id INT,
   usuario_id INT,
   data_pedido DATETIME DEFAULT CURRENT_TIMESTAMP,
   data_evento DATE NOT NULL,
@@ -60,9 +63,17 @@ CREATE TABLE pedidos (
   valor_frete DECIMAL(10,2) DEFAULT 0.00,
   valor_desconto DECIMAL(10,2) DEFAULT 0.00,
   valor_total DECIMAL(10,2) DEFAULT 0.00,
+  local_evento VARCHAR(255),
+  motorista VARCHAR(100),
+  veiculo VARCHAR(100),
+  responsavel_entrega VARCHAR(100),
+  responsavel_retirada VARCHAR(100),
+  observacao_entrega TEXT,
+  observacao_retirada TEXT,
   observacoes TEXT,
   PRIMARY KEY (id),
   FOREIGN KEY (cliente_id) REFERENCES cliente(id),
+  FOREIGN KEY (endereco_id) REFERENCES endereco(id),
   FOREIGN KEY (usuario_id) REFERENCES usuario(id)
 );
 CREATE TABLE pedido_itens (
@@ -84,6 +95,7 @@ CREATE TABLE pedido_itens (
 CREATE TABLE pagamentos (
   id INT NOT NULL AUTO_INCREMENT,
   pedido_id INT NOT NULL,
+  usuario_id INT,
   data_pagamento DATETIME DEFAULT CURRENT_TIMESTAMP,
   valor DECIMAL(10,2) NOT NULL,
   forma_pagamento ENUM('DINHEIRO','PIX','CARTAO_DEBITO','CARTAO_CREDITO','TRANSFERENCIA') NOT NULL,
@@ -91,18 +103,24 @@ CREATE TABLE pagamentos (
   PRIMARY KEY (id),
   FOREIGN KEY (pedido_id)
     REFERENCES pedidos(id)
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+  FOREIGN KEY (usuario_id)
+    REFERENCES usuario(id)
 );
 CREATE TABLE devolucoes (
   id INT NOT NULL AUTO_INCREMENT,
   pedido_id INT NOT NULL,
+  usuario_id INT,
   data_devolucao DATETIME,
   valor_multa DECIMAL(10,2) DEFAULT 0.00,
   observacao TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   FOREIGN KEY (pedido_id)
     REFERENCES pedidos(id)
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+  FOREIGN KEY (usuario_id)
+    REFERENCES usuario(id)
 );
 CREATE TABLE devolucao_itens (
   id INT NOT NULL AUTO_INCREMENT,
@@ -112,12 +130,29 @@ CREATE TABLE devolucao_itens (
   quantidade_faltando INT DEFAULT 0,
   quantidade_danificada INT DEFAULT 0,
   valor_cobranca DECIMAL(10,2) DEFAULT 0.00,
+  observacao TEXT,
   PRIMARY KEY (id),
   FOREIGN KEY (devolucao_id)
     REFERENCES devolucoes(id)
     ON DELETE CASCADE,
   FOREIGN KEY (produto_id)
     REFERENCES produtos(id)
+);
+CREATE TABLE ocorrencias (
+  id INT NOT NULL AUTO_INCREMENT,
+  pedido_id INT NOT NULL,
+  usuario_id INT,
+  tipo VARCHAR(100) NOT NULL,
+  descricao TEXT NOT NULL,
+  valor DECIMAL(10,2) DEFAULT 0.00,
+  status ENUM('ABERTO','EM_ANDAMENTO','RESOLVIDO','CANCELADO') DEFAULT 'ABERTO',
+  data_ocorrencia DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  FOREIGN KEY (pedido_id)
+    REFERENCES pedidos(id)
+    ON DELETE CASCADE,
+  FOREIGN KEY (usuario_id)
+    REFERENCES usuario(id)
 );
 CREATE TABLE movimentacao_estoque (
   id INT NOT NULL AUTO_INCREMENT,

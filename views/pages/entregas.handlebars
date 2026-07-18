@@ -1,5 +1,128 @@
 <link rel="stylesheet" href="/css/style.css">
-<link rel="stylesheet" href="/public/css/pages/entregas.css">
+<link rel="stylesheet" href="/css/pages/entregas.css">
+
+
+
+
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --border: #e5e9f2;
+    --muted: #6b7280;
+    --fg: #0f172a;
+    --primary: #6d28d9;
+    --primary-2: #c026d3;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    --grad-primary: linear-gradient(135deg,#7c3aed,#c026d3);
+    --grad-success: linear-gradient(135deg,#10b981,#34d399);
+    --grad-warning: linear-gradient(135deg,#f59e0b,#f97316);
+    --grad-danger: linear-gradient(135deg,#ef4444,#dc2626);
+    --grad-info: linear-gradient(135deg,#3b82f6,#6366f1);
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-lg: 0 10px 25px -8px rgba(31,41,99,.18);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background:var(--bg); color:var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); }
+  .kpi { border-radius:14px; padding:18px; color:#fff; box-shadow:var(--shadow-lg); position:relative; overflow:hidden; }
+  .kpi .icon { position:absolute; right:14px; top:14px; opacity:.25; font-size:48px; }
+  .kpi h4 { margin:0 0 4px; font-size:13px; opacity:.9; font-weight:500; }
+  .kpi .val { font-size:26px; font-weight:700; }
+  .kpi .sub { font-size:12px; opacity:.85; margin-top:4px; }
+  .g-primary{background:var(--grad-primary)} .g-success{background:var(--grad-success)}
+  .g-warning{background:var(--grad-warning)} .g-danger{background:var(--grad-danger)}
+  .g-info{background:var(--grad-info)}
+  .g-slate{background:linear-gradient(135deg,#475569,#334155)}
+  .g-teal{background:linear-gradient(135deg,#14b8a6,#0d9488)}
+  .g-rose{background:linear-gradient(135deg,#f43f5e,#e11d48)}
+
+  .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; }
+  .b-success{background:#dcfce7;color:#047857}
+  .b-warning{background:#fef3c7;color:#92400e}
+  .b-danger{background:#fee2e2;color:#b91c1c}
+  .b-info{background:#dbeafe;color:#1d4ed8}
+  .b-muted{background:#f1f5f9;color:#475569}
+  .b-purple{background:#ede9fe;color:#6d28d9}
+
+  table { width:100%; border-collapse:separate; border-spacing:0; }
+  th, td { text-align:left; padding:12px 14px; font-size:13px; border-bottom:1px solid var(--border); }
+  th { background:#f8fafc; color:#475569; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  tr:hover td { background:#fafbff; }
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:8px; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:13px; font-weight:500; transition:.15s; }
+  .btn:hover { background:#f8fafc; }
+  .btn-primary { background:var(--grad-primary); color:#fff; border:none; }
+  .btn-primary:hover { filter:brightness(1.08); }
+  .btn-ghost { background:transparent; border:none; padding:6px; border-radius:8px; }
+  .btn-ghost:hover { background:#f1f5f9; }
+  input, select { padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:#fff; outline:none; width:100%; }
+  input:focus, select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(124,58,237,.12); }
+  label { font-size:12px; color:var(--muted); font-weight:500; display:block; margin-bottom:4px; }
+
+  /* Modal */
+  .modal-overlay { position:fixed; inset:0; background:rgba(15,23,42,.55); display:none; align-items:flex-start; justify-content:center; z-index:50; overflow-y:auto; padding:40px 20px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:#fff; border-radius:16px; width:100%; max-width:1100px; box-shadow:0 25px 50px -12px rgba(0,0,0,.35); overflow:hidden; }
+  .modal-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:var(--grad-primary); color:#fff; }
+  .modal-body { padding:24px; max-height:75vh; overflow-y:auto; }
+
+  /* Tabs */
+  .tabs { display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:20px; overflow-x:auto; }
+  .tab { padding:10px 16px; cursor:pointer; font-size:13px; font-weight:500; color:var(--muted); border-bottom:2px solid transparent; white-space:nowrap; }
+  .tab.active { color:var(--primary); border-color:var(--primary); }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  /* Timeline */
+  .timeline { display:flex; flex-direction:column; gap:0; }
+  .tl-step { display:flex; gap:14px; position:relative; padding-bottom:18px; }
+  .tl-step:not(:last-child)::before { content:""; position:absolute; left:15px; top:32px; bottom:0; width:2px; background:var(--border); }
+  .tl-step.done:not(:last-child)::before { background:var(--success); }
+  .tl-dot { width:32px; height:32px; border-radius:50%; background:#e5e7eb; color:#9ca3af; display:flex; align-items:center; justify-content:center; flex-shrink:0; z-index:1; font-size:14px; }
+  .tl-step.done .tl-dot { background:var(--success); color:#fff; }
+  .tl-step.active .tl-dot { background:var(--grad-primary); color:#fff; box-shadow:0 0 0 4px rgba(124,58,237,.18); }
+  .tl-content h5 { margin:4px 0 2px; font-size:14px; font-weight:600; }
+  .tl-content p { margin:0; font-size:12px; color:var(--muted); }
+
+  /* Alerts */
+  .alert { display:flex; gap:12px; padding:14px; border-radius:12px; align-items:flex-start; }
+  .alert i { font-size:20px; flex-shrink:0; }
+  .alert .title { font-weight:600; font-size:13px; margin-bottom:2px; }
+  .alert .desc { font-size:12px; opacity:.85; }
+  .a-danger{background:#fef2f2; color:#991b1b; border:1px solid #fecaca;}
+  .a-warning{background:#fffbeb; color:#92400e; border:1px solid #fde68a;}
+  .a-info{background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe;}
+  .a-success{background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;}
+
+  .grid { display:grid; gap:16px; }
+  .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .grid-6{grid-template-columns:repeat(6,minmax(0,1fr))}
+  @media (max-width: 1024px){ .grid-4,.grid-6{grid-template-columns:repeat(2,1fr)} .grid-3{grid-template-columns:1fr} }
+  @media (max-width: 640px){ .grid-2,.grid-4,.grid-6{grid-template-columns:1fr} }
+
+  .progress { height:6px; background:#e5e7eb; border-radius:999px; overflow:hidden; }
+  .progress > div { height:100%; background:var(--grad-success); }
+
+  .field-row { display:flex; flex-direction:column; gap:4px; padding:10px 0; border-bottom:1px dashed var(--border); }
+  .field-row .l { font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  .field-row .v { font-size:14px; font-weight:500; }
+
+  h1 { font-size:24px; font-weight:700; margin:0; }
+  h2 { font-size:18px; font-weight:600; margin:0 0 12px; }
+  h3 { font-size:15px; font-weight:600; margin:0 0 10px; color:#334155; }
+  .muted { color:var(--muted); }
+</style>
+
+
+
+
+
 
 <div class="container">
 
@@ -148,6 +271,7 @@
       <div>
         <div id="m-id">PED-0000</div>
         <div id="m-customer">Cliente</div>
+        <div id="m-status" class="muted" style="margin-top:8px;"></div>
       </div>
       <button onclick="closeModal()">✖</button>
     </div>
@@ -156,448 +280,21 @@
       <div id="m-timeline"></div>
 
       <div class="tabs">
-        <div class="tab active" data-tab="dados">Dados</div>
-        <div class="tab" data-tab="fin">Financeiro</div>
-        <div class="tab" data-tab="log">Logística</div>
+        <div class="tab active" data-tab="dados">📄 Dados</div>
+        <div class="tab" data-tab="fin">💰 Financeiro</div>
+        <div class="tab" data-tab="log">🚚 Logística</div>
+        <div class="tab" data-tab="dev">🔄 Devolução</div>
+        <div class="tab" data-tab="oco">⚠️ Ocorrências</div>
       </div>
 
-      <div class="tab-panel active" id="tab-dados"></div>
-      <div class="tab-panel" id="tab-fin"></div>
-      <div class="tab-panel" id="tab-log"></div>
+      <div class="tab-panel active" id="tab-dados"><div id="m-dados"></div></div>
+      <div class="tab-panel" id="tab-fin"><div id="m-fin"></div></div>
+      <div class="tab-panel" id="tab-log"><div id="m-log"></div></div>
+      <div class="tab-panel" id="tab-dev"><div id="m-dev"></div></div>
+      <div class="tab-panel" id="tab-oco"><div id="m-oco"></div></div>
 
     </div>
   </div>
 </div>
 
-<script>
-
-/* =========================
-   ARMAZENAMENTO GLOBAL
-   ========================= */
-
-// Lista global de pedidos carregados da API
-let ORDERS = [];
-
-// Data de hoje no formato YYYY-MM-DD (usado em comparações)
-const TODAY = new Date().toISOString().split("T")[0];
-
-
-/* =========================
-   FUNÇÕES DE FORMATAÇÃO
-   ========================= */
-
-// Formata valores para moeda brasileira (R$ 1.234,56)
-const fmt = v =>
-  "R$ " + Number(v || 0).toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-
-// Formata datas do formato ISO para DD/MM/YYYY
-const fmtDate = d => {
-  if (!d) return "-";
-  const s = String(d).split("T")[0];
-  const [y, m, da] = s.split("-");
-  return y ? `${da}/${m}/${y}` : d;
-};
-
-
-/* =========================
-   BADGES DE STATUS (UI)
-   ========================= */
-
-// Badge de status de pagamento
-function payBadge(s) {
-  const m = {
-    "Pago Integralmente": "b-success",
-    "Parcialmente Pago": "b-warning",
-    "Não Pago": "b-danger"
-  };
-  return `<span class="badge ${m[s] || "b-muted"}">${s || "-"}</span>`;
-}
-
-// Badge de status de entrega
-function delivBadge(s) {
-  const m = {
-    "Aguardando Entrega": "b-muted",
-    "Em Rota": "b-info",
-    "Entregue": "b-success",
-    "Entrega Atrasada": "b-danger"
-  };
-  return `<span class="badge ${m[s] || "b-muted"}">${s || "-"}</span>`;
-}
-
-// Badge de status geral do pedido
-function statusBadge(s) {
-  const m = {
-    "Agendado": "b-info",
-    "Em Andamento": "b-purple",
-    "Finalizado": "b-success",
-    "Pendente": "b-warning",
-    "Cancelado": "b-danger"
-  };
-  return `<span class="badge ${m[s] || "b-muted"}">${s || "-"}</span>`;
-}
-
-
-/* =========================
-   KPIs (RESUMO DO SISTEMA)
-   ========================= */
-
-// Busca indicadores gerais da API e atualiza cards da tela
-async function renderKPIs() {
-  try {
-    const response = await fetch("/entregas/pedidos");
-    if (!response.ok) throw new Error();
-
-    const orders = await response.json();
-
-    ORDERS = orders; // mantém sincronizado
-
-    const today = new Date().toISOString().split("T")[0];
-
-    let ativos = 0;
-    let entregasHoje = 0;
-    let retiradasHoje = 0;
-    let pagos = 0;
-    let atrasados = 0;
-
-    orders.forEach(o => {
-      const total = Number(o.valor_total || 0);
-      const paid = Number(o.valor_pago || 0);
-
-      // 🟦 pedidos ativos
-      if (o.status !== "FINALIZADO" && o.status !== "CANCELADO") {
-        ativos++;
-      }
-
-      // 🚚 entregas hoje
-      if (o.data_entrega && o.data_entrega.split("T")[0] === today) {
-        entregasHoje++;
-      }
-
-      // 📦 retiradas hoje
-      if (o.data_retirada && o.data_retirada.split("T")[0] === today) {
-        retiradasHoje++;
-      }
-
-      // 💰 pagos
-      pagos += paid;
-
-      // ⚠️ atrasados (saldo aberto)
-      if (o.status !== "FINALIZADO" && paid < total) atrasados++;
-    });
-
-    // 👉 atualiza UI
-    document.getElementById("kpi-active").textContent = ativos;
-    document.getElementById("kpi-delivery").textContent = entregasHoje;
-    document.getElementById("kpi-pickup").textContent = retiradasHoje;
-    document.getElementById("kpi-late").textContent = atrasados;
-
-  } catch (e) {
-    console.error("Erro KPIs:", e);
-  }
-}
-
-
-/* =========================
-   ALERTAS DA DASHBOARD
-   ========================= */
-
-// Gera alertas baseados nos pedidos carregados
-function renderAlerts() {
-  const a = [];
-
-  // Filtra pedidos com saldo em aberto
-  const due = ORDERS.filter(o =>
-    (Number(o.valor_total || 0) - Number(o.valor_pago || 0)) > 0
-  );
-
-  // Se houver pendências financeiras
-  if (due.length) {
-    a.push({
-      c: "a-warning",
-      i: "dollar-sign",
-      t: `${due.length} pedidos com saldo`,
-      d: fmt(due.reduce((s, o) =>
-        s + (Number(o.valor_total || 0) - Number(o.valor_pago || 0)), 0))
-    });
-  }
-
-  // Se não houver alertas
-  if (!a.length) {
-    a.push({
-      c: "a-success",
-      i: "check-circle",
-      t: "Tudo em ordem!",
-      d: "Sem pendências"
-    });
-  }
-
-  // Renderiza HTML dos alertas
-  document.getElementById("alerts").innerHTML =
-    a.map(x => `
-      <div class="alert ${x.c}">
-        <i class="lucide lucide-${x.i}"></i>
-        <div>
-          <div class="title">${x.t}</div>
-          <div class="desc">${x.d}</div>
-        </div>
-      </div>
-    `).join("");
-}
-
-
-/* =========================
-   FILTRO DE PEDIDOS
-   ========================= */
-
-// Aplica filtros de busca e datas
-function getFiltered() {
-  return ORDERS.filter(o => {
-
-    const status = document.getElementById("f-status").value;
-    const pay = document.getElementById("f-pay").value;
-    const delivery = document.getElementById("f-deliv").value;
-
-    const total = Number(o.valor_total || 0);
-    const paid = Number(o.valor_pago || 0);
-
-    const today = new Date();
-    const todayStr = today.getFullYear() + "-" +
-      String(today.getMonth() + 1).padStart(2, "0") + "-" +
-      String(today.getDate()).padStart(2, "0");
-
-    function normalizeDate(d) {
-      if (!d) return null;
-      return String(d).split("T")[0];
-    }
-
-    // =========================
-    // FILTROS NORMAIS
-    // =========================
-
-    if (status && o.status !== status) return false;
-
-    let payStatus =
-      paid === 0 ? "Não Pago" :
-      paid < total ? "Parcialmente Pago" :
-      "Pago Integralmente";
-
-    if (pay && payStatus !== pay) return false;
-
-    // ⚠️ ajuste aqui se tiver campo correto
-    if (delivery && o.deliveryStatus && o.deliveryStatus !== delivery) return false;
-
-    // =========================
-    // KPI FILTER
-    // =========================
-
-    if (ACTIVE_KPI_FILTER === "active") {
-      if (o.status === "FINALIZADO" || o.status === "CANCELADO") return false;
-    }
-
-    if (ACTIVE_KPI_FILTER === "delivery") {
-      const d = normalizeDate(o.data_entrega);
-      if (d !== todayStr) return false;
-    }
-
-    if (ACTIVE_KPI_FILTER === "pickup") {
-      const r = normalizeDate(o.data_retirada);
-      if (r !== todayStr) return false;
-    }
-
-    if (ACTIVE_KPI_FILTER === "late") {
-      if (paid >= total) return false;
-    }
-
-    return true;
-  });
-}
-
-
-/* =========================
-   TABELA PRINCIPAL
-   ========================= */
-
-// Renderiza tabela de pedidos na tela
-function renderTable() {
-  const list = getFiltered();
-
-  document.getElementById("count-badge").textContent =
-    list.length + " pedidos";
-
-  document.getElementById("orders-tbody").innerHTML = list.map(o => {
-
-    const total = Number(o.valor_total ?? 0);
-    const paid  = Number(o.valor_pago ?? 0);
-
-    // porcentagem paga
-    const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
-
-    return `
-      <tr>
-        <td><strong>${o.id || "SEM ID"}</strong></td>
-
-        <td>
-          <div style="font-weight:600;">${o.cliente || "-"}</div>
-          <div class="muted">${o.telefone || "-"}</div>
-        </td>
-
-        <td>${fmtDate(o.data_evento)}</td>
-        <td>${fmtDate(o.data_entrega)}</td>
-        <td>${fmtDate(o.data_retirada)}</td>
-
-        <td>
-          <strong>${fmt(total)}</strong>
-          <div class="progress"><div style="width:${pct}%"></div></div>
-          <div class="muted">${pct}% pago</div>
-        </td>
-
-        <td>${fmt(paid)}</td>
-
-        <td>${statusBadge(o.status)}</td>
-
-        <td>
-          <button class="btn" onclick="openModal('${o.id}')">Ver</button>
-        </td>
-      </tr>
-    `;
-  }).join("");
-}
-
-
-/* =========================
-   MODAL DE DETALHES
-   ========================= */
-
-// Abre modal e carrega detalhes completos do pedido
-async function openModal(id) {
-  try {
-    const response = await fetch(`/entregas/pedidos/${id}`);
-    if (!response.ok) throw new Error();
-
-    const o = await response.json();
-    if (!o) return;
-
-    /* ---- normalização de dados (backend pode variar nomes) ---- */
-    o.customer = o.customer || o.cliente || "-";
-    o.phone    = o.phone    || o.telefone || "-";
-    o.total    = Number(o.total ?? o.valor_total ?? 0);
-    o.paid     = Number(o.paid  ?? o.valor_pago ?? 0);
-
-    /* ---- timeline do pedido ---- */
-    const steps = [
-      { t: "Pedido Criado", done: true },
-      { t: "Pagamento Inicial", done: o.paymentHistory?.length > 0 },
-      { t: "Entrega", done: !!o.deliveryDoneAt },
-      { t: "Evento", done: o.partyDate < TODAY },
-      { t: "Retirada", done: !!o.pickupDoneAt }
-    ];
-
-    document.getElementById("modal").classList.add("open");
-
-  } catch (err) {
-    console.error(err);
-    alert("Não foi possível carregar o pedido.");
-  }
-}
-
-
-/* =========================
-   FECHAR MODAL
-   ========================= */
-
-function closeModal() {
-  document.getElementById("modal").classList.remove("open");
-}
-
-
-/* =========================
-   ABAS (TABS)
-   ========================= */
-
-// Alterna entre abas da interface
-document.querySelectorAll(".tab").forEach(t =>
-  t.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
-    document.querySelectorAll(".tab-panel").forEach(x => x.classList.remove("active"));
-
-    t.classList.add("active");
-    document.getElementById("tab-" + t.dataset.tab).classList.add("active");
-  })
-);
-
-
-/* =========================
-   CARREGAMENTO INICIAL
-   ========================= */
-
-// Busca pedidos da API
-async function carregarPedidos() {
-  const params = new URLSearchParams();
-
-  const search = document.getElementById("f-search").value;
-  const from = document.getElementById("f-from").value;
-  const to = document.getElementById("f-to").value;
-  const status = document.getElementById("f-status").value;
-  const pay = document.getElementById("f-pay").value;
-  const delivery = document.getElementById("f-deliv").value;
-
-  if (search) params.append("search", search);
-  if (from) params.append("from", from);
-  if (to) params.append("to", to);
-  if (status) params.append("status", status);
-  if (pay) params.append("pay", pay);
-  if (delivery) params.append("delivery", delivery);
-
-  const res = await fetch(`/entregas/pedidos?${params}`);
-  ORDERS = await res.json();
-
-  renderKPIs();
-  renderAlerts();
-  renderTable();
-}
-// Inicializa sistema
-carregarPedidos();
-
-
-/* =========================
-   EVENTOS DE FILTRO
-   ========================= */
-
-/* =========================
-   EVENTOS DE FILTRO
-   ========================= */
-
-// debounce simples pra busca textual
-let searchTimer;
-
-document.getElementById("f-search").addEventListener("input", () => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(carregarPedidos, 300);
-});
-
-// datas e selects -> recarrega na hora
-["f-from", "f-to", "f-status", "f-pay", "f-deliv"].forEach(id => {
-  document.getElementById(id).addEventListener("change", carregarPedidos);
-});
-
-// Fecha modal ao clicar fora
-document.getElementById("modal").addEventListener("click", e => {
-  if (e.target.id === "modal") closeModal();
-});
-// Fecha modal ao clicar fora
-document.getElementById("modal").addEventListener("click", e => {
-  if (e.target.id === "modal") closeModal();
-});
-
-let ACTIVE_KPI_FILTER = null;
-
-function filterByKpi(type) {
-  ACTIVE_KPI_FILTER = type;
-
-  renderTable(); // re-renderiza tabela com filtro aplicado
-}
-
-</script>
+<script src="/js/entregas.js"></script>

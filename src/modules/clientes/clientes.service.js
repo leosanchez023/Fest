@@ -1,8 +1,21 @@
 import * as model from "./clientes.model.js";
 
 //lisatar 
-export async function listar(dados) {
-    return await model.findAll()
+export async function listar(options) {
+  // Se foram passados parâmetros, usa busca com filtro e paginação
+  if (options && (options.q !== undefined || options.page !== undefined || options.limit !== undefined)) {
+    const q = options.q || "";
+    const page = Number(options.page) || 1;
+    const limit = Number(options.limit) || 10;
+
+    const { rows, total } = await model.findWithFilter({ q, page, limit });
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    return { clientes: rows, total, page, limit, totalPages };
+  }
+
+  // comportamento antigo (retorna array) quando sem opções
+  return await model.findAll();
 }
 
 //criar
