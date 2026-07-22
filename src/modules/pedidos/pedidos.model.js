@@ -116,13 +116,14 @@ export async function criarPedido(dados) {
       telefone_contato,
       tipo_pedido,
       status,
+      status_documento,
       valor_produtos,
       valor_frete,
       valor_desconto,
       valor_total,
       observacoes
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
       dados.cliente_id,
@@ -133,6 +134,7 @@ export async function criarPedido(dados) {
       dados.telefone_contato,
       dados.tipo_pedido || "ALUGUEL",
       dados.status || "ORCAMENTO",
+      dados.status_documento || (dados.status === 'CONFIRMADO' ? 'PEDIDO' : 'ORCAMENTO'),
       dados.valor_produtos,
       dados.valor_frete,
       dados.valor_desconto,
@@ -210,6 +212,13 @@ export async function criarPedido(dados) {
     conn.release();
   }
 }
+export async function atualizarStatusDocumento(pedidoId, novoStatusDocumento) {
+  const [res] = await db.query(
+    `UPDATE pedidos SET status_documento = ? WHERE id = ?`,
+    [novoStatusDocumento, pedidoId]
+  );
+  return res.affectedRows > 0;
+}
 export async function buscarEnderecos(f) {
   const filtros = [];
   const params = [];
@@ -280,4 +289,33 @@ export async function criarEndereco(dados) {
   );
 
   return { id: result.insertId, criado: true };
+}
+export async function buscarPedidoPorId(id) {
+  const [rows] = await db.query(
+    `SELECT p.*, c.nome as cliente_nome, c.telefone as cliente_telefone, c.email as cliente_email, c.cpf as cliente_cpf
+     FROM pedidos p
+     LEFT JOIN cliente c ON c.id = p.cliente_id
+     WHERE p.id = ?
+    `,
+    [id]
+  );
+
+  if (!rows.length) return null;
+
+  const pedido = rows[0];
+
+  const [itens] = await db.query(
+    `SELECT pi.*, pr.nome as produto_nome FROM pedido_itens pi
+     LEFT JOIN produtos pr ON pr.id = pi.produto_id
+     WHERE pi.pedido_id = ?`,
+    [id]
+  );
+
+  const [pagamentos] = await db.query(`SELECT * FROM pagamentos WHERE pedido_id = ? ORDER BY data_pagamento DESC`, [id]);
+
+  return {
+    pedido,
+    itens,
+    pagamentos
+  };
 }

@@ -77,6 +77,17 @@ export async function marcarRetirado(req, res) {
   }
 }
 
+export async function marcarConferencia(req, res) {
+  try {
+    const id = req.params.id;
+    await service.marcarConferencia(id);
+    return res.json({ sucesso: true });
+  } catch (err) {
+    console.error('Erro marcarConferencia:', err);
+    return res.status(500).json({ message: 'Erro ao marcar conferência' });
+  }
+}
+
 export async function finalizarConferencia(req, res) {
   try {
     const id = req.params.id;

@@ -30,6 +30,10 @@ export async function marcarRetirado(id, dados) {
   return await model.marcarRetirado(id, dados);
 }
 
+export async function marcarConferencia(id) {
+  return await model.marcarConferencia(id);
+}
+
 export async function finalizarConferencia(id) {
   return await model.finalizarConferencia(id);
 }

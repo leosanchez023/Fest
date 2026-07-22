@@ -1,3 +1,5 @@
+console.log("entregas carregada")
+
 const $ = (id) => document.getElementById(id);
 
 const formatMoney = (value) =>
@@ -49,6 +51,8 @@ const deliveryStatus = (status) => {
     EM_PREPARO: "Em Rota",
     ENTREGUE: "Entregue",
     RETIRADO: "Entregue",
+    CONFERENCIA: "Em Conferência",
+    PENDENTE: "Pendente",
     FINALIZADO: "Entregue",
     CANCELADO: "Cancelado",
   }[status] || "Aguardando Entrega";
@@ -57,12 +61,18 @@ const deliveryStatus = (status) => {
 const orderStatusBadge = (status) => {
   switch (status) {
     case "ORCAMENTO":
+      return renderBadge(status, "muted");
     case "CONFIRMADO":
       return renderBadge(status, "info");
     case "EM_PREPARO":
       return renderBadge(status, "warning");
     case "ENTREGUE":
     case "RETIRADO":
+      return renderBadge(status, "success");
+    case "CONFERENCIA":
+      return renderBadge(status, "info");
+    case "PENDENTE":
+      return renderBadge(status, "warning");
     case "FINALIZADO":
       return renderBadge(status, "success");
     case "CANCELADO":
@@ -219,6 +229,8 @@ const loadOrders = async () => {
     const res = await fetch(`/entregas/pedidos?${getFilters()}`);
     if (!res.ok) throw new Error("Erro ao carregar pedidos");
     orders = (await res.json()).map(normalizeOrder);
+    console.log("Orders:", orders);
+console.log(document.getElementById("orders-tbody"));
     renderKPIs();
     renderAlerts();
     renderTable();
@@ -238,6 +250,12 @@ const renderOrderHeader = (order) => {
 };
 
 const renderTimeline = (order) => {
+  const hasPayment = order.pagamentos?.length > 0;
+  const inPreparo = ["EM_PREPARO", "ENTREGUE", "RETIRADO", "CONFERENCIA", "PENDENTE", "FINALIZADO"].includes(order.status);
+  const isDelivered = ["ENTREGUE", "RETIRADO", "CONFERENCIA", "PENDENTE", "FINALIZADO"].includes(order.status);
+  const inConference = ["CONFERENCIA", "PENDENTE", "FINALIZADO"].includes(order.status);
+  const doneFinalizado = order.status === "FINALIZADO";
+
   const steps = [
     {
       title: "Pedido criado",
@@ -247,27 +265,39 @@ const renderTimeline = (order) => {
     },
     {
       title: "Pagamento inicial",
-      done: order.pagamentos?.length > 0,
-      meta: order.pagamentos?.length > 0 ? `${formatDateTime(order.pagamentos[0].data_pagamento)} • ${order.pagamentos[0].forma_pagamento}` : "Sem pagamento",
-      color: order.pagamentos?.length > 0 ? "success" : "muted",
+      done: hasPayment,
+      meta: hasPayment ? `${formatDateTime(order.pagamentos[0].data_pagamento)} • ${order.pagamentos[0].forma_pagamento}` : "Aguardando pagamento",
+      color: hasPayment ? "success" : "muted",
+    },
+    {
+      title: "Em preparo",
+      done: inPreparo,
+      meta: inPreparo ? "Preparando entrega" : "Pendente",
+      color: inPreparo ? "warning" : "muted",
     },
     {
       title: "Entrega",
-      done: !!order.data_entrega,
-      meta: order.data_entrega ? formatDateTime(order.data_entrega) : "Pendente",
-      color: order.data_entrega ? "info" : "muted",
-    },
-    {
-      title: "Evento",
-      done: !!order.data_evento,
-      meta: order.data_evento ? formatDate(order.data_evento) : "Pendente",
-      color: order.data_evento ? "info" : "muted",
+      done: isDelivered,
+      meta: order.data_entrega ? formatDateTime(order.data_entrega) : "Aguardando entrega",
+      color: isDelivered ? "info" : "muted",
     },
     {
       title: "Retirada",
       done: !!order.data_retirada,
-      meta: order.data_retirada ? formatDateTime(order.data_retirada) : "Pendente",
+      meta: order.data_retirada ? formatDateTime(order.data_retirada) : "Aguardando retirada",
       color: order.data_retirada ? "info" : "muted",
+    },
+    {
+      title: "Conferência",
+      done: inConference,
+      meta: inConference ? "Em conferência ou finalizado" : "Pendente",
+      color: inConference ? "info" : "muted",
+    },
+    {
+      title: "Finalizado",
+      done: doneFinalizado,
+      meta: doneFinalizado ? "Concluído" : "Em aberto",
+      color: doneFinalizado ? "success" : "muted",
     },
   ];
 
@@ -418,16 +448,34 @@ const renderOrderPanels = (order) => {
     </div>
   `;
 
-  // ações: botões para marcar entregue/retirado
   const logActions = document.createElement("div");
   logActions.style.marginTop = "10px";
-  logActions.innerHTML = `
-    <div style="display:flex; gap:8px; margin-top:8px;">
-      <button class="btn-primary btn" onclick="markEntregue(${order.id})">Marcar como Entregue</button>
-      <button class="btn-primary btn" onclick="markRetirado(${order.id})">Marcar como Retirado</button>
-    </div>
-  `;
-  $("m-log").appendChild(logActions);
+  const actionButtons = [];
+
+  if (["CONFIRMADO", "EM_PREPARO"].includes(order.status)) {
+    actionButtons.push(`<button class="btn-primary btn" onclick="markEntregue(${order.id})">Marcar como Entregue</button>`);
+  }
+
+  if (order.status === "ENTREGUE") {
+    actionButtons.push(`<button class="btn-primary btn" onclick="markRetirado(${order.id})">Marcar como Retirado</button>`);
+  }
+
+  if (["RETIRADO", "PENDENTE"].includes(order.status)) {
+    actionButtons.push(`<button class="btn-primary btn" onclick="markConferencia(${order.id})">Iniciar Conferência</button>`);
+  }
+
+  if (["CONFERENCIA", "PENDENTE"].includes(order.status)) {
+    actionButtons.push(`<button class="btn btn" onclick="finalizarConferencia(${order.id})">Finalizar Conferência</button>`);
+  }
+
+  if (actionButtons.length) {
+    logActions.innerHTML = `
+      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+        ${actionButtons.join("")}
+      </div>
+    `;
+    $("m-log").appendChild(logActions);
+  }
 
   // adicionar botão de registrar pagamento no financeiro
   const finActions = document.createElement("div");
@@ -533,13 +581,24 @@ const renderOrderPanels = (order) => {
   // botões na aba Devolução
   const devActions = document.createElement('div');
   devActions.style.marginTop = '10px';
-  devActions.innerHTML = `
-    <div style="display:flex; gap:8px;">
-      <button class="btn-primary btn" onclick="finalizarConferencia(${order.id})">Finalizar Conferência</button>
-      <button class="btn" onclick="markRetirado(${order.id})">Marcar como Retirado</button>
-    </div>
-  `;
-  $("m-dev").appendChild(devActions);
+  const devButtons = [];
+  if (order.status === 'ENTREGUE') {
+    devButtons.push(`<button class="btn-primary btn" onclick="markRetirado(${order.id})">Marcar como Retirado</button>`);
+  }
+  if (['RETIRADO', 'PENDENTE'].includes(order.status)) {
+    devButtons.push(`<button class="btn-primary btn" onclick="markConferencia(${order.id})">Iniciar Conferência</button>`);
+  }
+  if (['CONFERENCIA', 'PENDENTE'].includes(order.status)) {
+    devButtons.push(`<button class="btn btn" onclick="finalizarConferencia(${order.id})">Finalizar Conferência</button>`);
+  }
+  if (devButtons.length) {
+    devActions.innerHTML = `
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        ${devButtons.join('')}
+      </div>
+    `;
+    $("m-dev").appendChild(devActions);
+  }
 
   const occurrences = [];
   if (order.observacoes) occurrences.push({ date: order.data_pedido, type: "Observação", description: order.observacoes });
@@ -606,6 +665,20 @@ const markRetirado = async (id) => {
   }
 };
 
+const markConferencia = async (id) => {
+  if (!confirm('Marcar pedido como em conferência?')) return;
+  try {
+    const res = await fetch(`/entregas/pedidos/${id}/marcar-conferencia`, { method: 'POST' });
+    if (!res.ok) throw new Error('Falha ao atualizar conferência');
+    alert('Pedido marcado em conferência');
+    openOrderModal(id);
+    loadOrders();
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao marcar conferência');
+  }
+};
+
 const finalizarConferencia = async (id) => {
   if (!confirm('Finalizar conferência e marcar pedido como finalizado?')) return;
   try {
@@ -641,6 +714,7 @@ const submitOcorrencia = async (id) => {
 
 window.markEntregue = markEntregue;
 window.markRetirado = markRetirado;
+window.markConferencia = markConferencia;
 window.finalizarConferencia = finalizarConferencia;
 window.submitOcorrencia = submitOcorrencia;
 

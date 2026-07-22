@@ -97,16 +97,6 @@
         </select>
       </div>
 
-      <div class="field">
-        <label>Status do Pedido⚠️</label>
-        <select id="status-pedido" class="input">
-          <option value="ORCAMENTO">Orçamento</option>
-          <option value="CONFIRMADO">Confirmado</option>
-          <option value="EM_PREPARO">Em preparo</option>
-          <option value="ENTREGUE">Entregue</option>
-          <option value="CANCELADO">Cancelado</option>
-        </select>
-      </div>
 
     </div>
   </div>
@@ -261,8 +251,8 @@
 
     <!-- ================= AÇÕES ================= -->
     <div class="actions">
-      <button id="btn-confirmar-pedido" class="btn btn-green">✅ Confirmar Pedido</button>
-      <button class="btn btn-blue">📄 Gerar Orçamento⚠️</button>
+        <button id="btn-confirmar-pedido" class="btn btn-green">✅ Confirmar Pedido</button>
+        <button id="btn-gerar-orcamento" class="btn btn-blue">📄 Gerar Orçamento⚠️</button>
       <button class="btn btn-gray" onclick="window.print()">🖨️ Imprimir⚠️</button>
     </div>
   </div>
@@ -275,14 +265,15 @@
     <h2>Confirmar Pedido</h2>
     <div id="resumo-confirmacao"></div>
 
-    <div class="footer">
+    <div class="footer" style="display:flex; gap:8px;">
       <button id="btn-fechar-modal" class="btn btn-gray">Cancelar</button>
-      <button id="btn-salvar-final" class="btn btn-green">✅ Salvar Pedido</button>
+      <button id="btn-salvar-pedido" class="btn btn-green">✅ Confirmar Pedido</button>
+      <button id="btn-gerar-orcamento-modal" class="btn btn-blue">📄 Gerar Orçamento</button>
     </div>
   </div>
 </div>
 
-<script src="/js/pedidos.js"></script>
+<script src="/js/pedidos/index.js"></script>
 
 
 

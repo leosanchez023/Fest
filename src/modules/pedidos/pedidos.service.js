@@ -150,3 +150,6 @@ export async function criarEndereco(dados) {
     rua, numero, bairro, cidade, estado
   });
 }
+export async function buscarPedidoPorId(id) {
+  return await model.buscarPedidoPorId(id);
+}

@@ -1,9 +1,39 @@
-import express from "express"
+import express from "express";
+import * as controller from "./fornecedores.controller.js";
 
-const router = express.Router()
+const router = express.Router();
 
-router.get("/",(req, res) => {
-  res.render("pages/fornecedor")
-})
+
+/* ==========================================================
+   PÁGINA
+========================================================== */
+router.get("/", controller.listar);
+
+/* ==========================================================
+   API JSON
+========================================================== */
+router.get("/data", controller.listarJSON);
+
+/* ==========================================================
+   BUSCAR POR ID
+========================================================== */
+router.get("/:id", controller.buscar);
+
+
+/* ==========================================================
+   CRIAR
+========================================================== */
+router.post("/criar", controller.criar);
+
+/* ==========================================================
+   ATUALIZAR
+========================================================== */
+router.put("/:id", controller.atualizar);
+
+/* ==========================================================
+   EXCLUIR
+========================================================== */
+router.delete("/:id", controller.excluir);
+
 
 export default router;

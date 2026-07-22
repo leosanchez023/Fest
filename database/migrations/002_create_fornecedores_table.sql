@@ -1,0 +1,26 @@
+-- Migration: cria tabela fornecedores
+CREATE TABLE IF NOT EXISTS fornecedores (
+  id INT NOT NULL AUTO_INCREMENT,
+  nome VARCHAR(150) NOT NULL,
+  cnpj VARCHAR(30) NOT NULL,
+  responsavel VARCHAR(100),
+  category VARCHAR(80),
+  phone VARCHAR(40),
+  whatsapp VARCHAR(40),
+  email VARCHAR(120),
+  website VARCHAR(120),
+  street VARCHAR(150),
+  number VARCHAR(20),
+  neighborhood VARCHAR(100),
+  city VARCHAR(100),
+  state VARCHAR(5),
+  cep VARCHAR(15),
+  product VARCHAR(255),
+  delivery VARCHAR(120),
+  payment VARCHAR(120),
+  notes TEXT,
+  status ENUM('Ativo','Inativo') DEFAULT 'Ativo',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+);

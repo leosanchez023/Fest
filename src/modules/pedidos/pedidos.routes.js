@@ -16,6 +16,9 @@ router.get("/buscar-produtos", controller.buscarProdutos);
 // Pedidos
 router.post("/criar", controller.criar);
 
+// obter pedido (json) para edição/duplicação
+router.get('/obter/:id', controller.buscarPorId);
+
 // 🔥 NOVO: Endereços (agora no controller)
 router.get("/buscar-enderecos", controller.buscarEnderecos);
 

@@ -1,0 +1,39 @@
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/pages/pedidos.css">
+
+<div class="container">
+  <h1>Orçamentos</h1>
+  <p class="subtitle">Lista de orçamentos</p>
+
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <input id="q" class="input" placeholder="Pesquisar por cliente, telefone, número..." style="width:320px;">
+      </div>
+      <div>
+        <button id="btn-new" class="btn">+ Novo Orçamento</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Cliente</th>
+            <th>Telefone</th>
+            <th>Data Evento</th>
+            <th>Valor Total</th>
+            <th>Pago</th>
+            <th>Saldo</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="orcamentos-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="/js/orcamentos.js"></script>

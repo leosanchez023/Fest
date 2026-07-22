@@ -82,3 +82,14 @@ export async function criarEndereco(req, res) {
     res.status(400).json({ erro: err.message });
   }
 }
+export async function buscarPorId(req, res) {
+  try {
+    const id = req.params.id;
+    const dados = await service.buscarPedidoPorId(id);
+    if (!dados) return res.status(404).json({ erro: 'Pedido não encontrado' });
+    res.json(dados);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: err.message });
+  }
+}

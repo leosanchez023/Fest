@@ -22,6 +22,7 @@ CREATE TABLE usuario (
   PRIMARY KEY (id),
   UNIQUE KEY email (email)
 );
+
 CREATE TABLE produtos (
   id INT NOT NULL AUTO_INCREMENT,
   nome VARCHAR(255) NOT NULL,
@@ -59,6 +60,7 @@ CREATE TABLE pedidos (
   telefone_contato VARCHAR(20),
   tipo_pedido ENUM('ALUGUEL','VENDA','MISTO') DEFAULT 'ALUGUEL',
   status ENUM('ORCAMENTO','CONFIRMADO','EM_PREPARO','ENTREGUE','RETIRADO','FINALIZADO','CANCELADO') DEFAULT 'ORCAMENTO',
+  status_documento ENUM('ORCAMENTO','PEDIDO') DEFAULT 'ORCAMENTO',
   valor_produtos DECIMAL(10,2) DEFAULT 0.00,
   valor_frete DECIMAL(10,2) DEFAULT 0.00,
   valor_desconto DECIMAL(10,2) DEFAULT 0.00,
@@ -186,4 +188,42 @@ CREATE TABLE user_permissions (
   FOREIGN KEY (usuario_id)
     REFERENCES usuario(id)
     ON DELETE CASCADE
+);
+CREATE TABLE fornecedores (
+
+    id INT NOT NULL AUTO_INCREMENT,
+
+    nome VARCHAR(150) NOT NULL,
+    cnpj VARCHAR(25) NOT NULL,
+    responsavel VARCHAR(100),
+
+    category VARCHAR(100),
+
+    phone VARCHAR(30),
+    whatsapp VARCHAR(30),
+
+    email VARCHAR(150),
+    website VARCHAR(200),
+
+    street VARCHAR(150),
+    number VARCHAR(20),
+    neighborhood VARCHAR(100),
+    city VARCHAR(100),
+    state VARCHAR(2),
+    cep VARCHAR(15),
+
+    product TEXT,
+    delivery VARCHAR(100),
+    payment VARCHAR(100),
+
+    notes TEXT,
+
+    status ENUM('Ativo','Inativo') DEFAULT 'Ativo',
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY(id)
+
 );

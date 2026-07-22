@@ -70,6 +70,7 @@ import entregasRoutes from "./src/modules/entregas/entregas.routes.js"
 import fornecedoresRoutes from "./src/modules/fornecedores/fornecedores.routes.js"
 import pedidosRoutes from "./src/modules/pedidos/pedidos.routes.js"
 import relatoriosRoutes from "./src/modules/relatorios/relatorios.routes.js"
+import orcamentosRoutes from "./src/modules/orcamentos/orcamentos.routes.js"
 
 app.use("/", loginRoutes)
 app.use("/usuarios", usuariosRoutes)
@@ -79,6 +80,7 @@ app.use("/dashboard", dashboardroutes)
 app.use("/entregas",entregasRoutes)
 app.use("/fornecedores", fornecedoresRoutes)
 app.use("/pedidos", pedidosRoutes)
+app.use("/orcamentos", orcamentosRoutes)
 app.use("/relatorios", relatoriosRoutes)
 //outros
 app.listen(3000, () => {

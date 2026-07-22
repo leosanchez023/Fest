@@ -20,7 +20,7 @@ export async function buscarPedidos({ search, from, to, status, pay, delivery })
       ), 0) AS valor_pago
     FROM pedidos p
     LEFT JOIN cliente c ON c.id = p.cliente_id
-    WHERE 1=1
+    WHERE p.status_documento = 'PEDIDO'
   `;
   const params = [];
 
@@ -50,9 +50,11 @@ export async function buscarPedidos({ search, from, to, status, pay, delivery })
   } else if (delivery === "Em Rota") {
     sql += ` AND p.status = 'EM_PREPARO' AND p.data_entrega = ?`;
     params.push(hoje);
+  } else if (delivery === "Entregue") {
+    sql += ` AND p.status IN ('ENTREGUE','RETIRADO','CONFERENCIA','PENDENTE','FINALIZADO')`;
   } else if (delivery === "Entrega Atrasada") {
     sql += ` AND p.data_entrega < ?
-             AND p.status NOT IN ('ENTREGUE','RETIRADO','FINALIZADO','CANCELADO')`;
+             AND p.status NOT IN ('ENTREGUE','RETIRADO','CONFERENCIA','PENDENTE','FINALIZADO','CANCELADO')`;
     params.push(hoje);
   }
 
@@ -114,12 +116,44 @@ export async function pagamentosDoPedido(pedidoId) {
   return rows;
 }
 
+export async function atualizarStatusAposPagamento(pedidoId) {
+  const [rows] = await db.query(
+    `SELECT p.status, p.status_documento, p.valor_total,
+      COALESCE((SELECT SUM(valor) FROM pagamentos WHERE pedido_id = p.id), 0) AS valor_pago
+     FROM pedidos p
+     WHERE p.id = ?`,
+    [pedidoId]
+  );
+
+  const pedido = rows[0];
+  if (!pedido) return null;
+
+  let novoStatus = null;
+
+  if (pedido.status_documento === 'PEDIDO') {
+    if (pedido.status === 'CONFIRMADO' && pedido.valor_pago > 0) {
+      novoStatus = 'EM_PREPARO';
+    } else if (pedido.status === 'PENDENTE' && pedido.valor_pago >= pedido.valor_total) {
+      novoStatus = 'FINALIZADO';
+    } else if (pedido.status === 'CONFERENCIA') {
+      novoStatus = pedido.valor_pago >= pedido.valor_total ? 'FINALIZADO' : 'PENDENTE';
+    }
+  }
+
+  if (novoStatus && novoStatus !== pedido.status) {
+    await db.query(`UPDATE pedidos SET status = ? WHERE id = ?`, [novoStatus, pedidoId]);
+  }
+
+  return novoStatus;
+}
+
 export async function inserirPagamento(pedidoId, dados) {
   const { valor, forma_pagamento, observacao, usuario_id } = dados;
   const [result] = await db.query(
     `INSERT INTO pagamentos (pedido_id, usuario_id, valor, forma_pagamento, observacao) VALUES (?, ?, ?, ?, ?)`,
     [pedidoId, usuario_id || null, valor, forma_pagamento || null, observacao || null]
   );
+  await atualizarStatusAposPagamento(pedidoId);
   return result;
 }
 
@@ -141,8 +175,24 @@ export async function marcarRetirado(pedidoId, dados) {
   return result;
 }
 
+export async function marcarConferencia(pedidoId) {
+  const [result] = await db.query(`UPDATE pedidos SET status = 'CONFERENCIA' WHERE id = ?`, [pedidoId]);
+  return result;
+}
+
 export async function finalizarConferencia(pedidoId) {
-  const [result] = await db.query(`UPDATE pedidos SET status = 'FINALIZADO' WHERE id = ?`, [pedidoId]);
+  const [[pedido]] = await db.query(
+    `SELECT p.valor_total,
+      COALESCE((SELECT SUM(valor) FROM pagamentos WHERE pedido_id = p.id), 0) AS valor_pago
+     FROM pedidos p
+     WHERE p.id = ?`,
+    [pedidoId]
+  );
+
+  if (!pedido) return null;
+
+  const novoStatus = pedido.valor_pago >= pedido.valor_total ? 'FINALIZADO' : 'PENDENTE';
+  const [result] = await db.query(`UPDATE pedidos SET status = ? WHERE id = ?`, [novoStatus, pedidoId]);
   return result;
 }
 
@@ -160,19 +210,22 @@ export async function kpis() {
   const [[ativos]] = await db.query(`
     SELECT COUNT(*) AS total
     FROM pedidos
-    WHERE status NOT IN ('FINALIZADO','CANCELADO')
+    WHERE status_documento = 'PEDIDO'
+      AND status NOT IN ('FINALIZADO','CANCELADO')
   `);
 
   const [[entregasHoje]] = await db.query(`
     SELECT COUNT(*) AS total
     FROM pedidos
-    WHERE DATE(data_entrega) = CURDATE()
+    WHERE status_documento = 'PEDIDO'
+      AND DATE(data_entrega) = CURDATE()
   `);
 
   const [[retiradasHoje]] = await db.query(`
     SELECT COUNT(*) AS total
     FROM pedidos
-    WHERE DATE(data_retirada) = CURDATE()
+    WHERE status_documento = 'PEDIDO'
+      AND DATE(data_retirada) = CURDATE()
   `);
 
   const [[recebido]] = await db.query(`
@@ -185,17 +238,19 @@ export async function kpis() {
       p.valor_total - COALESCE((SELECT SUM(valor) FROM pagamentos pg WHERE pg.pedido_id = p.id), 0)
     ), 0) AS total
     FROM pedidos p
-    WHERE p.status NOT IN ('CANCELADO')
+    WHERE p.status_documento = 'PEDIDO'
+      AND p.status NOT IN ('CANCELADO')
   `);
 
   const [[atrasados]] = await db.query(`
     SELECT COUNT(*) AS total
     FROM pedidos p
-    WHERE (
-      SELECT COALESCE(SUM(pg.valor),0)
-      FROM pagamentos pg
-      WHERE pg.pedido_id = p.id
-    ) < p.valor_total
+    WHERE p.status_documento = 'PEDIDO'
+      AND (
+        SELECT COALESCE(SUM(pg.valor),0)
+        FROM pagamentos pg
+        WHERE pg.pedido_id = p.id
+      ) < p.valor_total
   `);
 
   return {
