@@ -22,7 +22,12 @@ CREATE TABLE usuario (
   PRIMARY KEY (id),
   UNIQUE KEY email (email)
 );
-
+INSERT INTO usuario (nome, email, senha)
+VALUES (
+    'leo',
+    'leonardosanchezsilva@500@gmail.com',
+    '1234'
+);
 CREATE TABLE produtos (
   id INT NOT NULL AUTO_INCREMENT,
   nome VARCHAR(255) NOT NULL,
@@ -54,13 +59,13 @@ CREATE TABLE pedidos (
   endereco_id INT,
   usuario_id INT,
   data_pedido DATETIME DEFAULT CURRENT_TIMESTAMP,
-  data_evento DATE NOT NULL,
+  data_evento DATE DEFAULT NULL,
   data_entrega DATE,
   data_retirada DATE,
   telefone_contato VARCHAR(20),
   tipo_pedido ENUM('ALUGUEL','VENDA','MISTO') DEFAULT 'ALUGUEL',
   status ENUM('ORCAMENTO','CONFIRMADO','EM_PREPARO','ENTREGUE','RETIRADO','FINALIZADO','CANCELADO') DEFAULT 'ORCAMENTO',
-  status_documento ENUM('ORCAMENTO','PEDIDO') DEFAULT 'ORCAMENTO',
+  status_documento ENUM('ORCAMENTO','PEDIDO') NOT NULL DEFAULT 'ORCAMENTO',
   valor_produtos DECIMAL(10,2) DEFAULT 0.00,
   valor_frete DECIMAL(10,2) DEFAULT 0.00,
   valor_desconto DECIMAL(10,2) DEFAULT 0.00,
@@ -225,5 +230,12 @@ CREATE TABLE fornecedores (
         ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY(id)
+INSERT INTO usuario (nome, email, senha)
+VALUES (
+  'leo',
+  'leo@gmail.com',
+  '1234'
+);
 
 );
+
