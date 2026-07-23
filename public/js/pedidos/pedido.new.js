@@ -1,6 +1,6 @@
-﻿import { state } from "./state.js";
+import { state } from "./state.js";
 import { $, esc, fmt } from "./utils.js";
-import { updateResumo } from "./financeiro.js";
+import { updateResumo } from "./fianceiro.js";
 import { abrirModalConfirmacao } from "./modal.js";
 
 export function adicionarItem() {
@@ -206,138 +206,6 @@ async function buscarEnderecos() {
   }
 }
 
-function criarData(valor) {
-
-  const [ano, mes, dia] =
-    valor.split("-").map(Number);
-
-  return new Date(ano, mes - 1, dia);
-
-}
-
-function validarFormulario() {
-
-  // CLIENTE
-
-  if (!state.clienteSelecionado) {
-    throw new Error("Selecione um cliente.");
-  }
-
-  // ENDEREÇO
-
-  if (!state.enderecoSelecionado) {
-    throw new Error("Selecione um endereço.");
-  }
-
-  // ITENS
-
-  if (!state.itens.length) {
-    throw new Error("Adicione pelo menos um item.");
-  }
-
-  // DATAS
-
-  if (!$("data-evento")?.value) {
-    throw new Error("Informe a data do evento.");
-  }
-
-  if (!$("data-entrega")?.value) {
-    throw new Error("Informe a data de entrega.");
-  }
-
-  if (!$("data-retirada")?.value) {
-    throw new Error("Informe a data de retirada.");
-  }
-
-  const evento =
-    criarData($("data-evento").value);
-
-  const entrega =
-    criarData($("data-entrega").value);
-
-  const retirada =
-    criarData($("data-retirada").value);
-
-  if (isNaN(evento.getTime())) {
-    throw new Error("Data do evento inválida.");
-  }
-
-  if (isNaN(entrega.getTime())) {
-    throw new Error("Data de entrega inválida.");
-  }
-
-  if (isNaN(retirada.getTime())) {
-    throw new Error("Data de retirada inválida.");
-  }
-
-  const hoje = new Date();
-
-  hoje.setHours(0, 0, 0, 0);
-  evento.setHours(0, 0, 0, 0);
-  entrega.setHours(0, 0, 0, 0);
-  retirada.setHours(0, 0, 0, 0);
-
-  if (evento < hoje) {
-    throw new Error("O evento não pode ser em uma data passada.");
-  }
-
-  if (entrega < hoje) {
-    throw new Error("A entrega não pode ser em uma data passada.");
-  }
-
-  if (retirada < hoje) {
-    throw new Error("A retirada não pode ser em uma data passada.");
-  }
-
-  if (entrega > evento) {
-    throw new Error("A entrega não pode ocorrer após o evento.");
-  }
-
-  if (retirada < evento) {
-    throw new Error("A retirada não pode ocorrer antes do evento.");
-  }
-
-  // TELEFONE
-
-  const telefone =
-    $("tel-contato")?.value.replace(/\D/g, "") || "";
-
-  if (
-    telefone &&
-    telefone.length !== 10 &&
-    telefone.length !== 11
-  ) {
-    throw new Error("Telefone para contato inválido.");
-  }
-
-  // DESCONTO
-
-  const desconto =
-    Number($("desconto")?.value || 0);
-
-  if (desconto < 0) {
-    throw new Error("Desconto inválido.");
-  }
-
-  // PAGAMENTO
-
-  const pago =
-    Number($("pago")?.value || 0);
-
-  if (pago < 0) {
-    throw new Error("Valor pago inválido.");
-  }
-
-  // FRETE
-
-  const distancia =
-    Number($("distancia-km")?.value || 0);
-
-  if (distancia < 0) {
-    throw new Error("Distância inválida.");
-  }
-
-}
 export function inicializarPedido() {
   const btnAdd = $("btn-add-item");
   if (btnAdd) btnAdd.addEventListener("click", adicionarItem);
@@ -345,39 +213,31 @@ export function inicializarPedido() {
   const btnConfirmar = $("btn-confirmar-pedido");
   if (btnConfirmar) {
     btnConfirmar.addEventListener("click", () => {
-
-    try {
-
-        validarFormulario();
-
-        abrirModalConfirmacao(montarPedido());
-
-    } catch (erro) {
-
-        alert(erro.message);
-
-    }
-
-});
+      if (!state.clienteSelecionado) {
+        alert("Selecione um cliente.");
+        return;
+      }
+      if (!state.itens.length) {
+        alert("Adicione pelo menos um item.");
+        return;
+      }
+      abrirModalConfirmacao(montarPedido());
+    });
   }
 
   const btnOrcamento = $("btn-gerar-orcamento");
   if (btnOrcamento) {
     btnOrcamento.addEventListener("click", () => {
-
-    try {
-
-        validarFormulario();
-
-        abrirModalConfirmacao(montarPedido());
-
-    } catch (erro) {
-
-        alert(erro.message);
-
-    }
-
-});
+      if (!state.clienteSelecionado) {
+        alert("Selecione um cliente.");
+        return;
+      }
+      if (!state.itens.length) {
+        alert("Adicione pelo menos um item.");
+        return;
+      }
+      abrirModalConfirmacao(montarPedido());
+    });
   }
 
   const btnSalvar = $("btn-salvar-pedido");

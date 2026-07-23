@@ -114,12 +114,24 @@ export async function criarEndereco({ rua, numero, cidade, estado }) {
 }
 
 
-export async function criarCliente({ nome, email, telefone, cpf, nascimento, id_endereco }) {
-  await db.query(
-    `INSERT INTO cliente (nome, email, telefone, cpf, nascimento, id_endereco)
+export async function criarCliente({
+  nome,
+  email,
+  telefone,
+  cpf,
+  nascimento,
+  id_endereco
+}) {
+
+  const [result] = await db.query(
+    `INSERT INTO cliente
+      (nome, email, telefone, cpf, nascimento, id_endereco)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [nome, email, telefone, cpf, nascimento, id_endereco]
   );
+
+  return await findById(result.insertId);
+
 }
 
 

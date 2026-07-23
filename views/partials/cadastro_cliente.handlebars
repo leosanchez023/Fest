@@ -1,74 +1,124 @@
-  <!-- FORM -->
-  <form class="form-card"
-  action="{{#if cliente}}/clientes/editar/{{cliente.cliente_id}}{{else}}/clientes/criar{{/if}}"
-  id="formulariocard"
+<!-- FORM -->
+<form
+  class="form-card"
+  id="{{#if formId}}{{formId}}{{else}}formulariocard{{/if}}"
+  action="{{#if action}}{{action}}{{else}}/clientes/criar{{/if}}"
   method="post">
 
-    <h2>
-      <i class="fas fa-user-plus"></i> 
-      {{#if cliente}}Editar Cliente{{else}}Novo Cliente{{/if}}
-    </h2>
+  <h2>
+    <i class="fas fa-user-plus"></i>
+    {{#if cliente}}Editar Cliente{{else}}Novo Cliente{{/if}}
+  </h2>
 
-    <input type="hidden" name="id" value="{{cliente.cliente_id}}">
+  <input
+    type="hidden"
+    name="id"
+    value="{{cliente.cliente_id}}">
 
-    <div class="form-grid">
+  <div class="form-grid">
 
-      <div class="form-group full">
-        <label>Nome completo *</label>
-        <input id="nome" name="nome" value="{{cliente.nome}}" placeholder="Digite o nome completo">
-      </div>
+    <div class="form-group full">
+      <label>Nome omplASDDAS *</label>
+      <input
+        id="nome"
+        name="nome"
+        value="{{cliente.nome}}"
+        placeholder="Digite o nome completo">
+    </div>
 
-      <div class="form-group">
-        <label>CPF *</label>
-        <input id="cpf" name="cpf" value="{{cliente.cpf}}" placeholder="000.000.000-00" maxlength="14">
-      </div>
+    <div class="form-group">
+      <label>CPF *</label>
+      <input
+        id="cpf"
+        name="cpf"
+        value="{{cliente.cpf}}"
+        placeholder="000.000.000-00"
+        maxlength="14">
+    </div>
 
-      <div class="form-group">
-        <label>Email *</label>
-        <input id="email" name="email" type="email" value="{{cliente.email}}" placeholder="email@exemplo.com">
-      </div>
+    <div class="form-group">
+      <label>Email *</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        value="{{cliente.email}}"
+        placeholder="email@exemplo.com">
+    </div>
 
-      <div class="form-group">
-        <label>Telefone *</label>
-        <input id="telefone" name="telefone" value="{{cliente.telefone}}" placeholder="(00) 00000-0000">
-      </div>
+    <div class="form-group">
+      <label>Telefone *</label>
+      <input
+        id="telefone"
+        name="telefone"
+        value="{{cliente.telefone}}"
+        placeholder="(00) 00000-0000">
+    </div>
 
-      <div class="form-group">
-        <label>Data de nascimento</label>
-        <input id="nascimento" name="nascimento" type="date" value="{{cliente.nascimento}}">
-      </div>
+    <div class="form-group">
+      <label>Data de nascimento</label>
+      <input
+        id="nascimento"
+        name="nascimento"
+        type="date"
+        value="{{cliente.nascimento}}">
+    </div>
 
-      <div class="form-group full">
-        <label>Rua</label>
-        <input id="rua" name="rua" value="{{cliente.rua}}" placeholder="Nome da rua">
-      </div>
+    <div class="form-group full">
+      <label>Rua</label>
+      <input
+        id="rua"
+        name="rua"
+        value="{{cliente.rua}}"
+        placeholder="Nome da rua">
+    </div>
 
-      <div class="form-group">
-        <label>Número</label>
-        <input id="numero" name="numero" value="{{cliente.numero}}" placeholder="Nº">
-      </div>
+    <div class="form-group">
+      <label>Número</label>
+      <input
+        id="numero"
+        name="numero"
+        value="{{cliente.numero}}"
+        placeholder="Nº">
+    </div>
 
-      <div class="form-group">
-        <label>Cidade</label>
-        <input id="cidade" name="cidade" value="{{cliente.cidade}}" placeholder="Cidade">
-      </div>
+    <div class="form-group">
+      <label>Cidade</label>
+      <input
+        id="cidade"
+        name="cidade"
+        value="{{cliente.cidade}}"
+        placeholder="Cidade">
+    </div>
 
-      <div class="form-group">
-        <label>Estado</label>
-        <input id="estado" name="estado" value="{{cliente.estado}}" placeholder="UF" maxlength="2">
-      </div>
+    <div class="form-group">
+      <label>Estado</label>
+      <input
+        id="estado"
+        name="estado"
+        value="{{cliente.estado}}"
+        placeholder="UF"
+        maxlength="2">
+    </div>
 
-      <div class="form-actions">
-      <button class="btn btn-primary" type="submit">
+    <div class="form-actions">
+
+      <button
+        class="btn btn-primary"
+        type="submit">
         {{#if cliente}}Atualizar{{else}}Salvar{{/if}}
       </button>
 
-      <a href="/clientes" class="btn btn-secondary">Cancelar</a>
+      {{#unless ocultarCancelar}}
+      <a href="/clientes" class="btn btn-secondary">
+        Cancelar
+      </a>
+      {{/unless}}
+
     </div>
 
+  </div>
 
-    </div>
-  </form><br>
+</form>
 
-
-  
+<br>

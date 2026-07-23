@@ -23,6 +23,10 @@
   </div>
 </header>
 
+  <div id="formContainer" style="display:none;">
+    {{> cadastro_cliente}}
+  </div>
+
 <main>
 
   <section class="client-filter-row">
@@ -37,10 +41,7 @@
     </form>
   </section>
 
-  <div id="formContainer" style="display:none;">
-    {{> cadastro_cliente}}
-  </div>
-
+  
   <div class="table-wrap">
     <table class="client-table">
       <thead>
