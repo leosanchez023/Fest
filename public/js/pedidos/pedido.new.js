@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { $, esc, fmt } from "./utils.js";
-import { updateResumo } from "./fianceiro.js";
+import { updateResumo } from "./financeiro.js";
 import { abrirModalConfirmacao } from "./modal.js";
 
 export function adicionarItem() {
@@ -43,6 +43,7 @@ export function montarPedido() {
   return {
     cliente_id: state.clienteSelecionado?.id || null,
     endereco_id: state.enderecoSelecionado?.id || null,
+    telefone_cliente: $("tel-cliente")?.value.trim() || "",
     telefone_contato: $("tel-contato")?.value.trim() || "",
     tipo_pedido: $("tipo-pedido")?.value || "ALUGUEL",
     distancia_km: Number($("distancia-km")?.value) || 0,

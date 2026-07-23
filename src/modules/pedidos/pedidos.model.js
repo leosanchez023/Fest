@@ -319,3 +319,21 @@ export async function buscarPedidoPorId(id) {
     pagamentos
   };
 }
+export async function buscarClientePorId(id){
+
+    const [rows] = await db.query(
+        "SELECT id FROM clientes WHERE id = ?",
+        [id]
+    );
+
+    return rows[0] || null;
+}
+export async function buscarEnderecoPorId(id){
+
+    const [rows] = await db.query(
+        "SELECT id FROM enderecos WHERE id = ?",
+        [id]
+    );
+
+    return rows[0] || null;
+}

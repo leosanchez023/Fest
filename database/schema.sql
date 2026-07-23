@@ -22,12 +22,6 @@ CREATE TABLE usuario (
   PRIMARY KEY (id),
   UNIQUE KEY email (email)
 );
-INSERT INTO usuario (nome, email, senha)
-VALUES (
-    'leo',
-    'leonardosanchezsilva@500@gmail.com',
-    '1234'
-);
 CREATE TABLE produtos (
   id INT NOT NULL AUTO_INCREMENT,
   nome VARCHAR(255) NOT NULL,
@@ -230,12 +224,5 @@ CREATE TABLE fornecedores (
         ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY(id)
-INSERT INTO usuario (nome, email, senha)
-VALUES (
-  'leo',
-  'leo@gmail.com',
-  '1234'
-);
-
 );
 

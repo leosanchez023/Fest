@@ -46,11 +46,26 @@ export async function apiList(req, res) {
 
 export async function criar(req, res) {
   try {
-    await service.criar(req.body)
-    res.redirect("/clientes")
+
+    const cliente = await service.criar(req.body);
+
+    if (req.headers.accept?.includes("application/json")) {
+      return res.status(201).json(cliente);
+    }
+
+    req.flash("success_msg", "Cliente cadastrado com sucesso.");
+    return res.redirect("/clientes");
+
   } catch (err) {
-    req.flash("error_msg", err.message)
-    res.redirect("/clientes")
+
+    if (req.headers.accept?.includes("application/json")) {
+      return res.status(400).json({
+        erro: err.message
+      });
+    }
+
+    req.flash("error_msg", err.message);
+    return res.redirect("/clientes");
   }
 }
 
