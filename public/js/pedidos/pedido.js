@@ -42,7 +42,24 @@ export function montarPedido() {
 
   return {
     cliente_id: state.clienteSelecionado?.id || null,
-    endereco_id: state.enderecoSelecionado?.id || null,
+
+  nome_cliente:
+    state.clienteSelecionado?.nome || "Não informado",
+
+  telefone_cliente:
+    state.clienteSelecionado?.telefone ||
+    $("tel-cliente")?.value ||
+    "Não informado",
+
+  endereco_id: state.enderecoSelecionado?.id || null,
+
+  endereco: {
+    rua: $("end-rua")?.value || "",
+    numero: $("end-numero")?.value || "",
+    bairro: $("end-bairro")?.value || "",
+    cidade: $("end-cidade")?.value || "",
+    estado: $("end-estado")?.value || ""
+  },
     telefone_contato: $("tel-contato")?.value.trim() || "",
     tipo_pedido: $("tipo-pedido")?.value || "ALUGUEL",
     distancia_km: Number($("distancia-km")?.value) || 0,
@@ -55,6 +72,11 @@ export function montarPedido() {
     data_evento: $("data-evento")?.value || null,
     data_entrega: $("data-entrega")?.value || null,
     data_retirada: $("data-retirada")?.value || null,
+    valor_produtos: state.itens.reduce(
+  (total, item) =>
+    total + (Number(item.preco) * Number(item.quantidade)),
+  0
+),
     itens: state.itens.map((item) => ({
       produto_id: item.produto_id,
       quantidade: item.quantidade,
@@ -339,56 +361,472 @@ function validarFormulario() {
 
 }
 export function inicializarPedido() {
+
   const btnAdd = $("btn-add-item");
-  if (btnAdd) btnAdd.addEventListener("click", adicionarItem);
 
-  const btnConfirmar = $("btn-confirmar-pedido");
-  if (btnConfirmar) {
-    btnConfirmar.addEventListener("click", () => {
+  if (btnAdd) {
+    btnAdd.addEventListener("click", adicionarItem);
+  }
 
-    try {
+
+  // SALVAR PEDIDO - abre modal
+  const btnSalvarTela = $("btn-salvar-pedido");
+
+  if (btnSalvarTela) {
+
+    btnSalvarTela.addEventListener("click", () => {
+
+      try {
 
         validarFormulario();
 
         abrirModalConfirmacao(montarPedido());
 
-    } catch (erro) {
+      } catch (erro) {
 
         alert(erro.message);
 
-    }
+      }
 
-});
+    });
+
   }
 
-  const btnOrcamento = $("btn-gerar-orcamento");
-  if (btnOrcamento) {
-    btnOrcamento.addEventListener("click", () => {
+// CONFIRMAR PEDIDO
+const btnConfirmar = $("btn-confirmar-modal");
 
-    try {
+if (btnConfirmar) {
+  btnConfirmar.addEventListener("click", () => {
 
-        validarFormulario();
+    enviarPedido("CONFIRMADO");
 
-        abrirModalConfirmacao(montarPedido());
+  });
+}
 
-    } catch (erro) {
 
-        alert(erro.message);
+// GERAR ORÇAMENTO
+const btnOrcamento = $("btn-gerar-orcamento-modal");
 
-    }
+if (btnOrcamento) {
+  btnOrcamento.addEventListener("click", () => {
 
-});
+    enviarPedido("ORCAMENTO");
+
+  });
+}
+
+  // FECHAR MODAL
+  const btnFecharModal = $("btn-fechar-modal");
+
+  if (btnFecharModal) {
+
+    btnFecharModal.addEventListener("click", () => {
+
+      const modal = $("modal-confirmacao");
+
+      if(modal){
+        modal.style.display = "none";
+      }
+
+    });
+
   }
 
-  const btnSalvar = $("btn-salvar-pedido");
-  if (btnSalvar) btnSalvar.addEventListener("click", () => enviarPedido("CONFIRMADO"));
 
-  const btnSalvarOrcamento = $("btn-gerar-orcamento-modal");
-  if (btnSalvarOrcamento) btnSalvarOrcamento.addEventListener("click", () => enviarPedido("ORCAMENTO"));
 
+  // BUSCAR ENDEREÇO
   const btnEndereco = $("btn-endereco");
-  if (btnEndereco) btnEndereco.addEventListener("click", buscarEnderecos);
+
+  if (btnEndereco) {
+
+    btnEndereco.addEventListener(
+      "click",
+      buscarEnderecos
+    );
+
+  }
+
+
+
+  // IMPRIMIR
+  const btnImprimir = $("btn-imprimir-pedido");
+
+  if(btnImprimir){
+
+    btnImprimir.addEventListener("click",()=>{
+
+      const pedido = montarPedido();
+
+      imprimirOrcamento(pedido);
+
+    });
+
+  }
+
 
   renderItens();
   updateResumo();
+
+}
+
+
+function imprimirOrcamento(pedido) {
+  const janela = window.open("", "_blank");
+
+  const formatar = (valor) =>
+    Number(valor || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+
+  janela.document.write(`
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Orçamento Fest</title>
+
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 15mm;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #222;
+    }
+
+    /* CABEÇALHO */
+
+    .header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 2px solid #000;
+  padding-bottom: 15px;
+  min-height: 110px;
+}
+
+.logo {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.logo img {
+  width: 100px;
+  height: auto;
+}
+
+.empresa {
+  text-align: center;
+}
+
+.empresa h1 {
+  margin: 0;
+  font-size: 35px;
+}
+
+.empresa p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+    .header h1 {
+      margin: 0;
+      font-size: 35px;
+    }
+
+    .header p {
+      margin: 4px;
+      font-size: 14px;
+    }
+
+    /* CARDS SUPERIORES */
+
+    .topo {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .card {
+      border: 1px solid #aaa;
+      padding: 12px;
+      min-height: 130px;
+    }
+
+    .titulo {
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      font-size: 15px;
+      font-weight: bold;
+      border-bottom: 1px solid #ccc;
+    }
+
+    /* PRODUTOS */
+
+    table {
+      width: 100%;
+      margin-top: 25px;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: #eee;
+    }
+
+    td,
+    th {
+      padding: 8px;
+      font-size: 13px;
+      border: 1px solid #aaa;
+    }
+
+    .right {
+      text-align: right;
+    }
+
+    /* RESUMO */
+
+    .resumo {
+      width: 300px;
+      margin-top: 25px;
+    }
+
+    .resumo div {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px;
+    }
+
+    .total {
+      font-size: 18px;
+      font-weight: bold;
+      border-top: 2px solid #000;
+    }
+
+    /* ASSINATURA */
+
+    .assinatura {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 80px;
+    }
+
+    .linha {
+      width: 200px;
+      margin-top: 40px;
+      border-top: 1px solid #000;
+    }
+
+    /* RODAPÉ */
+
+    .footer {
+      margin-top: 30px;
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+
+  <div class="logo">
+    <img
+  src="/img/ChatGPT%20Image%2024%20de%20jul.%20de%202026,%2019_53_14.png"
+  alt="Logo Serve Festa"
+  style="width:190px;height:auto;"
+>
+  </div>
+
+  <div class="empresa">
+    <h1>SERVE FESTA</h1>
+
+    <p>Locação de artigos para festas</p>
+
+    <p><strong>ORÇAMENTO</strong></p><br>
+
+  
+
+    <p>
+       <p><strong>📞 (14) 99674-9672</strong></p> Rua Tupinambas, 10-A esquina c/ Joaquim Abarca - Centro - Tupã/SP
+    </p>
+  </div>
+
+</div>
+CNPJ: 20.894.431/0001-56
+  <div class="topo">
+
+    <!-- SOLICITANTE -->
+
+    <div class="card">
+
+      <div class="titulo">
+        Dados do Solicitante
+      </div>
+
+      <p>
+        <strong>Nome:</strong>
+        ${pedido.nome_cliente || "Não informado"}
+      </p>
+
+      <p>
+        <strong>Telefone:</strong>
+        ${pedido.telefone_cliente || "-"}
+      </p>
+
+    </div>
+
+    <!-- ENDEREÇO -->
+
+    <div class="card">
+
+      <div class="titulo">
+        Endereço de Entrega
+      </div>
+
+      <p>
+        ${pedido.endereco?.rua || ""}
+        ${pedido.endereco?.numero || ""}
+      </p>
+
+      <p>
+        ${pedido.endereco?.bairro || ""}
+      </p>
+
+      <p>
+        ${pedido.endereco?.cidade || ""}
+        -
+        ${pedido.endereco?.estado || ""}
+      </p>
+
+      <br>
+
+    </div>
+
+    <!-- EVENTO -->
+
+    <div class="card">
+
+      <div class="titulo">
+        Dados do Evento
+      </div>
+
+      <p>
+        <strong>Evento:</strong>
+        ${pedido.data_evento || "-"}
+      </p>
+
+      <p>
+        <strong>Entrega:</strong>
+        ${pedido.data_entrega || "-"}
+      </p>
+
+      <p>
+        <strong>Retirada:</strong>
+        ${pedido.data_retirada || "-"}
+      </p>
+
+    </div>
+
+  </div>
+
+  <h3>Produtos do Orçamento</h3>
+
+  <table>
+
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th>Qtd</th>
+        <th>Valor Unit.</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      ${pedido.itens.map(item => `
+        <tr>
+          <td>${item.nome}</td>
+          <td class="right">${item.quantidade}</td>
+          <td class="right">${formatar(item.preco_unitario)}</td>
+          <td class="right">${formatar(item.subtotal)}</td>
+        </tr>
+      `).join("")}
+
+    </tbody>
+
+  </table>
+
+  <!-- VALORES -->
+
+  <div class="resumo">
+
+    <div>
+      <span>Produtos:</span>
+      <span>${formatar(pedido.valor_produtos)}</span>
+    </div>
+
+    <div>
+      <span>Frete:</span>
+      <span>${formatar(pedido.valor_frete)}</span>
+    </div>
+
+    <div>
+      <span>Desconto:</span>
+      <span>${formatar(pedido.valor_desconto)}</span>
+    </div>
+
+    <div class="total">
+      <span>TOTAL:</span>
+      <span>
+        ${formatar(
+          pedido.valor_produtos +
+          pedido.valor_frete -
+          pedido.valor_desconto
+        )}
+      </span>
+    </div>
+
+  </div>
+
+  <!-- ASSINATURAS -->
+
+  <div class="assinatura">
+
+    <div>
+      <div class="linha"></div>
+      Cliente
+    </div>
+
+    <div>
+      <div class="linha"></div>
+      Serve Festa
+    </div>
+
+  </div>
+
+  <!-- RODAPÉ -->
+
+  <div class="footer">
+    Obrigado pela preferência!
+    <br>
+    Este orçamento depende da disponibilidade dos produtos.
+  </div>
+
+</body>
+
+</html>
+  `);
+
+  janela.document.close();
+  janela.print();
 }

@@ -66,16 +66,16 @@ function togglePainel(abrir) {
 }
 
 function renderBuscaCliente() {
-  const buscar = $("buscar-cliente");
-  const cadastro = $("cadastro-cliente");
+ const buscarDiv = $("buscar-cliente");
+const cadastro = $("cadastro-cliente");
 
-  if (buscar) {
-    buscar.style.display = "block";
-  }
+if (buscarDiv) {
+  buscarDiv.style.display = "block";
+}
 
-  if (cadastro) {
-    cadastro.style.display = "none";
-  }
+if (cadastro) {
+  cadastro.style.display = "none";
+}
 
   const body = $("buscar-cliente");
   if (!body) return;
@@ -131,42 +131,92 @@ function renderBuscaCliente() {
 function renderCadastroCliente() {
 
   const buscar = $("buscar-cliente");
-  const cadastro = $("cadastro-cliente");
+    const cadastro = $("cadastro-cliente");
 
-  if (buscar) buscar.style.display = "none";
-  if (cadastro) cadastro.style.display = "block";
+    if (buscar) buscar.style.display = "none";
+    if (cadastro) cadastro.style.display = "block";
 
-  const form = $("form-cadastro-cliente");
+  const form = $("formClientePedido");
   if (!form) return;
 
-  form.addEventListener("submit", async (event) => {
+  form.onsubmit = async (event) => {
     event.preventDefault();
 
-    const formData = new FormData(form);
+    const dados = Object.fromEntries(new FormData(form));
 
-    const res = await fetch(form.action, {
-      method: "POST",
-      headers: {
-        Accept: "application/json"
-      },
-      body: formData
-    });
+    try {
+        const res = await fetch(form.action, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(dados)
+        });
 
-    const cliente = await res.json();
+        const texto = await res.text();
 
-    if (!res.ok) {
-      throw new Error(cliente.erro || "Erro ao cadastrar cliente.");
+        console.log("Status:", res.status);
+        console.log("Resposta:", texto);
+
+       const cliente = texto ? JSON.parse(texto) : {};
+
+if (!res.ok) {
+    throw new Error(cliente.erro || "Erro ao cadastrar cliente.");
+}
+
+state.clienteSelecionado = {
+    id: cliente.cliente_id,
+    nome: cliente.nome,
+    cpf: cliente.cpf,
+    email: cliente.email,
+    telefone: cliente.telefone,
+    nascimento: cliente.nascimento,
+    id_endereco: cliente.id_endereco
+};
+
+renderCliente();
+togglePainel(false);
+
+form.reset();
+
+    } catch (err) {
+        alert(err.message);
     }
-
-    state.clienteSelecionado = cliente;
-
-    renderCliente();
-    togglePainel(false);
-  });
-
+};
 }
 
 
 export function inicializarCliente() {
+
   renderCliente();
+
+  const btnCancelar = $("btn-cancelar-cliente");
+
+  if (btnCancelar) {
+
+    btnCancelar.onclick = () => {
+
+      const form = $("formClientePedido");
+
+      if (form) {
+        form.reset();
+      }
+
+      const cadastro = $("cadastro-cliente");
+
+      if (cadastro) {
+        cadastro.style.display = "none";
+      }
+
+      const buscar = $("buscar-cliente");
+
+      if (buscar) {
+        buscar.style.display = "block";
+      }
+
+    };
+
+  }
+
 }

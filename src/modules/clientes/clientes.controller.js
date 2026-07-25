@@ -47,7 +47,11 @@ export async function apiList(req, res) {
 export async function criar(req, res) {
   try {
 
+    console.log("BODY RECEBIDO:", req.body);
+
     const cliente = await service.criar(req.body);
+
+    console.log("CLIENTE CRIADO:", cliente); // ADICIONE
 
     if (req.headers.accept?.includes("application/json")) {
       return res.status(201).json(cliente);
@@ -58,14 +62,11 @@ export async function criar(req, res) {
 
   } catch (err) {
 
-    if (req.headers.accept?.includes("application/json")) {
-      return res.status(400).json({
-        erro: err.message
-      });
-    }
+    console.log(err);
 
-    req.flash("error_msg", err.message);
-    return res.redirect("/clientes");
+    return res.status(400).json({
+      erro: err.message
+    });
   }
 }
 
@@ -82,23 +83,69 @@ export async function editar(req, res) {
 }
 
 export async function atualizar(req, res) {
+
   try {
-    await service.atualizar(req.params.id, req.body)
-    res.redirect("/clientes")
+
+    const cliente = await service.atualizar(req.params.id, req.body);
+
+    if (req.headers.accept?.includes("application/json")) {
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: "Cliente atualizado com sucesso.",
+        cliente
+      });
+    }
+
+    req.flash("success_msg", "Cliente atualizado com sucesso.");
+    return res.redirect("/clientes");
+
   } catch (err) {
-    console.error(err)
-    req.flash("error_msg", "Erro ao atualizar")
-    res.redirect("/clientes")
+
+    console.error(err);
+
+    if (req.headers.accept?.includes("application/json")) {
+      return res.status(400).json({
+        erro: err.message
+      });
+    }
+
+    req.flash("error_msg", err.message);
+    return res.redirect("/clientes");
+
   }
+
 }
 
 export async function deletar(req, res) {
+
+  console.log("Tentando excluir cliente ID:", req.params.id);
+  
   try {
-    await service.deletar(req.params.id)
-    res.redirect("/clientes")
+
+    await service.deletar(req.params.id);
+
+    if (req.headers.accept?.includes("application/json")) {
+      return res.json({
+        sucesso: true
+      });
+    }
+
+    req.flash("success_msg", "Cliente excluído com sucesso.");
+    return res.redirect("/clientes");
+
   } catch (err) {
-    console.error(err)
-    req.flash("error_msg", "Erro ao deletar")
-    res.redirect("/clientes")
+
+    console.error(err);
+
+    if (req.headers.accept?.includes("application/json")) {
+      return res.status(400).json({
+        erro: err.message
+      });
+    }
+
+    req.flash("error_msg", err.message);
+    return res.redirect("/clientes");
+
   }
+
 }

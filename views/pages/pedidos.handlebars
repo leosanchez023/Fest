@@ -45,9 +45,17 @@
         </div>
 
         <div id="painel-body">
+    <div id="buscar-cliente"></div>
 
-        <div id="buscar-cliente">
-        </div>
+    <div id="cadastro-cliente" style="display:none;">
+    {{> cadastro_cliente
+        action="/clientes/criar"
+        formId="formClientePedido"
+        titulo="Novo Cliente"
+        botaoSalvar="Salvar Cliente"
+    }}
+</div>
+</div>
 
     </div>
 
@@ -245,10 +253,14 @@
 
     <!-- ================= AÇÕES ================= -->
     <div class="actions">
-        <button id="btn-confirmar-pedido" class="btn btn-green">✅ Confirmar Pedido</button>
-        <button id="btn-gerar-orcamento" class="btn btn-blue">📄 Gerar Orçamento⚠️</button>
-      <button class="btn btn-gray" onclick="window.print()">🖨️ Imprimir⚠️</button>
+
+    <button 
+      id="btn-salvar-pedido" 
+      class="btn btn-green">
+      💾 Salvar
+    </button>
     </div>
+
   </div>
 
 </div>
@@ -260,10 +272,35 @@
     <div id="resumo-confirmacao"></div>
 
     <div class="footer" style="display:flex; gap:8px;">
-      <button id="btn-fechar-modal" class="btn btn-gray">Cancelar</button>
-      <button id="btn-salvar-pedido" class="btn btn-green">✅ Confirmar Pedido</button>
-      <button id="btn-gerar-orcamento-modal" class="btn btn-blue">📄 Gerar Orçamento</button>
-    </div>
+
+  <button 
+    id="btn-fechar-modal" 
+    class="btn btn-gray">
+    Cancelar
+  </button>
+
+
+  <button 
+ id="btn-confirmar-modal" 
+ class="btn btn-green">
+ ✅ Confirmar Pedido
+</button>
+
+
+<button 
+ id="btn-gerar-orcamento-modal" 
+ class="btn btn-blue">
+ 📄 Gerar Orçamento
+</button>
+
+
+<button 
+id="btn-imprimir-pedido"
+class="btn btn-gray">
+🖨️ Imprimir
+</button>
+
+</div>
   </div>
 </div>
 

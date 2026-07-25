@@ -141,3 +141,23 @@ export async function excluir(id) {
     [id]
   );
 }
+
+/* ===========================================================
+   BUSCAR CLIENTE POR CPF
+=========================================================== */
+
+export async function buscarPorCPF(cpf) {
+
+  const [rows] = await db.query(
+    `
+      SELECT id
+      FROM cliente
+      WHERE cpf = ?
+      LIMIT 1
+    `,
+    [cpf]
+  );
+
+  return rows[0] || null;
+
+}

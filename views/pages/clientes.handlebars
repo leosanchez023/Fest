@@ -24,8 +24,13 @@
 </header>
 
   <div id="formContainer" style="display:none;">
-    {{> cadastro_cliente}}
-  </div>
+    {{> cadastro_cliente
+        action="/clientes/criar"
+        formId="formulariocard"
+        titulo="Novo Cliente"
+        botaoSalvar="Salvar"
+    }}
+</div>
 
 <main>
 

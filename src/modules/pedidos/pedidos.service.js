@@ -42,6 +42,8 @@ export async function criarPedido(dados) {
   const pedido = {
     cliente_id: dados.cliente_id,
     endereco_id: dados.endereco_id,
+    status: dados.status,
+    status_documento: dados.status_documento,
     telefone_contato: dados.telefone_contato,
     tipo_pedido: dados.tipo_pedido,
     data_evento: dados.data_evento,
@@ -316,12 +318,23 @@ function sanitizarPedido(dados) {
     ? Number(dados.endereco_id) 
     : null,
 
+
+    // STATUS DO PEDIDO
+    // Confirmar Pedido = CONFIRMADO
+    // Gerar Orçamento = ORCAMENTO
+    status: dados.status || "CONFIRMADO",
+
+    status_documento: dados.status_documento || "PEDIDO",
+
+
     // Remove todos os caracteres que não são números
     telefone_contato: dados.telefone_contato 
     ?.replace(/\D/g, ""),
 
+
     // Mantém o tipo do pedido
     tipo_pedido: dados.tipo_pedido,
+
 
     // Datas do pedido
     data_evento: dados.data_evento,
@@ -330,18 +343,22 @@ function sanitizarPedido(dados) {
 
     data_retirada: dados.data_retirada,
 
+
     // Forma de pagamento
     forma_pagamento: dados.forma_pagamento,
+
 
     // Remove espaços extras da observação do pagamento
     observacao_pagamento: dados.observacao_pagamento
     ?.trim()
     .replace(/\s+/g, " "),
 
+
     // Remove espaços extras das observações
     observacoes:dados.observacoes
     ?.trim()
     .replace(/\s+/g, " "),
+
 
     // Converte valores para número
     distancia_km:
@@ -352,6 +369,7 @@ function sanitizarPedido(dados) {
 
     valor_desconto:
       Number(dados.valor_desconto || 0),
+
 
     // Mantém os itens do pedido
     itens:
