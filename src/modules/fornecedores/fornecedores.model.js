@@ -1,268 +1,250 @@
 import db from '../../../database/connection.js';
 
-/* ==========================================================
-   LISTAR FORNECEDORES
-========================================================== */
-export async function buscarFornecedores({ q = '', category = '', status = '' }) {
+// LISTAR FORNECEDORES
+export async function buscarFornecedores({
+    q = '',
+    categoria = '',
+    status = ''
+    } = {}) {
 
     const where = [];
     const params = [];
+    q = q.trim();
 
+    // Pesquisa geral
     if (q) {
-        where.push(`(
+
+    where.push(`
+        (
             nome LIKE ?
             OR email LIKE ?
             OR cnpj LIKE ?
             OR responsavel LIKE ?
-            OR category LIKE ?
-        )`);
+            OR categoria LIKE ?
+            OR cidade LIKE ?
+        )
+    `);
 
-        const termo = `%${q}%`;
-        params.push(termo, termo, termo, termo, termo);
+    const termo = `%${q}%`;
+        params.push(
+            termo,
+            termo,
+            termo,
+            termo,
+            termo,
+            termo
+        );
     }
 
-    if (category) {
-        where.push(`category = ?`);
-        params.push(category);
+    // Categoria
+    if (categoria) {
+        where.push('categoria = ?');
+        params.push(categoria);
     }
 
+    // Status
     if (status) {
-        where.push(`status = ?`);
+        where.push('status = ?');
         params.push(status);
     }
 
     const sql = `
         SELECT
             id,
-            nome              AS name,
+            nome,
             cnpj,
             responsavel,
-            category,
-            phone,
+            categoria,
+            telefone,
             whatsapp,
             email,
-            website,
-            street,
-            number,
-            neighborhood,
-            city,
-            state,
+            site,
+            rua,
+            numero,
+            bairro,
+            cidade,
+            estado,
             cep,
-            product,
-            delivery,
-            payment,
-            notes,
+            produtos,
+            entrega,
+            pagamento,
+            observacoes,
             status,
-            created_at        AS createdAt,
-            updated_at        AS updatedAt
+            criado_em AS criadoEm,
+            atualizado_em AS atualizadoEm
         FROM fornecedores
-        ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
-        ORDER BY created_at DESC
-    `;
 
-    const [rows] = await db.query(sql, params);
+        ${where.length
+            ? "WHERE " + where.join(" AND "): ""
+        }
+        ORDER BY criado_em DESC`;
+
+    const [rows] = await db.query(
+        sql,
+        params
+    );
 
     return rows;
 }
 
-/* ==========================================================
-   BUSCAR POR ID
-========================================================== */
+// BUSCAR FORNECEDOR POR ID
 export async function buscarFornecedorPorId(id) {
 
-    const [rows] = await db.query(`
+    if (!id) {
+        return null;
+    }
+
+    const [rows] = await db.query(
+        `
         SELECT
             id,
-            nome              AS name,
+            nome,
             cnpj,
             responsavel,
-            category,
-            phone,
+            categoria,
+            telefone,
             whatsapp,
             email,
-            website,
-            street,
-            number,
-            neighborhood,
-            city,
-            state,
+            site,
+            rua,
+            numero,
+            bairro,
+            cidade,
+            estado,
             cep,
-            product,
-            delivery,
-            payment,
-            notes,
+            produtos,
+            entrega,
+            pagamento,
+            observacoes,
             status,
-            created_at        AS createdAt,
-            updated_at        AS updatedAt
+            criado_em AS criadoEm,
+            atualizado_em AS atualizadoEm
         FROM fornecedores
         WHERE id = ?
-    `, [id]);
+        `,
+        [id]
+    );
 
     return rows[0] || null;
 }
 
-/* ==========================================================
-   CADASTRAR
-========================================================== */
+// CADASTRAR FORNECEDOR
 export async function criarFornecedor(dados) {
-
-    const [result] = await db.query(`
-        INSERT INTO fornecedores (
-
+    const [result] = await db.query(
+        `
+        INSERT INTO fornecedores
+        (
             nome,
             cnpj,
             responsavel,
-            category,
-            phone,
+            categoria,
+            telefone,
             whatsapp,
             email,
-            website,
-
-            street,
-            number,
-            neighborhood,
-            city,
-            state,
+            site,
+            rua,
+            numero,
+            bairro,
+            cidade,
+            estado,
             cep,
-
-            product,
-            delivery,
-            payment,
-            notes,
-
+            produtos,
+            entrega,
+            pagamento,
+            observacoes,
             status
-
         )
 
-        VALUES (
-
-            ?,?,?,?,?,?,?,?,
-            ?,?,?,?,?,?,
-            ?,?,?,?,
-            ?
-
-        )
-    `,
-    [
-
-        dados.name,
-        dados.cnpj,
-
-        dados.responsavel || null,
-        dados.category || null,
-
-        dados.phone || null,
-        dados.whatsapp || null,
-
-        dados.email || null,
-        dados.website || null,
-
-        dados.street || null,
-        dados.number || null,
-        dados.neighborhood || null,
-        dados.city || null,
-        dados.state || null,
-        dados.cep || null,
-
-        dados.product || null,
-        dados.delivery || null,
-        dados.payment || null,
-        dados.notes || null,
-
-        dados.status || 'Ativo'
-
-    ]);
+        VALUES
+        (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        `,
+        [
+            dados.nome,
+            dados.cnpj,
+            dados.responsavel,
+            dados.categoria,
+            dados.telefone,
+            dados.whatsapp,
+            dados.email,
+            dados.site,
+            dados.rua,
+            dados.numero,
+            dados.bairro,
+            dados.cidade,
+            dados.estado,
+            dados.cep,
+            dados.produtos,
+            dados.entrega,
+            dados.pagamento,
+            dados.observacoes,
+            dados.status || "Ativo"
+        ]
+    );
 
     return result.insertId;
-
 }
 
-/* ==========================================================
-   ATUALIZAR
-========================================================== */
+// ATUALIZAR FORNECEDOR
 export async function atualizarFornecedor(id, dados) {
 
-    const [result] = await db.query(`
-
-        UPDATE fornecedores SET
-
-            nome=?,
-            cnpj=?,
-            responsavel=?,
-            category=?,
-
-            phone=?,
-            whatsapp=?,
-            email=?,
-            website=?,
-
-            street=?,
-            number=?,
-            neighborhood=?,
-            city=?,
-            state=?,
-            cep=?,
-
-            product=?,
-            delivery=?,
-            payment=?,
-            notes=?,
-
-            status=?
-
-        WHERE id=?
-
-    `,
-
-    [
-
-        dados.name,
-        dados.cnpj,
-
-        dados.responsavel || null,
-        dados.category || null,
-
-        dados.phone || null,
-        dados.whatsapp || null,
-
-        dados.email || null,
-        dados.website || null,
-
-        dados.street || null,
-        dados.number || null,
-        dados.neighborhood || null,
-        dados.city || null,
-        dados.state || null,
-        dados.cep || null,
-
-        dados.product || null,
-        dados.delivery || null,
-        dados.payment || null,
-        dados.notes || null,
-
-        dados.status || 'Ativo',
-
-        id
-
-    ]);
-
-    return result.affectedRows > 0;
-
-}
-
-/* ==========================================================
-   EXCLUIR
-========================================================== */
-export async function excluirFornecedor(id) {
-
     const [result] = await db.query(
-
-        `DELETE FROM fornecedores WHERE id = ?`,
-
-        [id]
-
+        `UPDATE fornecedores SET
+            nome = ?,
+            cnpj = ?,
+            responsavel = ?,
+            categoria = ?,
+            telefone = ?,
+            whatsapp = ?,
+            email = ?,
+            site = ?,
+            rua = ?,
+            numero = ?,
+            bairro = ?,
+            cidade = ?,
+            estado = ?,
+            cep = ?,
+            produtos = ?,
+            entrega = ?,
+            pagamento = ?,
+            observacoes = ?,
+            status = ?
+        WHERE id = ?`,
+        [
+            dados.nome,
+            dados.cnpj,
+            dados.responsavel,
+            dados.categoria,
+            dados.telefone,
+            dados.whatsapp,
+            dados.email,
+            dados.site,
+            dados.rua,
+            dados.numero,
+            dados.bairro,
+            dados.cidade,
+            dados.estado,
+            dados.cep,
+            dados.produtos,
+            dados.entrega,
+            dados.pagamento,
+            dados.observacoes,
+            dados.status || "Ativo",
+            id
+        ]
     );
 
     return result.affectedRows > 0;
+}
 
+// EXCLUIR FORNECEDOR
+export async function excluirFornecedor(id) {
+    const [result] = await db.query(
+        `
+        DELETE FROM fornecedores
+        WHERE id = ?
+        `,
+        [id]
+    );
+
+    return result.affectedRows > 0;
 }
