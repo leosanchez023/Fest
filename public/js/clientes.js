@@ -1,273 +1,320 @@
+//ABRIR FORMULÁRIO PARA CADASTRAR NOVO CLIENTE
 function openForm() {
-  const container = document.getElementById('formContainer');
-  const form = container ? container.querySelector('form') : null;
 
-  if (!container || !form) return;
+    const container = document.getElementById('formContainer');
+    const form = container ? container.querySelector('form') : null;
 
-  // Limpa todos os campos
-  form.reset();
+    // Verifica se o formulário existe antes de continuar
+    if (!container || !form) return;
 
-  // Limpa o ID oculto
-  const inputId = form.querySelector("[name='id']");
-  if (inputId) {
-    inputId.value = "";
-  }
+    //LIMPA OS CAMPOS DO FORMULÁRIO
+    form.reset();
 
-  // Configura o formulário para criação
-  form.action = "/clientes/criar";
+    // Remove o ID oculto para indicar que é um novo cadastro
+    const inputId = form.querySelector("[name='id']");
 
-  // Atualiza o título
-  const titulo = form.querySelector("h2");
-  if (titulo) {
-    titulo.innerHTML = '<i class="fas fa-user-plus"></i> Novo Cliente';
-  }
+    if (inputId) {inputId.value = "";}
 
-  // Atualiza o botão
-  const btnSalvar = form.querySelector("button[type='submit']");
-  if (btnSalvar) {
-    btnSalvar.textContent = "Salvar";
-  }
+    // CONFIGURA FORMULÁRIO PARA CRIAÇÃO
+    form.action = "/clientes/criar";
 
-  // Exibe o formulário
-  container.style.display = "block";
+
+    //ALTERA TÍTULO DO FORMULÁRIO
+    const titulo = form.querySelector("h2");
+
+    if (titulo) {titulo.innerHTML = `<i class="fas fa-user-plus"></i>Novo Cliente`;}
+
+    // ALTERA TEXTO DO BOTÃO DE SALVAR
+    const btnSalvar = form.querySelector("button[type='submit']");
+
+    if (btnSalvar) {
+        btnSalvar.textContent = "Salvar";
+    }
+
+    // MOSTRA O FORMULÁRIO NA TELA
+    container.style.display = "block";
 }
+
+
+
+
+
+//FILTRO DE CLIENTES
 
 function submitFilter(event) {
-  if (event) event.preventDefault();
+    // Evita recarregar o formulário padrão
+    if (event) {
+        event.preventDefault();
+    }
 
-  const q = document.getElementById('searchInput')?.value.trim() || '';
-  const limit = document.getElementById('limitSelect')?.value || '10';
-  const params = new URLSearchParams();
+    // Captura texto pesquisado
+    const q = document
+        .getElementById('searchInput')
+        ?.value
+        .trim() || "";
 
-  if (q) params.set('q', q);
-  params.set('limit', limit);
-  params.set('page', '1');
+    // Quantidade de registros por página
+    const limit = document
+        .getElementById('limitSelect')
+        ?.value || "10";
 
-  window.location.href = '/clientes' + (params.toString() ? '?' + params.toString() : '');
+    // Cria parâmetros da URL
+    const params = new URLSearchParams();
+
+    if (q) {params.set('q', q);}
+    params.set('limit', limit);
+
+    // Sempre inicia pela primeira página
+    params.set('page', '1');
+
+    // Redireciona para a lista filtrada
+    window.location.href ='/clientes' +
+    (params.toString()
+        ? '?' + params.toString()
+        : ''
+    );
+
 }
 
+
+
+
+
+// NAVEGAÇÃO ENTRE PÁGINAS
 function goToPage(page) {
-  const url = new URL(window.location.href);
-  url.searchParams.set('page', page);
-  window.location.href = url.toString();
-}
 
+    // Pega a URL atual
+    const url = new URL(window.location.href);
+
+    // Atualiza o número da página
+    url.searchParams.set('page', page);
+
+    // Recarrega com nova página
+    window.location.href = url.toString();
+}
+//EDITAR CLIENTE
 function editClient(btn) {
 
-  const container = document.getElementById('formContainer');
-  const form = container ? container.querySelector('form') : null;
+    const container = document.getElementById('formContainer');
+    const form = container? container.querySelector('form'): null;
 
-  if (!container || !form) return;
+    // Verifica se o formulário existe
+    if (!container || !form) return;
 
-  container.style.display = 'block';
-  form.action = '/clientes/editar/' + btn.dataset.id;
+    // MOSTRA O FORMULÁRIO
+    container.style.display = "block";
 
-  // Atualiza o título
-  const titulo = form.querySelector("h2");
-  if (titulo) {
-    titulo.innerHTML = '<i class="fas fa-user-plus"></i> Editar Cliente';
-  }
+    //CONFIGURA AÇÃO PARA EDIÇÃO
+    form.action = "/clientes/editar/" + btn.dataset.id;
 
-  // Atualiza o texto do botão
-  const btnSalvar = form.querySelector("button[type='submit']");
-  if (btnSalvar) {
-    btnSalvar.textContent = "Atualizar";
-  }
+    // ALTERA TÍTULO DO FORMULÁRIO
+    const titulo = form.querySelector("h2");
 
-  // Preenche o ID oculto
-  form.querySelector("[name='id']").value = btn.dataset.id || '';
-
-  // Preenche os campos
-  form.querySelector("[name='nome']").value = btn.dataset.nome || '';
-  form.querySelector("[name='cpf']").value = btn.dataset.cpf || '';
-  form.querySelector("[name='email']").value = btn.dataset.email || '';
-  form.querySelector("[name='telefone']").value = btn.dataset.telefone || '';
-  form.querySelector("[name='nascimento']").value = btn.dataset.nascimento || '';
-  form.querySelector("[name='rua']").value = btn.dataset.rua || '';
-  form.querySelector("[name='numero']").value = btn.dataset.numero || '';
-  form.querySelector("[name='cidade']").value = btn.dataset.cidade || '';
-  form.querySelector("[name='estado']").value = btn.dataset.estado || '';
-}
-document.addEventListener("DOMContentLoaded", () => {
-
-  const form = document.getElementById("formulariocard");
-
-  if (!form) return;
-
-  form.addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    const dados = Object.fromEntries(new FormData(form));
-
-    /* ==========================================
-       LIMPEZA DOS DADOS
-    ========================================== */
-
-    dados.nome = dados.nome?.trim() || "";
-    dados.email = dados.email?.trim().toLowerCase() || "";
-    dados.telefone = dados.telefone?.trim() || "";
-    dados.cpf = dados.cpf?.trim() || "";
-    dados.rua = dados.rua?.trim() || "";
-    dados.numero = dados.numero?.trim() || "";
-    dados.cidade = dados.cidade?.trim() || "";
-    dados.estado = dados.estado?.trim() || "";
-
-    /* ==========================================
-       VALIDAÇÃO DO NOME
-    ========================================== */
-
-    if (!dados.nome) {
-      alert("Informe o nome do cliente.");
-      return;
+    if (titulo) {
+        titulo.innerHTML = `<i class="fas fa-user-edit"></i> Editar Cliente`;
     }
 
-    if (dados.nome.length < 3) {
-      alert("O nome deve possuir no mínimo 3 caracteres.");
-      return;
-    }
+    //ALTERA TEXTO DO BOTÃO
+    const btnSalvar = form.querySelector("button[type='submit']");
 
-    if (dados.nome.length > 100) {
-      alert("O nome deve possuir no máximo 100 caracteres.");
-      return;
-    }
+    if (btnSalvar) {btnSalvar.textContent = "Atualizar";}
 
-    /* ==========================================
-       VALIDAÇÃO DO E-MAIL
-    ========================================== */
+    //PREENCHE O ID OCULTO
+    const inputId = form.querySelector("[name='id']");
 
-    if (!dados.email) {
-      alert("Informe o e-mail.");
-      return;
-    }
+    if (inputId) {inputId.value = btn.dataset.id || "";}
 
-    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //PREENCHE OS CAMPOS DO CLIENTE
+    const campos = {
 
-    if (!regexEmail.test(dados.email)) {
-      alert("Informe um e-mail válido.");
-      return;
-    }
+        nome: btn.dataset.nome,
+        cpf: btn.dataset.cpf,
+        email: btn.dataset.email,
+        telefone: btn.dataset.telefone,
+        nascimento: btn.dataset.nascimento,
+        rua: btn.dataset.rua,
+        numero: btn.dataset.numero,
+        cidade: btn.dataset.cidade,
+        estado: btn.dataset.estado
+    };
 
-    /* ==========================================
-       VALIDAÇÃO DO TELEFONE
-    ========================================== */
+    // Percorre os campos e coloca os valores no formulário
+    Object.keys(campos).forEach(campo => {
+        const input = form.querySelector( `[name='${campo}']`);
 
-    if (!dados.telefone) {
-      alert("Informe o telefone.");
-      return;
-    }
-
-    const telefone = dados.telefone.replace(/\D/g, "");
-
-    if (telefone.length < 10 || telefone.length > 11) {
-      alert("Informe um telefone válido.");
-      return;
-    }
-
-    /* ==========================================
-       VALIDAÇÃO DO ENDEREÇO
-    ========================================== */
-
-    if (!dados.rua) {
-      alert("Informe a rua.");
-      return;
-    }
-
-    if (!dados.numero) {
-      alert("Informe o número.");
-      return;
-    }
-
-    const numero = Number(dados.numero);
-
-    if (isNaN(numero) || numero <= 0) {
-      alert("Informe um número válido.");
-      return;
-    }
-
-    if (!dados.cidade) {
-      alert("Informe a cidade.");
-      return;
-    }
-
-    if (!dados.estado) {
-      alert("Informe o estado.");
-      return;
-    }
-
-    /* ==========================================
-       VALIDAÇÃO DA DATA DE NASCIMENTO
-    ========================================== */
-
-    if (dados.nascimento) {
-
-      const nascimento = new Date(dados.nascimento);
-      const hoje = new Date();
-
-      hoje.setHours(0, 0, 0, 0);
-
-      if (nascimento > hoje) {
-        alert("A data de nascimento não pode ser maior que a data atual.");
-        return;
-      }
-
-    }
-
-    /* ==========================================
-       ENVIA PARA O SERVIDOR
-    ========================================== */
-
-    try {
-
-      const res = await fetch(form.action, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify(dados)
-      });
-
-      const resposta = await res.json();
-
-      console.log("Resposta servidor:", resposta);
-
-      if (!res.ok) {
-        throw new Error(resposta.erro || "Erro ao salvar cliente.");
-      }
-
-      alert("Cliente salvo com sucesso!");
-
-      window.location.href = "/clientes";
-
-    } catch (err) {
-
-      console.error(err);
-      alert(err.message);
-
-    }
-
-  });
-
-});
-
-/* ==========================================
-   BOTÃO CANCELAR
-========================================== */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  const btnCancelar = document.getElementById("btn-cancelar-cliente");
-  const container = document.getElementById("formContainer");
-
-  if (btnCancelar && container) {
-
-    btnCancelar.addEventListener("click", () => {
-
-      container.style.display = "none";
+        if (input) {input.value = campos[campo] || "";}
 
     });
+}
 
-  }
+// INICIALIZA EVENTOS QUANDO A PÁGINA CARREGAR
 
+document.addEventListener("DOMContentLoaded", () => {
+
+    const form = document.getElementById("formulariocard");
+
+    // Caso não exista formulário, encerra
+    if (!form) return;
+
+    // O envio será feito via AJAX (fetch)
+    form.addEventListener("submit", async (event) => {
+
+        // Impede envio tradicional do HTML
+        event.preventDefault();
+
+        // Captura todos os dados do formulário
+        const dados = Object.fromEntries(new FormData(form));
+
+        //LIMPEZA INICIAL DOS DADOS
+        dados.nome = dados.nome?.trim() || "";
+        dados.email = dados.email?.trim().toLowerCase() || "";
+        dados.telefone = dados.telefone?.trim() || "";
+        dados.cpf = dados.cpf?.trim() || "";
+        dados.rua = dados.rua?.trim() || "";
+        dados.numero = dados.numero?.trim() || "";
+        dados.cidade = dados.cidade?.trim() || "";
+        dados.estado = dados.estado?.trim() || "";
+
+        //VALIDAÇÃO DO NOME
+        if (!dados.nome) {
+            alert("Informe o nome do cliente.");
+            return;
+        }
+
+        if (dados.nome.length < 3) {
+            alert("O nome deve possuir no mínimo 3 caracteres.");
+            return;
+        }
+
+        if (dados.nome.length > 100) {
+            alert("O nome deve possuir no máximo 100 caracteres.");
+
+            return;
+        }
+
+        // VALIDAÇÃO DO E-MAIL
+        if (!dados.email) {
+            alert("Informe o e-mail.");
+            return;
+        }
+
+        const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!regexEmail.test(dados.email)) {
+            alert("Informe um e-mail válido.");
+
+            return;
+        }
+
+        //VALIDAÇÃO DO TELEFONE
+        if (!dados.telefone) {
+            alert("Informe o telefone.");
+            return;
+        }
+
+        // Remove caracteres como (), -, espaços
+        const telefone = dados.telefone.replace(/\D/g, "");
+
+        if (
+            telefone.length < 10 ||
+            telefone.length > 11
+        ) {
+            alert( "Informe um telefone válido.");
+            return;
+        }
+
+        // VALIDAÇÃO DO ENDEREÇO
+        if (!dados.rua) {
+            alert("Informe a rua.");
+            return;
+        }
+
+        if (!dados.numero) {
+            alert("Informe o número.");
+
+             return;
+        }
+
+        const numero = Number(dados.numero);
+
+        if (
+            isNaN(numero) || numero <= 0
+        ) {
+            alert("Informe um número válido.");
+            return;
+        }
+
+        if (!dados.cidade) {
+            alert("Informe a cidade.");
+            return;
+        }
+
+        if (!dados.estado) {alert("Informe o estado.");
+            return;
+        }
+
+        // VALIDAÇÃO DA DATA DE NASCIMENTO
+        if (dados.nascimento) {
+
+            const nascimento = new Date(dados.nascimento);
+            const hoje = new Date();
+
+            // Remove horas para comparar somente datas
+            hoje.setHours( 0, 0, 0, 0);
+
+            if (nascimento > hoje) {
+                alert("A data de nascimento não pode ser maior que a data atual.");
+
+            }
+        }
+
+        // ENVIO DOS DADOS PARA O SERVIDOR
+        try {
+            const res = await fetch(
+                form.action,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":"application/json",
+                        "Accept":"application/json"
+                    },
+                    body: JSON.stringify(dados)
+                }
+            );
+
+            // Converte resposta do servidor para JSON
+            const resposta = await res.json();
+
+            console.log("Resposta servidor:", resposta);
+
+            if (!res.ok) {
+                throw new Error( resposta.erro || "Erro ao salvar cliente.");
+            }
+
+            alert( "Cliente salvo com sucesso!");
+
+            // Retorna para lista de clientes
+            window.location.href = "/clientes";
+
+        } catch (err) {
+            console.error(err);
+            alert(err.message);
+        }
+    });
 });
+
+//BOTÃO CANCELAR FORMULÁRIO
+document.addEventListener("DOMContentLoaded",() => {
+
+        const btnCancelar = document.getElementById( "btn-cancelar-cliente" );
+        const container = document.getElementById( "formContainer");
+
+        if (btnCancelar && container) {
+
+            btnCancelar.addEventListener( "click",() => {
+                container.style.display ="none";
+            });
+
+        }
+    }
+);

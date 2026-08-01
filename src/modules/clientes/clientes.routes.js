@@ -1,18 +1,23 @@
-import express from "express"
-import * as controller from "./clientes.controller.js"
+import express from "express";
+import * as controller from "./clientes.controller.js";
+const router = express.Router();
 
-const router = express.Router()
+/* LISTAR CLIENTES */
+router.get("/", controller.listar);
 
-router.get("/", controller.listar)
+/* API CLIENTES */
+router.get( "/data", controller.apiList);
 
-// rota que retorna JSON com filtro/paginação
-router.get("/data", controller.apiList)
+/* CRIAR CLIENTE */
+router.post("/criar", controller.criar);
 
-router.post("/criar", controller.criar)
-
+/* EDITAR CLIENTE */
 router.get("/editar/:id", controller.editar);
+
+/* ATUALIZAR CLIENTE */
 router.post("/editar/:id", controller.atualizar);
 
-router.post("/excluir/:id",controller.deletar);
+/* EXCLUIR CLIENTE */
+router.post("/excluir/:id", controller.deletar);
 
-export default router
+export default router;

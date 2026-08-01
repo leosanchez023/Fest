@@ -1,13 +1,10 @@
-/* ==================================
-   CLIENTES
-================================== */
+/*CLIENTES - GRID DE CARDS*/
 
 .client-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
 }
-
 .client-card {
     background: #fff;
     border: 1px solid #e2e8f0;
@@ -16,27 +13,22 @@
     box-shadow: 0 1px 3px rgba(0,0,0,.04);
     transition: .2s;
 }
-
 .client-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,.08);
 }
-
 .client-header {
     margin-bottom: 12px;
 }
-
 .client-header h3 {
     font-size: .95rem;
     font-weight: 700;
 }
-
 .client-card p {
     margin-bottom: 8px;
     font-size: .875rem;
     color: #64748b;
 }
-
 .client-actions {
     display: flex;
     gap: 8px;
@@ -44,19 +36,20 @@
     padding-top: 14px;
     border-top: 1px solid #f1f5f9;
 }
-
 .client-actions form {
     margin: 0;
 }
 
+/* Responsividade dos cards */
 @media (max-width:700px){
 
-    .client-grid{
-        grid-template-columns:1fr;
+    .client-grid {
+        grid-template-columns: 1fr;
     }
 
 }
 
+/* FILTROS DE CLIENTES */
 .client-filter-row {
     margin-bottom: 20px;
     display: flex;
@@ -64,16 +57,15 @@
     flex-wrap: wrap;
     gap: 12px;
 }
-
 .filter-form {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
     align-items: center;
 }
-
 .filter-form input[type="search"],
 .filter-form select {
+
     padding: 10px 12px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
@@ -81,10 +73,11 @@
     color: #0f172a;
     min-width: 200px;
 }
-
 .filter-form button {
     padding: 10px 16px;
 }
+
+/* TABELA DE CLIENTES */
 
 .table-wrap {
     overflow-x: auto;
@@ -92,13 +85,12 @@
     border: 1px solid #e2e8f0;
     border-radius: 12px;
 }
-
 .client-table {
+
     width: 100%;
     border-collapse: collapse;
     min-width: 800px;
 }
-
 .client-table th,
 .client-table td {
     padding: 12px 14px;
@@ -106,38 +98,39 @@
     text-align: left;
     font-size: .95rem;
 }
-
 .client-table thead {
     background: #f8fafc;
 }
-
 .client-table tbody tr:hover {
     background: #f8fafc;
 }
 
+/* BOTÕES E FORMULÁRIOS INLINE */
 .inline-form {
     display: inline-block;
     margin-left: 8px;
 }
 
+/* PAGINAÇÃO*/
 .pagination-row {
     margin-top: 16px;
     display: flex;
     align-items: center;
     gap: 12px;
 }
-
 .pagination-row button[disabled] {
     opacity: .6;
     cursor: not-allowed;
 }
 
+/* ESTADO SEM CLIENTES */
 .empty-row {
     text-align: center;
     padding: 20px;
     color: #475569;
 }
 
+/* RESPONSIVIDADE DA TABELA */
 @media (max-width:900px) {
     .client-table {
         min-width: 100%;
@@ -150,16 +143,15 @@
     }
 }
 
-@media (max-width:700px){
+/*  RESPONSIVIDADE DOS FILTROS */
+@media (max-width:700px) {
     .filter-form {
         flex-direction: column;
         align-items: stretch;
     }
-
     .filter-form input[type="search"],
     .filter-form select,
     .filter-form button {
         width: 100%;
     }
 }
-

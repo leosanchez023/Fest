@@ -3,27 +3,34 @@
 
 <title>Cadastro de Clientes</title>
 
+
+<!-- CABEÇALHO DA PÁGINA -->
+
 <header>
-  <div class="header-inner">
-    <div class="logo">
-      <div class="logo-icon">
-        <i class="fas fa-users"></i>
-      </div>
+    <div class="header-inner">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div>
+                <h1>Cadastro de Clientes</h1>
+                <small id="clientCount">{{total}} clientes</small>
+            </div>
+        </div>
 
-      <div>
-        <h1>Cadastro de Clientes</h1>
-        <small id="clientCount">{{total}} clientes</small>
-      </div>
+        <!-- BOTÃO NOVO CLIENTE -->
+        <button
+            type="button"
+            class="btn btn-primary"
+            onclick="openForm()">
+            <i class="fas fa-plus"></i>
+            Novo Cliente
+        </button>
     </div>
-
-    <button type="button" class="btn btn-primary" onclick="openForm()">
-      <i class="fas fa-plus"></i>
-      Novo Cliente
-    </button>
-  </div>
 </header>
 
-  <div id="formContainer" style="display:none;">
+<!--  FORMULÁRIO DE CADASTRO -->
+<div id="formContainer" style="display:none;">
     {{> cadastro_cliente
         action="/clientes/criar"
         formId="formulariocard"
@@ -33,87 +40,140 @@
 </div>
 
 <main>
+    <!-- FILTRO E PESQUISA DE CLIENTES -->
+    <section class="client-filter-row">
+        <form
+            class="filter-form"
+            onsubmit="submitFilter(event)">
 
-  <section class="client-filter-row">
-    <form class="filter-form" onsubmit="submitFilter(event)">
-      <input id="searchInput" name="q" type="search" placeholder="Pesquisar nome, email ou CPF" value="{{q}}">
-      <select id="limitSelect" name="limit">
-        <option value="10">10 por página</option>
-        <option value="25">25 por página</option>
-        <option value="50">50 por página</option>
-      </select>
-      <button class="btn btn-secondary" type="submit">Buscar</button>
-    </form>
-  </section>
+            <input
+                id="searchInput"
+                name="q"
+                type="search"
+                placeholder="Pesquisar nome, email ou CPF"
+                value="{{q}}">
 
-  
-  <div class="table-wrap">
-    <table class="client-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>Email</th>
-          <th>Telefone</th>
-          <th>CPF</th>
-          <th>Endereço</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#if clientes.length}}
-          {{#each clientes}}
-            <tr>
-              <td>{{this.cliente_id}}</td>
-              <td>{{this.nome}}</td>
-              <td>{{this.email}}</td>
-              <td>{{this.telefone}}</td>
-              <td>{{this.cpf}}</td>
-              <td>{{this.rua}} {{this.numero}} - {{this.cidade}}/{{this.estado}}</td>
-              <td>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="editClient(this)"
-                  data-id="{{this.cliente_id}}"
-                  data-nome="{{this.nome}}"
-                  data-email="{{this.email}}"
-                  data-telefone="{{this.telefone}}"
-                  data-cpf="{{this.cpf}}"
-                  data-nascimento="{{this.nascimento}}"
-                  data-rua="{{this.rua}}"
-                  data-numero="{{this.numero}}"
-                  data-cidade="{{this.cidade}}"
-                  data-estado="{{this.estado}}">
-                  Editar
-                </button>
-                <form class="inline-form" method="post" action="/clientes/excluir/{{this.cliente_id}}" onsubmit="return confirm('Deseja excluir este cliente?')">
-                  <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
-                </form>
-              </td>
-            </tr>
-          {{/each}}
-        {{else}}
-          <tr>
-            <td colspan="7" class="empty-row">Nenhum cliente encontrado.</td>
-          </tr>
-        {{/if}}
-      </tbody>
-    </table>
-  </div>
+                <select id="limitSelect" name="limit">
+                    <option value="10"> 10 por página</option>
+                    <option value="25">25 por página</option>
+                    <option value="50">50 por página</option>
 
-  <div class="pagination-row">
-    <button class="btn" type="button" onclick="goToPage({{prevPage}})" {{#if isFirst}}disabled{{/if}}>Anterior</button>
-    <span>Página {{page}} de {{totalPages}}</span>
-    <button class="btn" type="button" onclick="goToPage({{nextPage}})" {{#if isLast}}disabled{{/if}}>Próxima</button>
-  </div>
+                </select>
+            <button class="btn btn-secondary"type="submit">Buscar</button>
+        </form>
+    </section>
 
+    <!-- TABELA DE CLIENTES -->
+    <div class="table-wrap">
+        <table class="client-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Telefone</th>
+                    <th>CPF</th>
+                    <th>Endereço</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {{#if clientes.length}}
+                    {{#each clientes}}
+
+                            <!-- LINHA DO CLIENTE -->
+                            <tr>
+                                <td>{{this.cliente_id}}</td>
+                                <td>{{this.nome}}</td>
+                                <td>{{this.email}}</td>
+                                <td>{{this.telefone}}</td>
+                                <td>{{this.cpf}}</td>
+                                <td>{{this.rua}} {{this.numero}} - {{this.cidade}}/{{this.estado}}</td>
+
+                                <!-- AÇÕES -->
+                                <td>
+                                    <!-- BOTÃO EDITAR -->
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary btn-sm"
+                                        onclick="editClient(this)"
+                                        data-id="{{this.cliente_id}}"
+                                        data-nome="{{this.nome}}"
+                                        data-email="{{this.email}}"
+                                        data-telefone="{{this.telefone}}"
+                                        data-cpf="{{this.cpf}}"
+                                        data-nascimento="{{this.nascimento}}"
+                                        data-rua="{{this.rua}}"
+                                        data-numero="{{this.numero}}"
+                                        data-cidade="{{this.cidade}}"
+                                        data-estado="{{this.estado}}">
+                                        Editar
+                                    </button>
+
+                                    <!-- BOTÃO EXCLUIR -->
+                                    <form
+                                        class="inline-form"
+                                        method="post"
+                                        action="/clientes/excluir/{{this.cliente_id}}"
+                                        onsubmit="return confirm('Deseja excluir este cliente?')">
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-danger btn-sm">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {{/each}}
+                    {{else}}
+
+                    <!-- CASO NÃO TENHA CLIENTES -->
+                    <tr>
+                        <td
+                            colspan="7"
+                            class="empty-row">
+                            Nenhum cliente encontrado.
+                        </td>
+                    </tr>
+
+                {{/if}}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINAÇÃO -->
+    <div class="pagination-row">
+        <button
+            class="btn"
+            type="button"
+            onclick="goToPage({{prevPage}})"
+            {{#if isFirst}}disabled{{/if}}>
+            Anterior
+        </button>
+
+        <span>Página {{page}} de {{totalPages}}</span>
+
+        <button
+            class="btn"
+            type="button"
+            onclick="goToPage({{nextPage}})"
+            {{#if isLast}}disabled{{/if}}>
+            Próxima
+        </button>
+    </div>
 </main>
 
+<!-- JAVASCRIPT DA PÁGINA -->
 <script src="/js/clientes.js"></script>
+
 <script>
-  (function(){
-    const limitSelect = document.getElementById('limitSelect');
-    const currentLimit = '{{limit}}';
-    if (limitSelect && currentLimit) {
-      limitSelect.value = currentLimit;
-    }
-  })();
+    (function(){
+        // Mantém o limite selecionado na paginação
+        const limitSelect = document.getElementById('limitSelect');
+        const currentLimit = '{{limit}}';
+
+        if(limitSelect && currentLimit){ limitSelect.value = currentLimit;}
+    })();
 </script>
