@@ -1,7 +1,6 @@
 ﻿import { state } from "./state.js";
 import { $, esc, fmt } from "./utils.js";
 import { updateResumo } from "./financeiro.js";
-import { abrirModalConfirmacao } from "./modal.js";
 
 export function adicionarItem() {
   const prodQuery = $("prod-query");
@@ -117,6 +116,11 @@ export async function enviarPedido(saveAs = "CONFIRMADO") {
     state.itens = [];
     renderItens();
     updateResumo();
+    document.querySelector("form")?.reset();
+
+    state.clienteSelecionado = null;
+    state.enderecoSelecionado = null;
+
   } catch (err) {
     console.error(err);
     alert(err.message);
@@ -369,36 +373,81 @@ export function inicializarPedido() {
   }
 
 
-  // SALVAR PEDIDO - abre modal
   const btnSalvarTela = $("btn-salvar-pedido");
 
-  if (btnSalvarTela) {
+if (btnSalvarTela) {
 
-    btnSalvarTela.addEventListener("click", () => {
+  btnSalvarTela.addEventListener("click", () => {
 
-      try {
+    try {
 
-        validarFormulario();
+      validarFormulario();
 
-        abrirModalConfirmacao(montarPedido());
+      const pedido = montarPedido();
 
-      } catch (erro) {
+      window.ModalPedido.abrir({
 
-        alert(erro.message);
+        tipo: pedido.tipo_pedido,
 
-      }
+        cliente: {
+          nome: pedido.nome_cliente,
+          telefone: pedido.telefone_cliente,
+          telefoneContato: pedido.telefone_contato,
+          endereco: `${pedido.endereco.rua}, ${pedido.endereco.numero}`,
+          cidade: pedido.endereco.cidade,
+          estado: pedido.endereco.estado
+        },
 
-    });
+        frete: {
+          rua: pedido.endereco.rua,
+          numero: pedido.endereco.numero,
+          bairro: pedido.endereco.bairro,
+          cidade: pedido.endereco.cidade,
+          estado: pedido.endereco.estado,
+          km: pedido.distancia_km,
+          valor: pedido.valor_frete
+        },
 
-  }
+        pagamento: {
+          forma: pedido.forma_pagamento,
+          pago: pedido.valor_pago,
+          desconto: pedido.valor_desconto,
+          observacao: pedido.observacao_pagamento
+        },
+
+        itens: pedido.itens.map(item => ({
+          nome: item.nome,
+          qtd: item.quantidade,
+          valor: item.preco_unitario
+        })),
+
+        observacoes: pedido.observacoes,
+        dataEvento: pedido.data_evento,
+        dataEntrega: pedido.data_entrega,
+        dataRetirada: pedido.data_retirada,
+        orcamento: pedido.status_documento === "ORCAMENTO"
+
+      });
+
+    } catch (erro) {
+
+      alert(erro.message);
+
+    }
+
+  });
+
+}
 
 // CONFIRMAR PEDIDO
 const btnConfirmar = $("btn-confirmar-modal");
 
 if (btnConfirmar) {
-  btnConfirmar.addEventListener("click", () => {
+  btnConfirmar.addEventListener("click", async () => {
 
-    enviarPedido("CONFIRMADO");
+    await enviarPedido("CONFIRMADO");
+
+    window.ModalPedido.fechar();
 
   });
 }
@@ -408,33 +457,15 @@ if (btnConfirmar) {
 const btnOrcamento = $("btn-gerar-orcamento-modal");
 
 if (btnOrcamento) {
-  btnOrcamento.addEventListener("click", () => {
+  btnOrcamento.addEventListener("click", async () => {
 
-    enviarPedido("ORCAMENTO");
+    await enviarPedido("ORCAMENTO");
+
+    window.ModalPedido.fechar();
 
   });
 }
-
-  // FECHAR MODAL
-  const btnFecharModal = $("btn-fechar-modal");
-
-  if (btnFecharModal) {
-
-    btnFecharModal.addEventListener("click", () => {
-
-      const modal = $("modal-confirmacao");
-
-      if(modal){
-        modal.style.display = "none";
-      }
-
-    });
-
-  }
-
-
-
-  // BUSCAR ENDEREÇO
+   // BUSCAR ENDEREÇO
   const btnEndereco = $("btn-endereco");
 
   if (btnEndereco) {
@@ -653,7 +684,7 @@ function imprimirOrcamento(pedido) {
 
     <p><strong>ORÇAMENTO</strong></p><br>
 
-  
+
 
     <p>
        <p><strong>📞 (14) 99674-9672</strong></p> Rua Tupinambas, 10-A esquina c/ Joaquim Abarca - Centro - Tupã/SP

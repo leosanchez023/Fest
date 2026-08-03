@@ -8,7 +8,7 @@
 
   <!-- ================= DADOS DO PEDIDO ================= -->
   <div class="card">
-    <div class="card-title">Dados do Pedido</div>
+    <div class="card-title">Dados do Pedido </div>
 
     <div class="field" style="margin-bottom:1rem">
       <label>Cliente</label>
@@ -254,8 +254,8 @@
     <!-- ================= AÇÕES ================= -->
     <div class="actions">
 
-    <button 
-      id="btn-salvar-pedido" 
+    <button
+      id="btn-salvar-pedido"
       class="btn btn-green">
       💾 Salvar
     </button>
@@ -263,48 +263,424 @@
 
   </div>
 
-</div>
+    <!-- =====================================================================
+      HTML DO MODAL
+      ===================================================================== -->
+  <div class="mp-overlay" id="modal-pedido" role="dialog" aria-modal="true" aria-labelledby="mp-titulo">
+    <div class="mp-modal">
 
-<!-- MODAL -->
-<div id="modal-confirmacao" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h2>Confirmar Pedido</h2>
-    <div id="resumo-confirmacao"></div>
+      <!-- 1. CABEÇALHO -->
+      <header class="mp-header">
+        <h2 id="mp-titulo">📄 Confirmar Pedido</h2>
+        <span class="mp-badge mp-badge--blue" id="mp-tipo-pedido">Aluguel</span>
+        <span class="mp-spacer"></span>
+        <button class="mp-close" data-mp-close aria-label="Fechar">✕</button>
+      </header>
 
-    <div class="footer" style="display:flex; gap:8px;">
+      <!-- CORPO -->
+      <div class="mp-body">
 
-  <button 
-    id="btn-fechar-modal" 
-    class="btn btn-gray">
-    Cancelar
-  </button>
+        <!-- 2. CLIENTE -->
+        <section class="mp-card">
+          <h3 class="mp-card-title">👤 Cliente</h3>
+          <div class="mp-grid">
+            <div class="mp-field"><label>Nome</label><span id="mp-cli-nome">—</span></div>
+            <div class="mp-field"><label>Telefone</label><span id="mp-cli-tel">—</span></div>
+            <div class="mp-field"><label>Telefone para contato</label><span id="mp-cli-tel2">—</span></div>
+            <div class="mp-field"><label>Endereço completo</label><span id="mp-cli-end">—</span></div>
+            <div class="mp-field"><label>Cidade</label><span id="mp-cli-cidade">—</span></div>
+            <div class="mp-field"><label>Estado</label><span id="mp-cli-uf">—</span></div>
+            <div class="mp-field"><label>Data do evento</label><span id="mp-data-evento">—</span></div>
+            <div class="mp-field"><label>Data da entrega</label><span id="mp-data-entrega">—</span></div>
+            <div class="mp-field"><label>Data da retirada</label><span id="mp-data-retirada">—</span></div>
+          </div>
+        </section>
 
+        <!-- 3. PRODUTOS -->
+        <section class="mp-card">
+          <h3 class="mp-card-title">📦 Produtos</h3>
+          <div class="mp-table-wrap">
+            <table class="mp-table">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th class="mp-num">Qtd</th>
+                  <th class="mp-num">Valor unit.</th>
+                  <th class="mp-num">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody id="mp-produtos"></tbody>
+            </table>
+          </div>
+          <div class="mp-table-foot">
+            <span>Total de itens: <b id="mp-total-itens">0</b></span>
+            <span>Valor dos produtos: <strong id="mp-total-produtos">R$ 0,00</strong></span>
+          </div>
+        </section>
 
-  <button 
- id="btn-confirmar-modal" 
- class="btn btn-green">
- ✅ Confirmar Pedido
-</button>
+        <!-- 4. FRETE -->
+        <section class="mp-card" id="mp-card-frete">
+          <h3 class="mp-card-title">📍 Endereço de Entrega</h3>
+          <div class="mp-grid">
+            <div class="mp-field"><label>Rua</label><span id="mp-fr-rua">—</span></div>
+            <div class="mp-field"><label>Número</label><span id="mp-fr-num">—</span></div>
+            <div class="mp-field"><label>Bairro</label><span id="mp-fr-bairro">—</span></div>
+            <div class="mp-field"><label>Cidade</label><span id="mp-fr-cidade">—</span></div>
+            <div class="mp-field"><label>Estado</label><span id="mp-fr-uf">—</span></div>
+            <div class="mp-field"><label>Distância</label><span id="mp-fr-km">—</span></div>
+            <div class="mp-field"><label>Valor do frete</label><span id="mp-fr-valor">—</span></div>
+          </div>
+        </section>
 
+        <!-- 5. PAGAMENTO -->
+        <section class="mp-card">
+          <h3 class="mp-card-title">💰 Pagamento</h3>
+          <div class="mp-grid">
+            <div class="mp-field"><label>Forma de pagamento</label><span id="mp-pg-forma">—</span></div>
+            <div class="mp-field"><label>Valor pago</label><span id="mp-pg-pago">—</span></div>
+            <div class="mp-field"><label>Desconto</label><span id="mp-pg-desc" class="mp-text-verde">—</span></div>
+            <div class="mp-field"><label>Valor restante</label><span id="mp-pg-restante">—</span></div>
+            <div class="mp-field" style="grid-column:1/-1"><label>Observação do pagamento</label><span id="mp-pg-obs">—</span></div>
+          </div>
+          <div style="margin-top:12px" id="mp-pg-badge"></div>
+        </section>
 
-<button 
- id="btn-gerar-orcamento-modal" 
- class="btn btn-blue">
- 📄 Gerar Orçamento
-</button>
+        <!-- 6. OBSERVAÇÕES (oculto automaticamente se vazio) -->
+        <section class="mp-card" id="mp-card-obs" hidden>
+          <h3 class="mp-card-title">📝 Observações</h3>
+          <p id="mp-obs" style="margin:0; font-size:.92rem; line-height:1.6;"></p>
+        </section>
 
+        <!-- 7. RESUMO FINANCEIRO -->
+        <section class="mp-summary">
+          <div class="mp-line"><span>Valor dos produtos</span><b id="mp-rs-produtos">R$ 0,00</b></div>
+          <div class="mp-line"><span>Frete</span><b id="mp-rs-frete">R$ 0,00</b></div>
+          <div class="mp-line"><span>Desconto</span><b id="mp-rs-desc" class="mp-text-green">- R$ 0,00</b></div>
+          <div class="mp-line"><span>Valor pago</span><b id="mp-rs-pago">R$ 0,00</b></div>
+          <div class="mp-line"><span>Valor restante</span><b id="mp-rs-restante" class="mp-text-red">R$ 0,00</b></div>
+          <div class="mp-total"><span>Total geral</span><b id="mp-rs-total">R$ 0,00</b></div>
+        </section>
 
-<button 
-id="btn-imprimir-pedido"
-class="btn btn-gray">
-🖨️ Imprimir
-</button>
+        <!-- 8. STATUS -->
+        <div class="mp-status-row" id="mp-status"></div>
+      </div>
 
-</div>
+      <!-- 9. RODAPÉ -->
+      <footer class="mp-footer">
+        <button class="mp-btn mp-btn--gray"  data-mp-close>❌ Cancelar</button>
+        <button class="mp-btn mp-btn--green" id="btn-confirmar-modal">✅ Confirmar Pedido</button>
+        <button class="mp-btn mp-btn--blue"  id="btn-gerar-orcamento-modal">📄 Gerar Orçamento</button>
+        <button class="mp-btn mp-btn--dark"  id="btn-imprimir-pedido">🖨️ Imprimir</button>
+      </footer>
+    </div>
   </div>
+
 </div>
+
+
 
 <script type="module" src="/js/pedidos/index.js"></script>
+
+<script>
+const ModalPedido = (() => {
+
+  const overlay = document.getElementById("modal-pedido");
+  const $ = id => document.getElementById(id);
+
+  /* ================= Helpers ================= */
+
+  const brl = valor =>
+    (Number(valor) || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+
+  const set = (id, valor) => {
+    const el = $(id);
+    if (el) {
+      el.textContent = valor ?? "—";
+    }
+  };
+
+  /* ================= Preencher Modal ================= */
+
+  function preencher(p = {}) {
+
+    const cli = p.cliente || {};
+    const fr = p.frete || {};
+    const pg = p.pagamento || {};
+    const itens = p.itens || [];
+
+    /* ---------- Tipo ---------- */
+
+    set("mp-tipo-pedido", p.tipo || "Pedido");
+
+    /* ---------- Cliente ---------- */
+
+    set("mp-cli-nome", cli.nome);
+    set("mp-cli-tel", cli.telefone);
+    set("mp-cli-tel2", cli.telefoneContato);
+    set("mp-cli-end", cli.endereco);
+    set("mp-cli-cidade", cli.cidade);
+    set("mp-cli-uf", cli.estado);
+
+    set("mp-data-evento", p.dataEvento);
+    set("mp-data-entrega", p.dataEntrega);
+    set("mp-data-retirada", p.dataRetirada);
+
+    /* ---------- Produtos ---------- */
+
+    const tbody = $("mp-produtos");
+
+    let totalProdutos = 0;
+    let totalItens = 0;
+
+    if (tbody) {
+
+      tbody.innerHTML = "";
+
+      itens.forEach(item => {
+
+        const subtotal = (item.qtd || 0) * (item.valor || 0);
+
+        totalProdutos += subtotal;
+        totalItens += Number(item.qtd || 0);
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${item.nome || ""}</td>
+          <td class="mp-num">${item.qtd || 0}</td>
+          <td class="mp-num">${brl(item.valor)}</td>
+          <td class="mp-num"><strong>${brl(subtotal)}</strong></td>
+        `;
+
+        tbody.appendChild(tr);
+
+      });
+
+    }
+
+    set("mp-total-itens", totalItens);
+    set("mp-total-produtos", brl(totalProdutos));
+
+    /* ---------- Frete ---------- */
+
+    const frete = Number(fr.valor) || 0;
+
+    set("mp-fr-rua", fr.rua);
+    set("mp-fr-num", fr.numero);
+    set("mp-fr-bairro", fr.bairro);
+    set("mp-fr-cidade", fr.cidade);
+    set("mp-fr-uf", fr.estado);
+
+    set(
+      "mp-fr-km",
+      fr.km != null ? `${fr.km} km` : "—"
+    );
+
+    const valorFrete = $("mp-fr-valor");
+    if (valorFrete) {
+      valorFrete.innerHTML = frete > 0
+        ? brl(frete)
+        : '<span class="mp-badge mp-badge--green">🚚 Frete Grátis</span>';
+
+    }
+
+    /* ---------- Pagamento ---------- */
+
+    const desconto = Number(pg.desconto) || 0;
+    const pago = Number(pg.pago) || 0;
+
+    const total = totalProdutos + frete - desconto;
+    const restante = Math.max(total - pago, 0);
+
+    set("mp-pg-forma", pg.forma);
+    set("mp-pg-pago", brl(pago));
+
+    const desc = $("mp-pg-desc");
+
+    if (desc) {
+      desc.textContent = "- " + brl(desconto);
+      desc.style.color = "var(--mp-green)";
+    }
+
+    const restanteEl = $("mp-pg-restante");
+
+    if (restanteEl) {
+      restanteEl.textContent = brl(restante);
+      restanteEl.style.color =
+        restante > 0
+          ? "var(--mp-red)"
+          : "var(--mp-green)";
+    }
+
+    set("mp-pg-obs", pg.observacao || "—");
+    const badge = $("mp-pg-badge");
+    if (badge) {
+
+      badge.innerHTML = restante === 0
+        ? '<span class="mp-badge mp-badge--green">✅ Pagamento Completo</span>'
+        : "";
+    }
+
+    /* ---------- Observações ---------- */
+
+    const obs = (p.observacoes || "").trim();
+
+    const cardObs = $("mp-card-obs");
+    if (cardObs) {
+      cardObs.hidden = !obs;
+    }
+
+    set("mp-obs", obs);
+    /* ---------- Resumo ---------- */
+    set("mp-rs-produtos", brl(totalProdutos));
+    set(
+      "mp-rs-frete",
+      frete > 0 ? brl(frete) : "Grátis"
+    );
+
+    set("mp-rs-desc", "- " + brl(desconto));
+    set("mp-rs-pago", brl(pago));
+    set("mp-rs-restante", brl(restante));
+    set("mp-rs-total", brl(total));
+
+    /* ---------- Status ---------- */
+
+    const status = [];
+
+    if (restante === 0) {
+
+      status.push(["green", "✅ Pedido Completo"]);
+
+    } else if (pago > 0) {
+
+      status.push(["amber", "🕓 Pagamento Parcial"]);
+
+    } else {
+      status.push(["red", "⚠️ Pagamento Pendente"]);
+    }
+
+    status.push(
+      frete > 0
+        ? ["blue", "🚚 Frete Calculado"]
+        : ["slate", "📦 Sem Frete"]
+    );
+
+    status.push(
+      p.orcamento
+        ? ["slate", "📄 Orçamento"]
+        : ["dark", "🧾 Pedido"]
+    );
+
+    const statusEl = $("mp-status");
+
+    if (statusEl) {
+
+      statusEl.innerHTML = status
+        .map(([cor, texto]) =>
+          `<span class="mp-badge mp-badge--${cor}">${texto}</span>`
+        )
+        .join("");
+    }
+  }
+
+  /* ================= Abrir ================= */
+
+  function abrir(dados = {}) {
+    preencher(dados);
+    if (overlay) {
+
+      overlay.classList.add("is-open");
+
+      document.body.style.overflow = "hidden";
+    }
+  }
+
+  /* ================= Fechar ================= */
+
+  function fechar() {
+
+    if (overlay) {
+
+      overlay.classList.remove("is-open");
+
+      document.body.style.overflow = "";
+    }
+  }
+
+  /* ================= Eventos ================= */
+
+  if (overlay) {
+
+    overlay.addEventListener("click", e => {
+
+      if (
+        e.target === overlay ||
+        e.target.closest("[data-mp-close]")
+      ) {
+        fechar();
+      }
+    });
+  }
+
+  document.addEventListener("keydown", e => {
+
+    if (
+      e.key === "Escape" &&
+      overlay &&
+      overlay.classList.contains("is-open")
+    ) {
+
+      fechar();
+    }
+  });
+
+  /* ================= Ripple ================= */
+
+  document.querySelectorAll(".mp-btn").forEach(btn => {
+
+    btn.addEventListener("click", e => {
+
+      const ripple = document.createElement("span");
+
+      const size = Math.max(
+        btn.offsetWidth,
+        btn.offsetHeight
+      );
+
+      const rect = btn.getBoundingClientRect();
+
+      ripple.className = "mp-ripple";
+
+      ripple.style.width = size + "px";
+      ripple.style.height = size + "px";
+
+      ripple.style.left =
+        e.clientX - rect.left - size / 2 + "px";
+
+      ripple.style.top =
+        e.clientY - rect.top - size / 2 + "px";
+
+      btn.appendChild(ripple);
+
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
+
+  /* ================= Botão Imprimir ================= */
+
+  return {
+    abrir,
+    fechar,
+    preencher
+};
+
+})();
+
+window.ModalPedido = ModalPedido;
+</script>
 
 
 

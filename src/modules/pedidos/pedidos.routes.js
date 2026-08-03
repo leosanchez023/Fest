@@ -19,7 +19,7 @@ router.post("/criar", controller.criar);
 // obter pedido para edição/duplicação
 router.get('/obter/:id', controller.buscarPorId);
 
-// NOVO: Endereços 
+// NOVO: Endereços
 router.get("/buscar-enderecos", controller.buscarEnderecos);
 
 router.post("/criarEndereco", controller.criarEndereco);

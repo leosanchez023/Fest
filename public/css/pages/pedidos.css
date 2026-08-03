@@ -115,3 +115,298 @@
   padding-top: 0.7rem;
   border-top: 1px solid #e5e7ee;
 }
+
+
+
+
+
+
+/* =========================================================
+   1. TOKENS DE DESIGN
+   ========================================================= */
+:root{
+  --mp-bg:#ffffff;
+  --mp-surface:#f7f9fc;
+  --mp-border:#e6eaf0;
+  --mp-text:#0f172a;
+  --mp-muted:#64748b;
+  --mp-primary:#2563eb;
+  --mp-primary-dark:#1d4ed8;
+  --mp-green:#16a34a;
+  --mp-green-soft:#dcfce7;
+  --mp-red:#dc2626;
+  --mp-red-soft:#fee2e2;
+  --mp-amber:#b45309;
+  --mp-amber-soft:#fef3c7;
+  --mp-blue-soft:#dbeafe;
+  --mp-slate-soft:#e2e8f0;
+  --mp-dark:#1e293b;
+  --mp-radius:16px;
+  --mp-radius-sm:10px;
+  --mp-shadow:0 24px 60px -12px rgba(15,23,42,.30), 0 8px 24px -8px rgba(15,23,42,.15);
+  --mp-font:"Inter","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+}
+
+/* =========================================================
+   2. OVERLAY (fundo escuro + blur)
+   ========================================================= */
+.mp-overlay{
+  position:fixed; inset:0; z-index:9999;
+  display:flex; align-items:center; justify-content:center;
+  padding:24px;
+  background:rgba(15,23,42,.55);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  opacity:0; visibility:hidden;
+  transition:opacity .25s ease, visibility .25s ease;
+}
+.mp-overlay.is-open{ opacity:1; visibility:visible; }
+
+/* =========================================================
+   3. CAIXA DO MODAL
+   ========================================================= */
+.mp-modal{
+  font-family:var(--mp-font);
+  color:var(--mp-text);
+  width:min(940px,100%);
+  max-height:92vh;
+  display:flex; flex-direction:column;
+  background:var(--mp-bg);
+  border-radius:var(--mp-radius);
+  box-shadow:var(--mp-shadow);
+  overflow:hidden;
+  transform:translateY(18px) scale(.97);
+  opacity:0;
+  transition:transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s ease;
+}
+.mp-overlay.is-open .mp-modal{ transform:translateY(0) scale(1); opacity:1; }
+.mp-modal *{ box-sizing:border-box; }
+
+/* ---------- Cabeçalho ---------- */
+.mp-header{
+  display:flex; align-items:center; gap:12px;
+  padding:20px 24px;
+  border-bottom:1px solid var(--mp-border);
+  background:linear-gradient(180deg,#ffffff,#f8fafc);
+}
+.mp-header h2{ margin:0; font-size:1.15rem; font-weight:700; letter-spacing:-.01em; display:flex; gap:8px; align-items:center; }
+.mp-header .mp-spacer{ flex:1; }
+.mp-close{
+  width:36px; height:36px; border:none; border-radius:50%;
+  background:var(--mp-surface); color:var(--mp-muted);
+  font-size:1rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .2s ease, color .2s ease, transform .2s ease;
+}
+.mp-close:hover{ background:var(--mp-red-soft); color:var(--mp-red); transform:rotate(90deg); }
+
+/* ---------- Corpo rolável ---------- */
+.mp-body{ padding:22px 24px; overflow-y:auto; display:grid; gap:18px; background:var(--mp-surface); }
+.mp-body::-webkit-scrollbar{ width:8px; }
+.mp-body::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:99px; }
+
+/* ---------- Cards ---------- */
+.mp-card{
+  background:var(--mp-bg);
+  border:1px solid var(--mp-border);
+  border-radius:var(--mp-radius-sm);
+  padding:18px;
+  box-shadow:0 1px 2px rgba(15,23,42,.04);
+}
+.mp-card-title{
+  font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--mp-muted); margin:0 0 14px; display:flex; align-items:center; gap:8px;
+}
+.mp-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px 18px; }
+.mp-field label{ display:block; font-size:.72rem; color:var(--mp-muted); margin-bottom:3px; }
+.mp-field span{ font-size:.92rem; font-weight:600; }
+
+/* ---------- Badges ---------- */
+.mp-badge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 11px; border-radius:99px;
+  font-size:.74rem; font-weight:700; white-space:nowrap;
+}
+.mp-badge--green{ background:var(--mp-green-soft); color:#166534; }
+.mp-badge--blue{ background:var(--mp-blue-soft); color:#1e40af; }
+.mp-badge--amber{ background:var(--mp-amber-soft); color:var(--mp-amber); }
+.mp-badge--red{ background:var(--mp-red-soft); color:var(--mp-red); }
+.mp-badge--slate{ background:var(--mp-slate-soft); color:#334155; }
+.mp-badge--dark{ background:var(--mp-dark); color:#fff; }
+
+/* ---------- Tabela de produtos ---------- */
+.mp-table-wrap{ max-height:260px; overflow:auto; border:1px solid var(--mp-border); border-radius:var(--mp-radius-sm); }
+.mp-table{ width:100%; border-collapse:collapse; min-width:520px; font-size:.88rem; }
+.mp-table thead th{
+  position:sticky; top:0; z-index:1;
+  background:#f1f5f9; color:var(--mp-muted);
+  font-size:.72rem; text-transform:uppercase; letter-spacing:.05em;
+  text-align:left; padding:10px 14px; border-bottom:1px solid var(--mp-border);
+}
+.mp-table td{ padding:11px 14px; border-bottom:1px solid #f1f5f9; }
+.mp-table tbody tr:last-child td{ border-bottom:none; }
+.mp-table tbody tr:hover{ background:#f8fafc; }
+.mp-num{ text-align:right; font-variant-numeric:tabular-nums; }
+.mp-table-foot{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:12px 4px 0; font-size:.86rem; color:var(--mp-muted);
+}
+.mp-table-foot strong{ color:var(--mp-text); font-size:1rem; }
+
+/* ---------- Resumo financeiro ---------- */
+.mp-summary{
+  background:linear-gradient(135deg,#0f172a,#1e3a8a);
+  color:#fff; border-radius:var(--mp-radius-sm); padding:20px;
+}
+.mp-fin-grid{ display:grid; grid-template-columns:1.2fr .9fr; gap:16px; align-items:start; }
+.mp-fin-summary{ background:#f8fafc; border:1px solid var(--mp-border); border-radius:var(--mp-radius-sm); padding:14px; display:grid; gap:8px; }
+.mp-fin-row{ display:flex; justify-content:space-between; align-items:center; color:var(--mp-muted); font-size:.9rem; }
+.mp-fin-row strong{ color:var(--mp-text); font-variant-numeric:tabular-nums; }
+.mp-fin-badge{ display:inline-flex; width:max-content; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:var(--mp-blue-soft); color:#1d4ed8; font-size:.78rem; font-weight:700; }
+.mp-fin-form-wrap{ display:grid; gap:10px; }
+.mp-fin-form{ display:grid; gap:8px; padding:12px; border:1px solid var(--mp-border); border-radius:var(--mp-radius-sm); background:#fff; }
+.mp-fin-form--alt{ background:#f8fafc; }
+.mp-fin-form label{ font-size:.72rem; color:var(--mp-muted); margin-bottom:2px; }
+.mp-fin-historico{ margin-top:12px; display:grid; gap:8px; }
+.mp-fin-timeline{ display:grid; gap:10px; }
+.mp-fin-item{ border:1px solid var(--mp-border); border-radius:12px; padding:12px 14px; background:#fff; display:flex; justify-content:space-between; gap:12px; align-items:flex-start; box-shadow:0 1px 2px rgba(15,23,42,.03); }
+.mp-fin-item-top{ display:flex; gap:10px; align-items:flex-start; }
+.mp-fin-item-icon{ display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background:#eef2ff; color:#4338ca; font-size:.95rem; flex-shrink:0; }
+.mp-fin-item small{ color:var(--mp-muted); display:block; margin-top:4px; }
+.mp-fin-item strong{ font-variant-numeric:tabular-nums; }
+.mp-fin-item--charge{ background:#f8fafc; }
+.mp-fin-empty{ color:var(--mp-muted); font-size:.9rem; padding:8px 0; }
+.mp-summary .mp-line{
+  display:flex; justify-content:space-between; padding:7px 0;
+  font-size:.9rem; color:#c7d2fe;
+}
+.mp-summary .mp-line b{ color:#fff; font-variant-numeric:tabular-nums; }
+.mp-summary .mp-total{
+  margin-top:12px; padding-top:14px; border-top:1px dashed rgba(255,255,255,.25);
+  display:flex; justify-content:space-between; align-items:baseline;
+}
+.mp-summary .mp-total span{ font-size:.85rem; text-transform:uppercase; letter-spacing:.08em; color:#c7d2fe; }
+.mp-summary .mp-total b{ font-size:2rem; font-weight:800; letter-spacing:-.02em; }
+.mp-text-green{ color:#4ade80 !important; }
+.mp-text-red{ color:#fca5a5 !important; }
+
+.mp-status-row{ display:flex; flex-wrap:wrap; gap:8px; }
+
+/* ---------- Rodapé / botões ---------- */
+.mp-footer{
+  display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
+  padding:16px 24px; border-top:1px solid var(--mp-border); background:#fff;
+}
+.mp-btn{
+  position:relative; overflow:hidden;
+  display:inline-flex; align-items:center; gap:8px;
+  border:none; border-radius:10px; cursor:pointer;
+  padding:11px 18px; font-size:.9rem; font-weight:600; font-family:inherit; color:#fff;
+  transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
+}
+.mp-btn:hover{ transform:translateY(-1px); filter:brightness(1.06); box-shadow:0 8px 18px -8px rgba(15,23,42,.45); }
+.mp-btn:active{ transform:translateY(0); }
+.mp-btn--gray{ background:#e2e8f0; color:#334155; }
+.mp-btn--green{ background:var(--mp-green); }
+.mp-btn--blue{ background:var(--mp-primary); }
+.mp-btn--dark{ background:var(--mp-dark); }
+/* efeito ripple */
+.mp-ripple{ position:absolute; border-radius:50%; transform:scale(0); background:rgba(255,255,255,.45); animation:mp-ripple .55s linear; pointer-events:none; }
+.mp-btn--gray .mp-ripple{ background:rgba(15,23,42,.18); }
+@keyframes mp-ripple{ to{ transform:scale(3.2); opacity:0; } }
+
+/* =========================================================
+   4. RESPONSIVO
+   ========================================================= */
+@media (max-width:768px){
+  .mp-overlay{ padding:0; }
+  .mp-modal{ max-height:100vh; height:100%; border-radius:0; }
+  .mp-grid{ grid-template-columns:1fr; }
+  .mp-summary .mp-total b{ font-size:1.6rem; }
+  .mp-footer{ flex-direction:column-reverse; }
+  .mp-btn{ width:100%; justify-content:center; }
+}
+
+/* Demo (fora do modal) */
+body{ font-family:var(--mp-font); background:#eef2f7; display:grid; place-items:center; min-height:100vh; margin:0; }
+.demo-btn{ background:#2563eb; color:#fff; border:none; padding:14px 22px; border-radius:12px; font-size:1rem; cursor:pointer; }
+
+.cobranca-overlay {
+
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0,0,0,.55);
+
+    display:none;
+
+    align-items:center;
+    justify-content:center;
+
+    z-index:9999;
+
+}
+
+
+.cobranca-overlay.active {
+
+    display:flex;
+
+}
+
+
+
+.cobranca-modal {
+
+    background:#fff;
+
+    width:420px;
+
+    border-radius:16px;
+
+    padding:25px;
+
+    box-shadow:0 20px 50px rgba(0,0,0,.3);
+
+}
+
+
+
+.cobranca-header {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
+}
+
+
+.cobranca-header button {
+
+    border:none;
+
+    background:none;
+
+    font-size:20px;
+
+    cursor:pointer;
+
+}
+
+
+
+.cobranca-footer {
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:10px;
+
+    margin-top:25px;
+
+}

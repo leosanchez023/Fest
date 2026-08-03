@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clientes | Serve Festa</title>
+<meta name="description" content="Gerenciamento completo de clientes do sistema de locação de festas Serve Festa." />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+<!-- ============================================================
+     CSS  —  Design System / Layout / Componentes
+     ============================================================ -->
+<style>
+/* ---------- 1. Tokens do design system ---------- */
+:root{
+  --bg:#f4f6fb;
+  --surface:#ffffff;
+  --surface-2:#f8fafc;
+  --border:#e6eaf2;
+  --text:#0f172a;
+  --muted:#64748b;
+
+  --primary:#2563eb;
+  --primary-dark:#1d4ed8;
+  --primary-soft:#e8f0ff;
+
+  --green:#10b981;  --green-soft:#e6f9f2;
+  --red:#ef4444;    --red-soft:#fdecec;
+  --amber:#f59e0b;  --amber-soft:#fff5e5;
+  --violet:#7c3aed; --violet-soft:#f1e9ff;
+  --cyan:#06b6d4;   --cyan-soft:#e2f8fc;
+  --pink:#ec4899;   --pink-soft:#fdeaf4;
+
+  --radius:16px;
+  --radius-sm:10px;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+  --shadow:0 6px 20px -8px rgba(15,23,42,.18);
+  --shadow-lg:0 24px 60px -20px rgba(15,23,42,.35);
+  --t:.22s cubic-bezier(.4,0,.2,1);
+}
+
+/* ---------- 2. Reset ---------- */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  -webkit-font-smoothing:antialiased;line-height:1.45;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+table{border-collapse:collapse;width:100%}
+a{color:inherit;text-decoration:none}
+
+/* ---------- 3. Scrollbar personalizada ---------- */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+
+/* ---------- 4. Utilitários / componentes base ---------- */
+.container{max-width:1480px;margin:0 auto;padding:28px 22px 64px}
+
+.btn{
+  display:inline-flex;align-items:center;gap:8px;justify-content:center;
+  padding:10px 16px;border-radius:12px;font-weight:600;font-size:14px;
+  transition:transform var(--t),box-shadow var(--t),background var(--t),color var(--t),border-color var(--t);
+  border:1px solid transparent;white-space:nowrap;
+}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 8px 18px -8px rgba(37,99,235,.8)}
+.btn-primary:hover{background:var(--primary-dark);box-shadow:0 14px 26px -10px rgba(37,99,235,.9)}
+.btn-ghost{background:var(--surface);border-color:var(--border);color:var(--muted)}
+.btn-ghost:hover{color:var(--primary);border-color:#c7d7fb;background:var(--primary-soft)}
+.btn-soft{background:var(--surface-2);border-color:var(--border)}
+.btn-soft:hover{background:#eef2f9}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-sm{padding:7px 12px;font-size:13px;border-radius:10px}
+
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:99px;font-size:12px;font-weight:700}
+.badge i{font-size:8px}
+.badge-green{background:var(--green-soft);color:#047857}
+.badge-red{background:var(--red-soft);color:#b91c1c}
+.badge-amber{background:var(--amber-soft);color:#b45309}
+.badge-blue{background:var(--primary-soft);color:var(--primary-dark)}
+.badge-violet{background:var(--violet-soft);color:#6d28d9}
+.badge-muted{background:#eef1f6;color:var(--muted)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+
+/* Tooltip simples */
+[data-tip]{position:relative}
+[data-tip]::after{
+  content:attr(data-tip);position:absolute;bottom:118%;left:50%;transform:translate(-50%,6px);
+  background:#0f172a;color:#fff;font-size:11px;font-weight:600;padding:5px 9px;border-radius:7px;
+  white-space:nowrap;opacity:0;pointer-events:none;transition:var(--t);z-index:60;
+}
+[data-tip]:hover::after{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- 5. Cabeçalho ---------- */
+.topbar{
+  background:linear-gradient(120deg,#ffffff 0%,#f7faff 100%);
+  border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);
+  padding:24px 26px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;
+}
+.topbar h1{font-size:26px;font-weight:800;letter-spacing:-.5px;display:flex;align-items:center;gap:12px}
+.topbar h1 .ic{
+  width:44px;height:44px;border-radius:14px;display:grid;place-items:center;
+  background:var(--primary-soft);color:var(--primary);font-size:19px;
+}
+.topbar p{color:var(--muted);font-size:14px;margin-top:4px;margin-left:56px}
+.topbar-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ---------- 6. KPIs ---------- */
+.kpis{display:grid;gap:16px;margin-top:22px;grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+.kpi{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px;display:flex;gap:14px;align-items:flex-start;position:relative;overflow:hidden;
+  transition:transform var(--t),box-shadow var(--t);animation:fadeUp .45s both;
+}
+.kpi:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.kpi::after{content:"";position:absolute;inset:auto 0 0 0;height:3px;background:currentColor;opacity:.85}
+.kpi .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:18px;flex:none}
+.kpi .val{font-size:24px;font-weight:800;letter-spacing:-.6px;color:var(--text)}
+.kpi .lbl{font-size:13px;font-weight:700;color:var(--text)}
+.kpi .desc{font-size:11.5px;color:var(--muted);margin-top:2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ---------- 7. Barra de pesquisa / filtros ---------- */
+.searchbar{margin-top:22px;padding:20px}
+.search-main{display:flex;gap:12px;flex-wrap:wrap}
+.input-wrap{position:relative;flex:1;min-width:240px}
+.input-wrap > i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+.field,.input-wrap input,select,textarea{
+  width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;
+  padding:11px 14px;font-size:14px;transition:var(--t);outline:none;
+}
+.input-wrap input{padding-left:40px}
+.field:focus,.input-wrap input:focus,select:focus,textarea:focus{
+  border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(37,99,235,.12);
+}
+.filters{display:grid;gap:12px;margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
+.filters label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.search-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px dashed var(--border)}
+
+/* ---------- 8. Tabela ---------- */
+.table-card{margin-top:22px;overflow:hidden}
+.table-head{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.table-head h2{font-size:16px;font-weight:800}
+.table-head .sub{font-size:12.5px;color:var(--muted)}
+.table-scroll{overflow-x:auto}
+thead th{
+  background:var(--surface-2);text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--muted);font-weight:800;padding:13px 14px;white-space:nowrap;border-bottom:1px solid var(--border);
+}
+thead th.sortable{cursor:pointer;user-select:none;transition:var(--t)}
+thead th.sortable:hover{color:var(--primary);background:var(--primary-soft)}
+thead th i{margin-left:5px;opacity:.45;font-size:10px}
+thead th.active i{opacity:1;color:var(--primary)}
+tbody td{padding:12px 14px;font-size:13.5px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{transition:background var(--t),box-shadow var(--t)}
+tbody tr:hover{background:linear-gradient(90deg,var(--primary-soft),transparent 70%)}
+.avatar{
+  width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;
+  font-weight:800;font-size:13px;flex:none;box-shadow:var(--shadow-sm);
+}
+.cell-name{display:flex;align-items:center;gap:11px}
+.cell-name small{display:block;color:var(--muted);font-size:11.5px;font-weight:500}
+.cell-name b{font-weight:700}
+.money{font-weight:700}
+
+/* Dropdown de ações */
+.actions{position:relative;display:flex;gap:6px;justify-content:flex-end}
+.icon-btn{
+  width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--muted);
+  border:1px solid var(--border);background:var(--surface);transition:var(--t);
+}
+.icon-btn:hover{color:var(--primary);border-color:#c7d7fb;background:var(--primary-soft);transform:translateY(-2px)}
+.icon-btn.danger:hover{color:var(--red);background:var(--red-soft);border-color:#f6c9c9}
+.menu{
+  position:absolute;top:calc(100% + 8px);right:0;min-width:212px;background:var(--surface);
+  border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);padding:6px;z-index:50;
+  opacity:0;visibility:hidden;transform:translateY(-6px);transition:var(--t);
+}
+.menu.open{opacity:1;visibility:visible;transform:none}
+.menu button{
+  display:flex;align-items:center;gap:10px;width:100%;padding:9px 11px;border-radius:9px;
+  font-size:13px;font-weight:600;color:var(--text);transition:var(--t);text-align:left;
+}
+.menu button i{width:16px;color:var(--muted);transition:var(--t)}
+.menu button:hover{background:var(--primary-soft);color:var(--primary-dark)}
+.menu button:hover i{color:var(--primary)}
+.menu button.danger:hover{background:var(--red-soft);color:#b91c1c}
+.menu button.danger:hover i{color:var(--red)}
+.menu hr{border:none;border-top:1px solid var(--border);margin:5px 4px}
+
+/* Paginação */
+.pagination{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 20px}
+.pages{display:flex;gap:6px;flex-wrap:wrap}
+.pages button{
+  min-width:36px;height:36px;padding:0 10px;border-radius:10px;border:1px solid var(--border);
+  background:var(--surface);font-weight:700;font-size:13px;color:var(--muted);transition:var(--t);
+}
+.pages button:hover:not(:disabled){border-color:var(--primary);color:var(--primary);background:var(--primary-soft)}
+.pages button.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 8px 16px -8px rgba(37,99,235,.9)}
+.pages button:disabled{opacity:.4;cursor:not-allowed}
+.per-page{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.per-page select{width:auto;padding:7px 10px}
+
+/* Empty state */
+.empty{padding:56px 20px;text-align:center;color:var(--muted)}
+.empty i{font-size:38px;color:#cbd5e1;margin-bottom:12px;display:block}
+
+/* ---------- 9. Skeleton loading ---------- */
+.sk{background:linear-gradient(90deg,#eef1f6 25%,#f7f9fc 50%,#eef1f6 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:8px;height:14px}
+.sk.circle{width:38px;height:38px;border-radius:12px}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ---------- 10. Modais ---------- */
+.overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:18px;z-index:200;
+  opacity:0;visibility:hidden;transition:var(--t);
+}
+.overlay.open{opacity:1;visibility:visible}
+.modal{
+  background:var(--surface);border-radius:22px;box-shadow:var(--shadow-lg);width:100%;max-width:980px;
+  max-height:92vh;display:flex;flex-direction:column;transform:translateY(18px) scale(.97);transition:var(--t);
+}
+.overlay.open .modal{transform:none}
+.modal.sm{max-width:440px}
+.modal-head{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px}
+.modal-head h3{font-size:18px;font-weight:800;flex:1}
+.modal-head .sub{font-size:12.5px;color:var(--muted);font-weight:500}
+.modal-body{padding:22px 24px;overflow:auto;flex:1}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.close-x{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--muted);transition:var(--t)}
+.close-x:hover{background:var(--red-soft);color:var(--red);transform:rotate(90deg)}
+
+/* Abas */
+.tabs{display:flex;gap:4px;padding:0 24px;border-bottom:1px solid var(--border);overflow-x:auto}
+.tabs button{
+  padding:13px 15px;font-size:13.5px;font-weight:700;color:var(--muted);white-space:nowrap;
+  border-bottom:2px solid transparent;transition:var(--t);
+}
+.tabs button:hover{color:var(--primary)}
+.tabs button.active{color:var(--primary);border-color:var(--primary)}
+.tab-panel{display:none;animation:fadeUp .3s both}
+.tab-panel.active{display:block}
+
+/* Formulários */
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.form-group label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.form-group .err{color:var(--red);font-size:11.5px;margin-top:4px;display:none}
+.form-group.invalid .field{border-color:var(--red);background:var(--red-soft)}
+.form-group.invalid .err{display:block}
+textarea{resize:vertical;min-height:120px}
+.section-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:6px 0 12px;display:flex;align-items:center;gap:8px}
+.map{
+  height:170px;border-radius:14px;border:1px solid var(--border);margin-top:14px;position:relative;overflow:hidden;
+  background:
+    linear-gradient(0deg,rgba(37,99,235,.06),rgba(37,99,235,.06)),
+    repeating-linear-gradient(0deg,#e9eef7 0 1px,transparent 1px 26px),
+    repeating-linear-gradient(90deg,#e9eef7 0 1px,transparent 1px 26px),#f8fafc;
+  display:grid;place-items:center;color:var(--primary);font-weight:700;font-size:13px;
+}
+.map i{font-size:26px;display:block;text-align:center;margin-bottom:6px;animation:bounce 1.8s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+/* Perfil (visualizar) */
+.profile{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:18px;border-radius:18px;background:linear-gradient(120deg,var(--primary-soft),#fff)}
+.profile .avatar{width:76px;height:76px;border-radius:22px;font-size:26px}
+.profile h4{font-size:20px;font-weight:800}
+.profile .meta{color:var(--muted);font-size:13px;margin-top:3px}
+.quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.info-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-top:18px}
+.info{background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;transition:var(--t)}
+.info:hover{border-color:#c7d7fb;background:var(--primary-soft);transform:translateY(-2px)}
+.info span{display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.4px}
+.info b{font-size:13.5px;font-weight:700}
+
+/* Timeline */
+.timeline{position:relative;padding-left:32px;margin-top:6px}
+.timeline::before{content:"";position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:var(--border)}
+.tl-item{position:relative;padding:0 0 20px 6px;animation:fadeUp .35s both}
+.tl-item .dot{
+  position:absolute;left:-32px;top:0;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;
+  font-size:10px;color:#fff;box-shadow:0 0 0 4px #fff;
+}
+.tl-item h5{font-size:14px;font-weight:700}
+.tl-item p{font-size:12.5px;color:var(--muted);margin-top:2px}
+.tl-item .when{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:4px;display:flex;gap:12px;flex-wrap:wrap}
+
+/* Mini stats + gráficos */
+.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:18px}
+.stat{border:1px solid var(--border);border-radius:14px;padding:14px;background:var(--surface-2);transition:var(--t)}
+.stat:hover{transform:translateY(-3px);box-shadow:var(--shadow-sm);background:#fff}
+.stat span{font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase}
+.stat b{display:block;font-size:19px;font-weight:800;margin-top:4px}
+.charts{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.chart-box{border:1px solid var(--border);border-radius:16px;padding:14px;background:var(--surface)}
+.chart-box h6{font-size:13px;font-weight:800;margin-bottom:10px}
+canvas{width:100%;height:190px;display:block}
+
+/* ---------- 11. Toasts ---------- */
+.toasts{position:fixed;top:18px;right:18px;display:flex;flex-direction:column;gap:10px;z-index:400}
+.toast{
+  display:flex;gap:12px;align-items:center;min-width:270px;max-width:360px;padding:13px 15px;
+  background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--primary);
+  border-radius:14px;box-shadow:var(--shadow-lg);animation:slideIn .3s both;
+}
+.toast.out{animation:slideOut .3s both}
+.toast i{font-size:17px}
+.toast.success{border-left-color:var(--green)} .toast.success i{color:var(--green)}
+.toast.error{border-left-color:var(--red)}     .toast.error i{color:var(--red)}
+.toast.info{border-left-color:var(--primary)}  .toast.info i{color:var(--primary)}
+.toast b{display:block;font-size:13.5px}
+.toast small{color:var(--muted);font-size:12px}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes slideOut{to{opacity:0;transform:translateX(40px)}}
+
+/* ---------- 12. Responsividade ---------- */
+@media(max-width:900px){
+  .topbar{flex-direction:column;align-items:flex-start}
+  .topbar p{margin-left:0}
+  .modal{max-height:96vh}
+}
+@media(max-width:640px){
+  .container{padding:16px 12px 48px}
+  .topbar h1{font-size:21px}
+  .kpi .val{font-size:21px}
+  .search-actions .btn{flex:1}
+  .modal-foot .btn{flex:1}
+  .tabs{padding:0 12px}
+  .modal-body,.modal-head,.modal-foot{padding-left:16px;padding-right:16px}
+}
+@media print{
+  .topbar-actions,.searchbar,.pagination,.actions,.overlay,.toasts{display:none!important}
+  body{background:#fff}
+}
+</style>
+</head>
+
+<body>
+<!-- ============================================================
+     HTML — Estrutura da página
+     ============================================================ -->
+<div class="container">
+
+  <!-- Cabeçalho -->
+  <header class="topbar">
+    <div>
+      <h1><span class="ic"><i class="fa-solid fa-user-group"></i></span> Clientes</h1>
+      <p>Gerenciamento completo de clientes</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" onclick="App.reload()"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+      <button class="btn btn-primary" onclick="Modal.openNew()"><i class="fa-solid fa-plus"></i> Novo Cliente</button>
+    </div>
+  </header>
+
+  <!-- KPIs -->
+  <section class="kpis" id="kpis"></section>
+
+  <!-- Barra de pesquisa e filtros -->
+  <section class="card searchbar">
+    <div class="search-main">
+      <div class="input-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="q" placeholder="Pesquisa inteligente: nome, CPF, telefone, e-mail, cidade ou empresa..." />
+      </div>
+      <button class="btn btn-primary" onclick="App.render(1)"><i class="fa-solid fa-magnifying-glass"></i> Pesquisar</button>
+    </div>
+
+    <div class="filters">
+      <div><label>Cidade</label><select class="field" id="fCidade"></select></div>
+      <div><label>Estado</label><select class="field" id="fEstado"></select></div>
+      <div><label>Tipo de Cliente</label><select class="field" id="fTipo"></select></div>
+      <div><label>Status</label><select class="field" id="fStatus"></select></div>
+      <div><label>Possui pedidos?</label>
+        <select class="field" id="fPedidos"><option value="">Todos</option><option value="sim">Sim</option><option value="nao">Não</option></select>
+      </div>
+      <div><label>Cadastro a partir de</label><input type="date" class="field" id="fData" /></div>
+    </div>
+
+    <div class="search-actions">
+      <button class="btn btn-soft" onclick="App.clearFilters()"><i class="fa-solid fa-filter-circle-xmark"></i> Limpar filtros</button>
+      <button class="btn btn-soft" onclick="Export.excel()"><i class="fa-solid fa-file-excel" style="color:#16a34a"></i> Exportar Excel</button>
+      <button class="btn btn-soft" onclick="Export.pdf()"><i class="fa-solid fa-file-pdf" style="color:#dc2626"></i> Exportar PDF</button>
+      <button class="btn btn-soft" onclick="Export.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+    </div>
+  </section>
+
+  <!-- Tabela principal -->
+  <section class="card table-card">
+    <div class="table-head">
+      <div>
+        <h2>Lista de clientes</h2>
+        <div class="sub" id="resultInfo">Carregando...</div>
+      </div>
+      <div class="per-page">
+        Registros por página
+        <select id="perPage" onchange="App.render(1)">
+          <option>10</option><option>25</option><option>50</option><option>100</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th class="sortable" data-col="id">ID <i class="fa-solid fa-sort"></i></th>
+            <th class="sortable" data-col="nome">Nome <i class="fa-solid fa-sort"></i></th>
+            <th>CPF</th>
+            <th>Telefone</th>
+            <th>WhatsApp</th>
+            <th>E-mail</th>
+            <th class="sortable" data-col="cidade">Cidade <i class="fa-solid fa-sort"></i></th>
+            <th>UF</th>
+            <th class="sortable" data-col="ultimoPedido">Último Pedido <i class="fa-solid fa-sort"></i></th>
+            <th class="sortable" data-col="totalGasto">Valor Gasto <i class="fa-solid fa-sort"></i></th>
+            <th class="sortable" data-col="pedidos">Pedidos <i class="fa-solid fa-sort"></i></th>
+            <th class="sortable" data-col="status">Status <i class="fa-solid fa-sort"></i></th>
+            <th style="text-align:right">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <div class="sub" id="pageInfo"></div>
+      <div class="pages" id="pages"></div>
+    </div>
+  </section>
+</div>
+
+<!-- Modal: Novo/Editar cliente -->
+<div class="overlay" id="mdForm">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <span class="ic badge badge-blue"><i class="fa-solid fa-user-plus"></i></span>
+      <div style="flex:1">
+        <h3 id="formTitle">Novo Cliente</h3>
+        <div class="sub">Preencha os dados em cada aba do cadastro</div>
+      </div>
+      <button class="close-x" onclick="Modal.close('mdForm')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="tabs" data-tabs="form">
+      <button class="active" data-tab="p1"><i class="fa-solid fa-id-card"></i> Dados Pessoais</button>
+      <button data-tab="p2"><i class="fa-solid fa-phone"></i> Contato</button>
+      <button data-tab="p3"><i class="fa-solid fa-location-dot"></i> Endereço</button>
+      <button data-tab="p4"><i class="fa-solid fa-sack-dollar"></i> Financeiro</button>
+      <button data-tab="p5"><i class="fa-solid fa-note-sticky"></i> Observações</button>
+    </div>
+
+    <form class="modal-body" id="clientForm" novalidate>
+      <!-- Aba 1 -->
+      <div class="tab-panel active" id="p1">
+        <div class="section-title"><i class="fa-solid fa-id-card"></i> Dados pessoais</div>
+        <div class="grid">
+          <div class="form-group"><label>Nome completo *</label><input class="field" name="nome" data-required /><div class="err">Informe o nome</div></div>
+          <div class="form-group"><label>CPF *</label><input class="field" name="cpf" data-mask="cpf" maxlength="14" placeholder="000.000.000-00" data-required /><div class="err">CPF inválido</div></div>
+          <div class="form-group"><label>RG</label><input class="field" name="rg" /></div>
+          <div class="form-group"><label>Nascimento</label><input type="date" class="field" name="nascimento" /></div>
+          <div class="form-group"><label>Sexo</label><select class="field" name="sexo"><option>Feminino</option><option>Masculino</option><option>Outro</option></select></div>
+          <div class="form-group"><label>Estado civil</label><select class="field" name="civil"><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option></select></div>
+          <div class="form-group"><label>Empresa</label><input class="field" name="empresa" /></div>
+          <div class="form-group"><label>Profissão</label><input class="field" name="profissao" /></div>
+        </div>
+      </div>
+
+      <!-- Aba 2 -->
+      <div class="tab-panel" id="p2">
+        <div class="section-title"><i class="fa-solid fa-phone"></i> Contato</div>
+        <div class="grid">
+          <div class="form-group"><label>Telefone *</label><input class="field" name="telefone" data-mask="fone" maxlength="15" placeholder="(00) 00000-0000" data-required /><div class="err">Telefone inválido</div></div>
+          <div class="form-group"><label>WhatsApp</label><input class="field" name="whatsapp" data-mask="fone" maxlength="15" placeholder="(00) 00000-0000" /></div>
+          <div class="form-group"><label>E-mail *</label><input class="field" name="email" type="email" data-required data-email /><div class="err">E-mail inválido</div></div>
+          <div class="form-group"><label>Site</label><input class="field" name="site" placeholder="https://" /></div>
+          <div class="form-group"><label>Instagram</label><input class="field" name="instagram" placeholder="@perfil" /></div>
+          <div class="form-group"><label>Facebook</label><input class="field" name="facebook" /></div>
+        </div>
+      </div>
+
+      <!-- Aba 3 -->
+      <div class="tab-panel" id="p3">
+        <div class="section-title"><i class="fa-solid fa-location-dot"></i> Endereço</div>
+        <div class="grid">
+          <div class="form-group"><label>CEP</label><input class="field" name="cep" data-mask="cep" maxlength="9" placeholder="00000-000" /></div>
+          <div class="form-group"><label>Rua</label><input class="field" name="rua" /></div>
+          <div class="form-group"><label>Número</label><input class="field" name="numero" /></div>
+          <div class="form-group"><label>Complemento</label><input class="field" name="complemento" /></div>
+          <div class="form-group"><label>Bairro</label><input class="field" name="bairro" /></div>
+          <div class="form-group"><label>Cidade</label><input class="field" name="cidade" /></div>
+          <div class="form-group"><label>Estado</label><input class="field" name="estado" maxlength="2" placeholder="SP" /></div>
+          <div class="form-group"><label>País</label><input class="field" name="pais" value="Brasil" /></div>
+        </div>
+        <div class="map"><div><i class="fa-solid fa-location-dot"></i>Mapa ilustrativo da localização</div></div>
+      </div>
+
+      <!-- Aba 4 -->
+      <div class="tab-panel" id="p4">
+        <div class="section-title"><i class="fa-solid fa-sack-dollar"></i> Financeiro</div>
+        <div class="grid">
+          <div class="form-group"><label>Limite de crédito (R$)</label><input class="field" name="limite" type="number" min="0" step="100" value="2000" /></div>
+          <div class="form-group"><label>Forma de pagamento preferida</label><select class="field" name="pagamento"><option>PIX</option><option>Cartão de crédito</option><option>Boleto</option><option>Dinheiro</option><option>Transferência</option></select></div>
+          <div class="form-group"><label>Desconto padrão (%)</label><input class="field" name="desconto" type="number" min="0" max="100" value="0" /></div>
+        </div>
+        <div class="form-group" style="margin-top:14px"><label>Observações financeiras</label><textarea class="field" name="obsFin" placeholder="Condições especiais, acordos, histórico de inadimplência..."></textarea></div>
+      </div>
+
+      <!-- Aba 5 -->
+      <div class="tab-panel" id="p5">
+        <div class="section-title"><i class="fa-solid fa-note-sticky"></i> Observações gerais</div>
+        <div class="form-group"><textarea class="field" name="obs" style="min-height:230px" placeholder="Anotações internas sobre o cliente, preferências de eventos, restrições de entrega..."></textarea></div>
+      </div>
+    </form>
+
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="Modal.close('mdForm')">Cancelar</button>
+      <button class="btn btn-primary" onclick="Modal.save()"><i class="fa-solid fa-floppy-disk"></i> Salvar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Visualizar cliente -->
+<div class="overlay" id="mdView">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div style="flex:1"><h3>Ficha do cliente</h3><div class="sub">Visão 360º do relacionamento</div></div>
+      <button class="close-x" onclick="Modal.close('mdView')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="tabs" data-tabs="view">
+      <button class="active" data-tab="v1"><i class="fa-solid fa-address-card"></i> Resumo</button>
+      <button data-tab="v2"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
+      <button data-tab="v3"><i class="fa-solid fa-coins"></i> Financeiro</button>
+      <button data-tab="v4"><i class="fa-solid fa-cart-shopping"></i> Pedidos</button>
+      <button data-tab="v5"><i class="fa-solid fa-file-invoice-dollar"></i> Orçamentos</button>
+      <button data-tab="v6"><i class="fa-solid fa-box-open"></i> Produtos</button>
+      <button data-tab="v7"><i class="fa-solid fa-chart-column"></i> Dashboard</button>
+    </div>
+    <div class="modal-body">
+      <div class="tab-panel active" id="v1"></div>
+      <div class="tab-panel" id="v2"></div>
+      <div class="tab-panel" id="v3"></div>
+      <div class="tab-panel" id="v4"></div>
+      <div class="tab-panel" id="v5"></div>
+      <div class="tab-panel" id="v6"></div>
+      <div class="tab-panel" id="v7"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="Modal.close('mdView')">Fechar</button>
+      <button class="btn btn-primary" onclick="Export.print()"><i class="fa-solid fa-print"></i> Imprimir cadastro</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Confirmação -->
+<div class="overlay" id="mdConfirm">
+  <div class="modal sm">
+    <div class="modal-head">
+      <span class="badge badge-red"><i class="fa-solid fa-triangle-exclamation"></i></span>
+      <h3 id="cfTitle">Confirmar ação</h3>
+    </div>
+    <div class="modal-body"><p id="cfText" style="font-size:14px;color:var(--muted)"></p></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="Modal.close('mdConfirm')">Cancelar</button>
+      <button class="btn btn-danger" id="cfOk"><i class="fa-solid fa-check"></i> Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<!-- ============================================================
+     JAVASCRIPT — Dados, componentes e lógica
+     ============================================================ -->
+<script>
+/* ------------------------------------------------------------
+   1. Helpers gerais
+   ------------------------------------------------------------ */
+const $  = (s, c = document) => c.querySelector(s);
+const $$ = (s, c = document) => [...c.querySelectorAll(s)];
+const BRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const dateBR = iso => iso ? new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+const initials = n => n.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
+const AVATAR_COLORS = ['#2563eb','#7c3aed','#ec4899','#f59e0b','#10b981','#06b6d4','#ef4444','#6366f1'];
+const colorFor = id => AVATAR_COLORS[id % AVATAR_COLORS.length];
+
+/* ------------------------------------------------------------
+   2. Toasts (notificações)
+   ------------------------------------------------------------ */
+const Toast = {
+  show(type, title, msg = '') {
+    const icons = { success: 'circle-check', error: 'circle-xmark', info: 'circle-info' };
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<i class="fa-solid fa-${icons[type]}"></i><div><b>${title}</b><small>${msg}</small></div>`;
+    $('#toasts').appendChild(el);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 3400);
+  },
+  success: (t, m) => Toast.show('success', t, m),
+  error:   (t, m) => Toast.show('error', t, m),
+  info:    (t, m) => Toast.show('info', t, m)
+};
+
+/* ------------------------------------------------------------
+   3. Base de dados fictícia
+   ------------------------------------------------------------ */
+const NOMES = ['Ana Beatriz Souza','Carlos Eduardo Lima','Mariana Ferreira','Rafael Gomes','Juliana Castro','Bruno Almeida','Patrícia Rocha','Thiago Nunes','Camila Ribeiro','Lucas Martins','Fernanda Dias','Gustavo Pereira','Larissa Moreira','Rodrigo Barros','Isabela Cardoso','Marcelo Teixeira','Vanessa Pinto','André Carvalho','Renata Azevedo','Felipe Ramos','Aline Barbosa','Diego Moura','Tatiane Freitas','Vinícius Lopes','Simone Duarte','Eduardo Prado','Bianca Nogueira','Leandro Vieira','Priscila Mendes','Otávio Cunha'];
+const CIDADES = [['São Paulo','SP'],['Campinas','SP'],['Rio de Janeiro','RJ'],['Niterói','RJ'],['Belo Horizonte','MG'],['Uberlândia','MG'],['Curitiba','PR'],['Londrina','PR'],['Salvador','BA'],['Recife','PE']];
+const EMPRESAS = ['Buffet Encanto','Eventos Prime','—','Casa & Festa','Doce Sabor Ltda','Espaço Villa','—','Decor Luxo'];
+const TIPOS = ['Pessoa Física','Pessoa Jurídica','Parceiro','VIP'];
+const PROFISSOES = ['Cerimonialista','Empresária','Professor','Advogada','Designer','Médico','Publicitária','Engenheiro'];
+const PRODUTOS = ['Mesa redonda','Cadeira Tiffany','Tenda 5x5','Toalha cetim','Kit talheres','Som + DJ','Iluminação LED','Pista de dança','Freezer','Painel redondo'];
+const EVENTOS = ['Casamento','Aniversário 15 anos','Festa infantil','Confraternização','Formatura','Batizado','Corporativo'];
+
+/** Gera a base de clientes fictícia. */
+function seed() {
+  const hoje = new Date();
+  return NOMES.map((nome, i) => {
+    const id = 1001 + i;
+    const [cidade, estado] = CIDADES[i % CIDADES.length];
+    const pedidos = i % 7 === 0 ? 0 : (i * 3 % 14) + 1;
+    const totalGasto = pedidos * (850 + (i * 137) % 2400);
+    const cad = new Date(hoje); cad.setDate(cad.getDate() - ((i * 23) % 400));
+    const ult = new Date(hoje); ult.setDate(ult.getDate() - ((i * 11) % 120));
+    const ddd = 11 + (i % 8);
+    return {
+      id, nome,
+      cpf: `${100 + i}.${200 + i}.${300 + i}-0${i % 10}`,
+      rg: `${20 + i}.${100 + i}.${300 + i}-1`,
+      nascimento: `19${70 + (i % 25)}-0${(i % 9) + 1}-1${i % 9}`,
+      sexo: i % 2 ? 'Masculino' : 'Feminino',
+      civil: ['Solteiro(a)','Casado(a)','Divorciado(a)'][i % 3],
+      telefone: `(${ddd}) 3${i % 9}${i % 7}${i % 5}-${1000 + i}`,
+      whatsapp: `(${ddd}) 9${i % 9}${i % 7}${i % 5}${i % 3}-${2000 + i}`,
+      email: nome.toLowerCase().split(' ')[0] + '.' + nome.toLowerCase().split(' ').pop() + '@email.com',
+      site: 'https://servefesta.com.br',
+      instagram: '@' + nome.toLowerCase().split(' ')[0],
+      facebook: nome,
+      cidade, estado,
+      rua: 'Rua das Palmeiras', numero: String(100 + i * 3), bairro: 'Centro',
+      complemento: i % 3 ? 'Apto ' + (10 + i) : '', cep: `0${1000 + i}-${100 + i}`.slice(0, 9), pais: 'Brasil',
+      empresa: EMPRESAS[i % EMPRESAS.length],
+      profissao: PROFISSOES[i % PROFISSOES.length],
+      tipo: TIPOS[i % TIPOS.length],
+      status: i % 9 === 0 ? 'Inativo' : 'Ativo',
+      pedidos, totalGasto,
+      pago: Math.round(totalGasto * (0.6 + (i % 4) * 0.13)),
+      emAberto: pedidos > 0 && i % 4 === 0,
+      cadastro: cad.toISOString().slice(0, 10),
+      ultimoPedido: pedidos ? ult.toISOString().slice(0, 10) : '',
+      limite: 1000 + (i % 6) * 1500,
+      pagamentoPref: ['PIX','Cartão de crédito','Boleto','Dinheiro'][i % 4],
+      desconto: (i % 4) * 5,
+      obs: 'Cliente atendido pela equipe comercial. Prefere entregas pela manhã.'
+    };
+  });
+}
+
+/* ------------------------------------------------------------
+   4. Estado da aplicação
+   ------------------------------------------------------------ */
+const State = {
+  data: [], filtered: [], page: 1, sort: { col: 'id', dir: 'asc' }, loading: true, current: null
+};
+
+/* ------------------------------------------------------------
+   5. Máscaras e validação
+   ------------------------------------------------------------ */
+const Mask = {
+  cpf:  v => v.replace(/\D/g,'').slice(0,11).replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2'),
+  fone: v => v.replace(/\D/g,'').slice(0,11).replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2').replace(/(\d{4})(\d)(?=$)/,'$1-$2'),
+  cep:  v => v.replace(/\D/g,'').slice(0,8).replace(/(\d{5})(\d)/,'$1-$2')
+};
+document.addEventListener('input', e => {
+  const t = e.target.dataset && e.target.dataset.mask;
+  if (t && Mask[t]) e.target.value = Mask[t](e.target.value);
+});
+
+/** Valida os campos obrigatórios do formulário. Retorna true/false. */
+function validateForm(form) {
+  let ok = true;
+  $$('[data-required]', form).forEach(inp => {
+    const group = inp.closest('.form-group');
+    let valid = inp.value.trim() !== '';
+    if (valid && inp.name === 'cpf')      valid = inp.value.replace(/\D/g,'').length === 11;
+    if (valid && inp.name === 'telefone') valid = inp.value.replace(/\D/g,'').length >= 10;
+    if (valid && inp.hasAttribute('data-email')) valid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(inp.value);
+    group.classList.toggle('invalid', !valid);
+    if (!valid) ok = false;
+  });
+  return ok;
+}
+
+/* ------------------------------------------------------------
+   6. Abas reutilizáveis
+   ------------------------------------------------------------ */
+$$('[data-tabs]').forEach(bar => {
+  bar.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-tab]'); if (!btn) return;
+    $$('button', bar).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const scope = bar.closest('.modal');
+    $$('.tab-panel', scope).forEach(p => p.classList.toggle('active', p.id === btn.dataset.tab));
+    // Gráficos só podem ser desenhados quando o painel está visível (canvas precisa de largura).
+    if (btn.dataset.tab === 'v7' && State.current) View.dashboard(State.current);
+    if (btn.dataset.tab === 'v6' && State.current) View.produtos(State.current);
+  });
+
+});
+
+/* ------------------------------------------------------------
+   7. Modais
+   ------------------------------------------------------------ */
+const Modal = {
+  open(id)  { $('#' + id).classList.add('open'); document.body.style.overflow = 'hidden'; },
+  close(id) { $('#' + id).classList.remove('open'); if (!$$('.overlay.open').length) document.body.style.overflow = ''; },
+
+  openNew(client = null) {
+    const f = $('#clientForm'); f.reset();
+    $$('.form-group', f).forEach(g => g.classList.remove('invalid'));
+    $('#formTitle').textContent = client ? 'Editar Cliente' : 'Novo Cliente';
+    if (client) Object.entries(client).forEach(([k, v]) => { if (f[k]) f[k].value = v; });
+    $$('[data-tabs="form"] button')[0].click();
+    Modal.open('mdForm');
+  },
+
+  save() {
+    const f = $('#clientForm');
+    if (!validateForm(f)) { Toast.error('Formulário incompleto', 'Verifique os campos destacados.'); return; }
+    Toast.success('Cliente salvo!', 'Os dados foram gravados com sucesso.');
+    Modal.close('mdForm');
+  },
+
+  confirm(title, text, onOk) {
+    $('#cfTitle').textContent = title; $('#cfText').textContent = text;
+    const btn = $('#cfOk'), clone = btn.cloneNode(true);
+    btn.replaceWith(clone);
+    clone.addEventListener('click', () => { Modal.close('mdConfirm'); onOk(); });
+    Modal.open('mdConfirm');
+  }
+};
+$$('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) Modal.close(o.id); }));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $$('.overlay.open').forEach(o => Modal.close(o.id)); });
+
+/* ------------------------------------------------------------
+   8. KPIs
+   ------------------------------------------------------------ */
+function renderKPIs() {
+  const d = State.data, mesAtual = new Date().toISOString().slice(0, 7);
+  const cards = [
+    { ic:'fa-users',        c:'--primary', s:'--primary-soft', v:d.length,                                            l:'Total de Clientes',     desc:'Base completa cadastrada' },
+    { ic:'fa-user-check',   c:'--green',   s:'--green-soft',   v:d.filter(x=>x.status==='Ativo').length,              l:'Clientes Ativos',       desc:'Com cadastro habilitado' },
+    { ic:'fa-user-slash',   c:'--red',     s:'--red-soft',     v:d.filter(x=>x.status==='Inativo').length,            l:'Clientes Inativos',     desc:'Sem movimentação recente' },
+    { ic:'fa-user-plus',    c:'--violet',  s:'--violet-soft',  v:d.filter(x=>x.cadastro.startsWith(mesAtual)).length, l:'Novos no mês',          desc:'Cadastrados neste mês' },
+    { ic:'fa-cart-shopping',c:'--amber',   s:'--amber-soft',   v:d.filter(x=>x.emAberto).length,                      l:'Pedidos em Aberto',     desc:'Clientes com pendência' },
+    { ic:'fa-sack-dollar',  c:'--cyan',    s:'--cyan-soft',    v:BRL(d.reduce((a,b)=>a+b.totalGasto,0)),              l:'Valor Total Gasto',     desc:'Faturamento acumulado' }
+  ];
+  $('#kpis').innerHTML = cards.map((k, i) => `
+    <article class="kpi" style="color:var(${k.c});animation-delay:${i * 60}ms">
+      <div class="ic" style="background:var(${k.s});color:var(${k.c})"><i class="fa-solid ${k.ic}"></i></div>
+      <div><div class="val">${k.v}</div><div class="lbl">${k.l}</div><div class="desc">${k.desc}</div></div>
+    </article>`).join('');
+}
+
+/* ------------------------------------------------------------
+   9. Filtros / ordenação / paginação
+   ------------------------------------------------------------ */
+function fillFilters() {
+  const opt = (arr, label) => `<option value="">${label}</option>` + arr.map(v => `<option>${v}</option>`).join('');
+  $('#fCidade').innerHTML = opt([...new Set(State.data.map(c => c.cidade))].sort(), 'Todas');
+  $('#fEstado').innerHTML = opt([...new Set(State.data.map(c => c.estado))].sort(), 'Todos');
+  $('#fTipo').innerHTML   = opt(TIPOS, 'Todos');
+  $('#fStatus').innerHTML = opt(['Ativo','Inativo'], 'Todos');
+}
+
+function applyFilters() {
+  const q = $('#q').value.trim().toLowerCase();
+  const f = { cidade:$('#fCidade').value, estado:$('#fEstado').value, tipo:$('#fTipo').value,
+              status:$('#fStatus').value, pedidos:$('#fPedidos').value, data:$('#fData').value };
+
+  State.filtered = State.data.filter(c => {
+    const alvo = [c.nome, c.cpf, c.telefone, c.whatsapp, c.email, c.cidade, c.empresa].join(' ').toLowerCase();
+    if (q && !alvo.includes(q)) return false;
+    if (f.cidade && c.cidade !== f.cidade) return false;
+    if (f.estado && c.estado !== f.estado) return false;
+    if (f.tipo   && c.tipo   !== f.tipo)   return false;
+    if (f.status && c.status !== f.status) return false;
+    if (f.pedidos === 'sim' && c.pedidos === 0) return false;
+    if (f.pedidos === 'nao' && c.pedidos > 0)   return false;
+    if (f.data && c.cadastro < f.data) return false;
+    return true;
+  });
+
+  const { col, dir } = State.sort, m = dir === 'asc' ? 1 : -1;
+  State.filtered.sort((a, b) => (typeof a[col] === 'number' ? a[col] - b[col] : String(a[col]).localeCompare(String(b[col]), 'pt-BR')) * m);
+}
+
+/* Ordenação por clique no cabeçalho */
+$$('th.sortable').forEach(th => th.addEventListener('click', () => {
+  const col = th.dataset.col;
+  State.sort = { col, dir: State.sort.col === col && State.sort.dir === 'asc' ? 'desc' : 'asc' };
+  $$('th.sortable').forEach(t => { t.classList.remove('active'); $('i', t).className = 'fa-solid fa-sort'; });
+  th.classList.add('active');
+  $('i', th).className = `fa-solid fa-sort-${State.sort.dir === 'asc' ? 'up' : 'down'}`;
+  App.render(1);
+}));
+
+/* ------------------------------------------------------------
+   10. Tabela principal
+   ------------------------------------------------------------ */
+function skeletonRows(n = 8) {
+  return Array.from({ length: n }, () => `<tr>
+    <td><div class="sk circle"></div></td>
+    ${Array.from({ length: 12 }, () => '<td><div class="sk" style="width:80%"></div></td>').join('')}
+    <td><div class="sk" style="width:70px;margin-left:auto"></div></td></tr>`).join('');
+}
+
+const App = {
+  render(page) {
+    if (page) State.page = page;
+    const tbody = $('#tbody');
+
+    if (State.loading) { tbody.innerHTML = skeletonRows(); $('#resultInfo').textContent = 'Carregando clientes...'; $('#pages').innerHTML=''; $('#pageInfo').textContent=''; return; }
+
+    applyFilters();
+    const per = +$('#perPage').value;
+    const totalPages = Math.max(1, Math.ceil(State.filtered.length / per));
+    if (State.page > totalPages) State.page = totalPages;
+    const start = (State.page - 1) * per;
+    const rows = State.filtered.slice(start, start + per);
+
+    $('#resultInfo').textContent = `${State.filtered.length} cliente(s) encontrado(s) de ${State.data.length} no total`;
+
+    tbody.innerHTML = rows.length ? rows.map(c => `
+      <tr>
+        <td><div class="cell-name">
+          <div class="avatar" style="background:${colorFor(c.id)}">${initials(c.nome)}</div>
+          <div><b>${c.nome.split(' ')[0]}</b><small>${c.tipo}</small></div></div></td>
+        <td><span class="badge badge-muted">#${c.id}</span></td>
+        <td><b>${c.nome}</b><br><small style="color:var(--muted)">${c.empresa}</small></td>
+        <td>${c.cpf}</td>
+        <td>${c.telefone}</td>
+        <td><a href="#" onclick="Actions.whats(${c.id});return false" style="color:#16a34a;font-weight:600"><i class="fa-brands fa-whatsapp"></i> ${c.whatsapp}</a></td>
+        <td>${c.email}</td>
+        <td>${c.cidade}</td>
+        <td><span class="badge badge-blue">${c.estado}</span></td>
+        <td>${dateBR(c.ultimoPedido)}</td>
+        <td class="money">${BRL(c.totalGasto)}</td>
+        <td><span class="badge ${c.pedidos ? 'badge-violet' : 'badge-muted'}">${c.pedidos}</span></td>
+        <td><span class="badge ${c.status === 'Ativo' ? 'badge-green' : 'badge-red'}"><i class="fa-solid fa-circle"></i> ${c.status}</span></td>
+        <td>
+          <div class="actions">
+            <button class="icon-btn" data-tip="Visualizar" onclick="Actions.view(${c.id})"><i class="fa-solid fa-eye"></i></button>
+            <button class="icon-btn" data-tip="Editar" onclick="Actions.edit(${c.id})"><i class="fa-solid fa-pen"></i></button>
+            <button class="icon-btn" data-tip="Mais ações" onclick="Actions.menu(event,${c.id})"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+            <div class="menu" id="menu-${c.id}">
+              <button onclick="Actions.view(${c.id},'v2')"><i class="fa-solid fa-clock-rotate-left"></i> Histórico</button>
+              <button onclick="Actions.view(${c.id},'v5')"><i class="fa-solid fa-file-invoice-dollar"></i> Orçamentos</button>
+              <button onclick="Actions.view(${c.id},'v4')"><i class="fa-solid fa-cart-shopping"></i> Pedidos</button>
+              <button onclick="Actions.view(${c.id},'v6')"><i class="fa-solid fa-box-open"></i> Produtos alugados</button>
+              <button onclick="Actions.address(${c.id})"><i class="fa-solid fa-location-dot"></i> Endereços</button>
+              <button onclick="Actions.whats(${c.id})"><i class="fa-brands fa-whatsapp"></i> Contato</button>
+              <hr>
+              <button class="danger" onclick="Actions.remove(${c.id})"><i class="fa-solid fa-trash"></i> Excluir</button>
+            </div>
+          </div>
+        </td>
+      </tr>`).join('')
+      : `<tr><td colspan="14"><div class="empty"><i class="fa-solid fa-user-magnifying-glass"></i>
+          <b>Nenhum cliente encontrado</b><p>Ajuste a pesquisa ou limpe os filtros.</p></div></td></tr>`;
+
+    /* Paginação */
+    $('#pageInfo').textContent = State.filtered.length
+      ? `Mostrando ${start + 1}–${Math.min(start + per, State.filtered.length)} de ${State.filtered.length}` : '';
+    const btn = (label, page, dis, act) =>
+      `<button ${dis ? 'disabled' : ''} class="${act ? 'active' : ''}" onclick="App.render(${page})">${label}</button>`;
+    let html = btn('<i class="fa-solid fa-angle-left"></i>', State.page - 1, State.page === 1);
+    for (let p = 1; p <= totalPages; p++) {
+      if (p === 1 || p === totalPages || Math.abs(p - State.page) <= 1) html += btn(p, p, false, p === State.page);
+      else if (Math.abs(p - State.page) === 2) html += '<button disabled>…</button>';
+    }
+    html += btn('<i class="fa-solid fa-angle-right"></i>', State.page + 1, State.page === totalPages);
+    $('#pages').innerHTML = html;
+  },
+
+  clearFilters() {
+    $('#q').value = '';
+    ['fCidade','fEstado','fTipo','fStatus','fPedidos','fData'].forEach(id => $('#' + id).value = '');
+    App.render(1);
+    Toast.info('Filtros limpos', 'A listagem foi restaurada.');
+  },
+
+  reload() {
+    State.loading = true; App.render(1);
+    setTimeout(() => { State.loading = false; App.render(1); Toast.success('Lista atualizada', 'Dados sincronizados.'); }, 900);
+  }
+};
+
+/* Pesquisa instantânea */
+let typing;
+$('#q').addEventListener('input', () => { clearTimeout(typing); typing = setTimeout(() => App.render(1), 220); });
+['fCidade','fEstado','fTipo','fStatus','fPedidos','fData'].forEach(id => $('#' + id).addEventListener('change', () => App.render(1)));
+
+/* Fecha dropdowns ao clicar fora */
+document.addEventListener('click', e => {
+  if (!e.target.closest('.actions')) $$('.menu.open').forEach(m => m.classList.remove('open'));
+});
+
+/* ------------------------------------------------------------
+   11. Ações de linha
+   ------------------------------------------------------------ */
+const Actions = {
+  get: id => State.data.find(c => c.id === id),
+  menu(ev, id) {
+    ev.stopPropagation();
+    const m = $('#menu-' + id), open = m.classList.contains('open');
+    $$('.menu.open').forEach(x => x.classList.remove('open'));
+    m.classList.toggle('open', !open);
+  },
+  view(id, tab = 'v1') { View.open(Actions.get(id), tab); },
+  edit(id) { Modal.openNew(Actions.get(id)); },
+  address(id) { const c = Actions.get(id); Toast.info('Endereço', `${c.rua}, ${c.numero} – ${c.bairro}, ${c.cidade}/${c.estado}`); },
+  whats(id) { Toast.success('WhatsApp', `Conversa iniciada com ${Actions.get(id).nome}.`); },
+  remove(id) {
+    const c = Actions.get(id);
+    Modal.confirm('Excluir cliente', `Deseja realmente excluir "${c.nome}"? Esta ação não poderá ser desfeita.`, () => {
+      State.data = State.data.filter(x => x.id !== id);
+      renderKPIs(); App.render();
+      Toast.success('Cliente excluído', `${c.nome} foi removido da base.`);
+    });
+  }
+};
+
+/* ------------------------------------------------------------
+   12. Geradores de dados relacionados (fictícios)
+   ------------------------------------------------------------ */
+function ordersOf(c) {
+  return Array.from({ length: Math.min(c.pedidos, 6) }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (i * 37 + 5));
+    const ent = new Date(d); ent.setDate(ent.getDate() + 2);
+    const ret = new Date(d); ret.setDate(ret.getDate() + 4);
+    const valor = 600 + ((c.id + i * 7) % 9) * 480;
+    return {
+      num: `PD-${c.id}${i + 1}`, evento: EVENTOS[(c.id + i) % EVENTOS.length],
+      data: d.toISOString().slice(0,10), entrega: ent.toISOString().slice(0,10),
+      retirada: ret.toISOString().slice(0,10), valor,
+      situacao: ['Concluído','Em andamento','Aguardando','Atrasado'][(c.id + i) % 4],
+      pagamento: i % 3 === 0 ? 'Pendente' : 'Pago'
+    };
+  });
+}
+function quotesOf(c) {
+  return Array.from({ length: 4 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (i * 44 + 9));
+    return { num:`OR-${c.id}${i+1}`, valor: 450 + ((c.id + i * 3) % 8) * 390, data: d.toISOString().slice(0,10),
+             situacao:['Aprovado','Em análise','Recusado','Expirado'][(c.id+i)%4], convertido: i % 2 === 0 };
+  });
+}
+function productsOf(c) {
+  return PRODUTOS.slice(0, 6).map((p, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (i * 51 + 12));
+    return { nome:p, qtd: 2 + ((c.id + i * 5) % 28), ultima: d.toISOString().slice(0,10), valor: 300 + ((c.id+i)%9)*260 };
+  }).sort((a, b) => b.qtd - a.qtd);
+}
+function timelineOf(c) {
+  const ev = [
+    ['Cliente cadastrado','user-plus','--primary','Cadastro criado no sistema Serve Festa','Ana (Comercial)'],
+    ['Primeiro contato','phone','--cyan','Contato telefônico para apresentação do catálogo','Bruno (Atendimento)'],
+    ['Primeiro orçamento','file-invoice-dollar','--violet','Orçamento OR-'+c.id+'1 enviado por e-mail','Carla (Vendas)'],
+    ['Pedido realizado','cart-shopping','--amber','Pedido PD-'+c.id+'1 confirmado','Carla (Vendas)'],
+    ['Pagamento recebido','money-bill-wave','--green','Pagamento via '+c.pagamentoPref+' confirmado','Financeiro'],
+    ['Entrega realizada','truck','--primary','Itens entregues no endereço do evento','Equipe Logística'],
+    ['Retirada realizada','box-open','--cyan','Retirada concluída sem avarias','Equipe Logística'],
+    ['Novo orçamento','file-lines','--violet','Solicitação de novo evento','Diego (Vendas)'],
+    ['Avaliação recebida','star','--amber','Cliente avaliou o atendimento com 5 estrelas','Sistema'],
+    ['Última alteração','pen-to-square','--muted-foreground','Dados cadastrais atualizados','Ana (Comercial)']
+  ];
+  return ev.map((e, i) => {
+    const d = new Date(c.cadastro + 'T09:00:00'); d.setDate(d.getDate() + i * 21);
+    return { titulo:e[0], icone:e[1], cor:e[2], desc:e[3], usuario:e[4],
+             data:d.toLocaleDateString('pt-BR'), hora:`${String(8 + i % 10).padStart(2,'0')}:${String((i * 13) % 60).padStart(2,'0')}` };
+  });
+}
+
+/* ------------------------------------------------------------
+   13. Gráficos em Canvas (puro)
+   ------------------------------------------------------------ */
+const Chart = {
+  prep(cv) {
+    const r = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    cv.width = w * r; cv.height = h * r;
+    const ctx = cv.getContext('2d'); ctx.scale(r, r);
+    ctx.clearRect(0, 0, w, h);
+    return { ctx, w, h };
+  },
+  bars(cv, labels, values, color) {
+    const { ctx, w, h } = Chart.prep(cv), pad = 26, max = Math.max(...values, 1);
+    const bw = (w - pad * 2) / values.length;
+    ctx.strokeStyle = '#eef1f6';
+    for (let i = 0; i <= 4; i++) { const y = pad + (h - pad * 2) * i / 4; ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke(); }
+    values.forEach((v, i) => {
+      const bh = (h - pad * 2) * (v / max), x = pad + i * bw + bw * .2, y = h - pad - bh;
+      const g = ctx.createLinearGradient(0, y, 0, h - pad);
+      g.addColorStop(0, color); g.addColorStop(1, color + '33');
+      ctx.fillStyle = g; ctx.beginPath();
+      ctx.roundRect(x, y, bw * .6, bh, 6); ctx.fill();
+      ctx.fillStyle = '#94a3b8'; ctx.font = '10px Plus Jakarta Sans'; ctx.textAlign = 'center';
+      ctx.fillText(labels[i], x + bw * .3, h - 8);
+    });
+  },
+  line(cv, labels, values, color) {
+    const { ctx, w, h } = Chart.prep(cv), pad = 26, max = Math.max(...values, 1);
+    const px = i => pad + (w - pad * 2) * i / (values.length - 1);
+    const py = v => h - pad - (h - pad * 2) * (v / max);
+    ctx.strokeStyle = '#eef1f6';
+    for (let i = 0; i <= 4; i++) { const y = pad + (h - pad * 2) * i / 4; ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke(); }
+    ctx.beginPath(); values.forEach((v, i) => i ? ctx.lineTo(px(i), py(v)) : ctx.moveTo(px(i), py(v)));
+    ctx.lineTo(px(values.length - 1), h - pad); ctx.lineTo(pad, h - pad); ctx.closePath();
+    const g = ctx.createLinearGradient(0, pad, 0, h); g.addColorStop(0, color + '55'); g.addColorStop(1, color + '00');
+    ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath(); values.forEach((v, i) => i ? ctx.lineTo(px(i), py(v)) : ctx.moveTo(px(i), py(v)));
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.stroke();
+    values.forEach((v, i) => { ctx.beginPath(); ctx.arc(px(i), py(v), 3.5, 0, 7); ctx.fillStyle = '#fff'; ctx.fill(); ctx.stroke(); });
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10px Plus Jakarta Sans'; ctx.textAlign = 'center';
+    labels.forEach((l, i) => ctx.fillText(l, px(i), h - 8));
+  },
+  donut(cv, labels, values, colors) {
+    const { ctx, w, h } = Chart.prep(cv), cx = w / 2, cy = h / 2 - 16, r = Math.min(w, h) / 2 - 44;
+    const total = values.reduce((a, b) => a + b, 0); let ang = -Math.PI / 2;
+    values.forEach((v, i) => {
+      const slice = (v / total) * Math.PI * 2;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, ang, ang + slice); ctx.closePath();
+      ctx.fillStyle = colors[i]; ctx.fill(); ang += slice;
+    });
+    ctx.beginPath(); ctx.arc(cx, cy, r * .58, 0, 7); ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.fillStyle = '#0f172a'; ctx.font = '700 13px Plus Jakarta Sans'; ctx.textAlign = 'center';
+    ctx.fillText(total + ' eventos', cx, cy + 4);
+    ctx.font = '10px Plus Jakarta Sans';
+    labels.forEach((l, i) => {
+      const x = 10 + (i % 2) * (w / 2), y = h - 20 + Math.floor(i / 2) * 14;
+      ctx.fillStyle = colors[i]; ctx.fillRect(x, y - 7, 8, 8);
+      ctx.fillStyle = '#64748b'; ctx.textAlign = 'left'; ctx.fillText(l, x + 12, y);
+    });
+  }
+};
+
+/* ------------------------------------------------------------
+   14. Modal de visualização (ficha 360º)
+   ------------------------------------------------------------ */
+const View = {
+  open(c, tab) {
+    State.current = c;
+    View.resumo(c); View.historico(c); View.financeiro(c);
+    View.pedidos(c); View.orcamentos(c); View.produtos(c);
+    Modal.open('mdView');
+    $(`[data-tabs="view"] [data-tab="${tab}"]`).click();
+    if (tab === "v7") View.dashboard(c);
+  },
+
+  resumo(c) {
+    const info = (lbl, val) => `<div class="info"><span>${lbl}</span><b>${val || '—'}</b></div>`;
+    $('#v1').innerHTML = `
+      <div class="profile">
+        <div class="avatar" style="background:${colorFor(c.id)}">${initials(c.nome)}</div>
+        <div style="flex:1">
+          <h4>${c.nome}</h4>
+          <div class="meta"><i class="fa-solid fa-location-dot"></i> ${c.cidade}/${c.estado} · ${c.tipo}</div>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+            <span class="badge ${c.status === 'Ativo' ? 'badge-green' : 'badge-red'}"><i class="fa-solid fa-circle"></i> ${c.status}</span>
+            <span class="badge badge-blue">#${c.id}</span>
+            <span class="badge badge-violet">${c.pedidos} pedidos</span>
+          </div>
+        </div>
+      </div>
+      <div class="quick">
+        <button class="btn btn-primary btn-sm" onclick="Actions.edit(${c.id})"><i class="fa-solid fa-pen"></i> Editar</button>
+        <button class="btn btn-ghost btn-sm" onclick="Toast.success('Novo pedido','Pedido iniciado para ${c.nome.split(' ')[0]}.')"><i class="fa-solid fa-cart-plus"></i> Novo Pedido</button>
+        <button class="btn btn-ghost btn-sm" onclick="Toast.success('Novo orçamento','Orçamento criado.')"><i class="fa-solid fa-file-circle-plus"></i> Novo Orçamento</button>
+        <button class="btn btn-ghost btn-sm" onclick="Actions.whats(${c.id})"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+        <button class="btn btn-ghost btn-sm" onclick="Toast.info('E-mail','Mensagem enviada para ${c.email}.')"><i class="fa-solid fa-envelope"></i> E-mail</button>
+        <button class="btn btn-ghost btn-sm" onclick="Export.print()"><i class="fa-solid fa-print"></i> Imprimir</button>
+      </div>
+      <div class="info-grid">
+        ${info('Telefone', c.telefone)} ${info('WhatsApp', c.whatsapp)} ${info('E-mail', c.email)}
+        ${info('CPF', c.cpf)} ${info('RG', c.rg)} ${info('Empresa', c.empresa)}
+        ${info('Profissão', c.profissao)} ${info('Nascimento', dateBR(c.nascimento))} ${info('Estado civil', c.civil)}
+        ${info('Endereço', `${c.rua}, ${c.numero} ${c.complemento} – ${c.bairro}`)}
+        ${info('Cidade / UF', `${c.cidade}/${c.estado}`)} ${info('CEP', c.cep)}
+        ${info('Data de cadastro', dateBR(c.cadastro))} ${info('Último acesso', dateBR(c.ultimoPedido) )}
+        ${info('Cliente desde', new Date(c.cadastro).getFullYear())}
+        ${info('Limite de crédito', BRL(c.limite))} ${info('Pagamento preferido', c.pagamentoPref)} ${info('Desconto padrão', c.desconto + '%')}
+      </div>`;
+  },
+
+  historico(c) {
+    $('#v2').innerHTML = `<div class="section-title"><i class="fa-solid fa-timeline"></i> Linha do tempo do relacionamento</div>
+      <div class="timeline">${timelineOf(c).map((e, i) => `
+        <div class="tl-item" style="animation-delay:${i * 40}ms">
+          <div class="dot" style="background:var(${e.cor})"><i class="fa-solid fa-${e.icone}"></i></div>
+          <h5>${e.titulo}</h5><p>${e.desc}</p>
+          <div class="when"><span><i class="fa-regular fa-calendar"></i> ${e.data}</span>
+            <span><i class="fa-regular fa-clock"></i> ${e.hora}</span>
+            <span><i class="fa-regular fa-user"></i> ${e.usuario}</span></div>
+        </div>`).join('')}</div>`;
+  },
+
+  financeiro(c) {
+    const o = ordersOf(c), vals = o.map(x => x.valor);
+    const stat = (l, v) => `<div class="stat"><span>${l}</span><b>${v}</b></div>`;
+    $('#v3').innerHTML = `
+      <div class="stats">
+        ${stat('Total gasto', BRL(c.totalGasto))}
+        ${stat('Total pago', BRL(c.pago))}
+        ${stat('Saldo pendente', BRL(Math.max(0, c.totalGasto - c.pago)))}
+        ${stat('Maior pedido', vals.length ? BRL(Math.max(...vals)) : '—')}
+        ${stat('Menor pedido', vals.length ? BRL(Math.min(...vals)) : '—')}
+        ${stat('Pedidos em atraso', o.filter(x => x.situacao === 'Atrasado').length)}
+      </div>
+      <div class="table-scroll"><table><thead><tr>
+        <th>Data</th><th>Pedido</th><th>Valor</th><th>Status</th><th>Pagamento</th></tr></thead><tbody>
+        ${o.length ? o.map(x => `<tr><td>${dateBR(x.data)}</td><td><b>${x.num}</b></td><td class="money">${BRL(x.valor)}</td>
+          <td><span class="badge ${x.situacao==='Atrasado'?'badge-red':x.situacao==='Concluído'?'badge-green':'badge-amber'}">${x.situacao}</span></td>
+          <td><span class="badge ${x.pagamento==='Pago'?'badge-green':'badge-amber'}">${x.pagamento}</span></td></tr>`).join('')
+          : '<tr><td colspan="5"><div class="empty"><i class="fa-solid fa-receipt"></i>Sem movimentações financeiras</div></td></tr>'}
+      </tbody></table></div>`;
+  },
+
+  pedidos(c) {
+    const o = ordersOf(c);
+    $('#v4').innerHTML = `<div class="table-scroll"><table><thead><tr>
+      <th>Número</th><th>Evento</th><th>Data</th><th>Entrega</th><th>Retirada</th><th>Valor</th><th>Situação</th><th></th></tr></thead><tbody>
+      ${o.length ? o.map(x => `<tr><td><b>${x.num}</b></td><td>${x.evento}</td><td>${dateBR(x.data)}</td><td>${dateBR(x.entrega)}</td>
+        <td>${dateBR(x.retirada)}</td><td class="money">${BRL(x.valor)}</td>
+        <td><span class="badge ${x.situacao==='Atrasado'?'badge-red':x.situacao==='Concluído'?'badge-green':'badge-blue'}">${x.situacao}</span></td>
+        <td><button class="icon-btn" data-tip="Visualizar pedido" onclick="Toast.info('Pedido ${x.num}','Abrindo detalhes do pedido.')"><i class="fa-solid fa-eye"></i></button></td></tr>`).join('')
+        : '<tr><td colspan="8"><div class="empty"><i class="fa-solid fa-cart-shopping"></i>Nenhum pedido registrado</div></td></tr>'}
+    </tbody></table></div>`;
+  },
+
+  orcamentos(c) {
+    $('#v5').innerHTML = `<div class="table-scroll"><table><thead><tr>
+      <th>Número</th><th>Valor</th><th>Data</th><th>Situação</th><th>Convertido em pedido?</th></tr></thead><tbody>
+      ${quotesOf(c).map(x => `<tr><td><b>${x.num}</b></td><td class="money">${BRL(x.valor)}</td><td>${dateBR(x.data)}</td>
+        <td><span class="badge ${x.situacao==='Aprovado'?'badge-green':x.situacao==='Recusado'?'badge-red':'badge-amber'}">${x.situacao}</span></td>
+        <td><span class="badge ${x.convertido?'badge-green':'badge-muted'}">${x.convertido ? 'Sim' : 'Não'}</span></td></tr>`).join('')}
+    </tbody></table></div>`;
+  },
+
+  produtos(c) {
+    const p = productsOf(c);
+    $('#v6').innerHTML = `<div class="section-title"><i class="fa-solid fa-star"></i> Produtos favoritos do cliente</div>
+      <div class="table-scroll"><table><thead><tr><th>Produto</th><th>Quantidade</th><th>Última locação</th><th>Valor gasto</th></tr></thead><tbody>
+      ${p.map(x => `<tr><td><b>${x.nome}</b></td><td><span class="badge badge-violet">${x.qtd}x</span></td>
+        <td>${dateBR(x.ultima)}</td><td class="money">${BRL(x.valor)}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="chart-box" style="margin-top:16px"><h6>Produtos mais alugados</h6><canvas id="cProd"></canvas></div>`;
+    setTimeout(() => Chart.bars($('#cProd'), p.map(x => x.nome.split(' ')[0]), p.map(x => x.qtd), '#7c3aed'), 60);
+  },
+
+  dashboard(c) {
+    $('#v7').innerHTML = `<div class="charts">
+      <div class="chart-box"><h6>Pedidos por mês</h6><canvas id="c1"></canvas></div>
+      <div class="chart-box"><h6>Valor gasto por mês</h6><canvas id="c2"></canvas></div>
+      <div class="chart-box"><h6>Tipos de festas</h6><canvas id="c3"></canvas></div>
+      <div class="chart-box"><h6>Produtos mais alugados</h6><canvas id="c4"></canvas></div>
+    </div>`;
+    const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const ped = meses.map((_, i) => (c.id + i * 3) % 7);
+    const val = meses.map((_, i) => 400 + ((c.id + i * 11) % 9) * 620);
+    const p = productsOf(c).slice(0, 5);
+    setTimeout(() => {
+      Chart.bars($('#c1'), meses, ped, '#2563eb');
+      Chart.line($('#c2'), meses, val, '#10b981');
+      Chart.donut($('#c3'), ['Casamento','Infantil','Corporativo','Formatura'],
+        [4 + c.id % 5, 3 + c.id % 4, 2 + c.id % 6, 1 + c.id % 3], ['#2563eb','#ec4899','#f59e0b','#06b6d4']);
+      Chart.bars($('#c4'), p.map(x => x.nome.split(' ')[0]), p.map(x => x.qtd), '#f59e0b');
+    }, 60);
+  }
+};
+
+/* ------------------------------------------------------------
+   15. Exportações (simuladas) e impressão
+   ------------------------------------------------------------ */
+const Export = {
+  excel() {
+    applyFilters();
+    const cols = ['id','nome','cpf','telefone','email','cidade','estado','totalGasto','pedidos','status'];
+    const csv = [cols.join(';'), ...State.filtered.map(c => cols.map(k => c[k]).join(';'))].join('\n');
+    const url = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'clientes-serve-festa.csv'; a.click();
+    URL.revokeObjectURL(url);
+    Toast.success('Excel exportado', `${State.filtered.length} registro(s) baixados.`);
+  },
+  pdf()   { Toast.info('Exportando PDF', 'O arquivo será gerado em instantes.'); setTimeout(() => Toast.success('PDF pronto', 'Documento disponível para download.'), 1100); },
+  print() { Toast.info('Impressão', 'Abrindo a janela de impressão...'); setTimeout(() => window.print(), 400); }
+};
+
+/* ------------------------------------------------------------
+   16. Inicialização
+   ------------------------------------------------------------ */
+(function init() {
+  App.render(1);                       // mostra o skeleton
+  setTimeout(() => {                   // simula requisição ao servidor
+    State.data = seed();
+    State.loading = false;
+    fillFilters(); renderKPIs(); App.render(1);
+    Toast.success('Bem-vindo!', 'Clientes carregados com sucesso.');
+  }, 1100);
+})();
+</script>
+</body>
+</html>

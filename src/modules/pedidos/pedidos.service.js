@@ -467,3 +467,65 @@ export async function criarEndereco(dados) {
 export async function buscarPedidoPorId(id) {
   return await model.buscarPedidoPorId(id);
 }
+
+export async function buscarFinanceiroPedido(id) {
+  return await model.buscarFinanceiroPedido(id);
+}
+
+export async function adicionarPagamentoPedido(id, dados) {
+  const pagamento = sanitizarPagamento(dados);
+  validarPagamento(pagamento);
+
+  return await model.inserirPagamentoPedido(id, pagamento);
+}
+
+export async function adicionarCobrancaPedido(id, dados) {
+  const cobranca = sanitizarCobranca(dados);
+  validarCobranca(cobranca);
+
+  return await model.inserirCobrancaPedido(id, cobranca);
+}
+
+function sanitizarPagamento(dados) {
+  return {
+    valor: Number(dados.valor || 0),
+    forma_pagamento: dados.forma_pagamento || null,
+    observacao: dados.observacao?.trim()?.replace(/\s+/g, " ") || null,
+    usuario_id: dados.usuario_id ? Number(dados.usuario_id) : null
+  };
+}
+
+function sanitizarCobranca(dados) {
+  const descricao = (dados.descricao || dados.observacao || "Cobrança adicional")
+    .toString()
+    .trim()
+    .replace(/\s+/g, " ");
+
+  return {
+    valor: Number(dados.valor || 0),
+    descricao,
+    observacao: descricao,
+    usuario_id: dados.usuario_id ? Number(dados.usuario_id) : null
+  };
+}
+
+function validarPagamento(pagamento) {
+  if (!Number.isFinite(pagamento.valor) || pagamento.valor <= 0) {
+    throw new Error("Informe um valor de pagamento válido.");
+  }
+
+  const formas = ["PIX", "DINHEIRO", "CARTAO_DEBITO", "CARTAO_CREDITO", "TRANSFERENCIA"];
+  if (pagamento.forma_pagamento && !formas.includes(pagamento.forma_pagamento)) {
+    throw new Error("Forma de pagamento inválida.");
+  }
+}
+
+function validarCobranca(cobranca) {
+  if (!Number.isFinite(cobranca.valor) || cobranca.valor <= 0) {
+    throw new Error("Informe um valor de cobrança válido.");
+  }
+
+  if (!cobranca.descricao) {
+    throw new Error("Descreva a cobrança adicional.");
+  }
+}

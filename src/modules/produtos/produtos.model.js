@@ -1,56 +1,870 @@
 import db from "../../../database/connection.js";
 
-export async function findAll() {
-  try {
-    const [rows] = await db.query("SELECT * FROM produtos");
-    return rows;
-  } catch (err) {
-    console.error("======================");
-    console.error(err);
-    console.error("Código:", err.code);
-    console.error("Mensagem:", err.message);
-    console.error("SQL State:", err.sqlState);
-    console.error("======================");
-    throw err;
+
+// ==========================================
+// LISTAR PRODUTOS
+// ==========================================
+
+export async function findAll(filtros = {}) {
+
+  const {
+    busca = "",
+    categoria = "",
+    status = "",
+    fornecedor = ""
+  } = filtros;
+
+
+  let sql = `
+
+  SELECT
+
+  p.*,
+
+  f.nome AS fornecedor,
+
+
+  (
+    p.estoque
+    -
+    p.estoque_reservado
+    -
+    p.estoque_manutencao
+    -
+    p.estoque_danificado
+
+  ) AS disponivel,
+
+
+  CASE
+
+    WHEN p.ativo = 0
+    THEN 'INATIVO'
+
+
+    WHEN p.estoque_manutencao > 0
+    THEN 'MANUTENCAO'
+
+
+    WHEN p.estoque_danificado > 0
+    THEN 'DANIFICADO'
+
+
+    WHEN p.estoque_reservado >= p.estoque
+    THEN 'RESERVADO'
+
+
+    WHEN p.estoque <= 5
+    THEN 'BAIXO_ESTOQUE'
+
+
+    ELSE 'DISPONIVEL'
+
+
+  END AS status
+
+
+  FROM produtos p
+
+
+  LEFT JOIN fornecedores f
+
+  ON f.id = p.fornecedor_id
+
+
+  WHERE 1=1
+
+  `;
+
+
+  const params = [];
+
+
+
+  if(busca){
+
+    sql += `
+
+    AND (
+
+    p.nome LIKE ?
+
+    OR p.codigo LIKE ?
+
+    OR p.categoria LIKE ?
+
+    )
+
+    `;
+
+
+    params.push(
+      `%${busca}%`,
+      `%${busca}%`,
+      `%${busca}%`
+    );
+
   }
+
+
+
+  if(categoria){
+
+    sql += `
+    AND p.categoria = ?
+    `;
+
+    params.push(categoria);
+
+  }
+
+
+
+  if(fornecedor){
+
+    sql += `
+    AND p.fornecedor_id = ?
+    `;
+
+    params.push(fornecedor);
+
+  }
+
+
+
+  if(status){
+
+    sql += `
+    HAVING status = ?
+    `;
+
+    params.push(status);
+
+  }
+
+
+
+  sql += `
+
+  ORDER BY p.nome ASC
+
+  `;
+
+
+
+  const [rows] = await db.query(sql,params);
+
+
+  return rows;
+
 }
 
-export async function buscarPorId(id) {
-  const [rows] = await db.query(
-    "SELECT * FROM produtos WHERE id = ?",
-    [id]
-  );
 
-  return rows[0];
+
+// ==========================================
+// BUSCAR POR ID
+// ==========================================
+
+export async function buscarPorId(id){
+
+
+const [rows] = await db.query(
+
+`
+
+SELECT
+
+p.*,
+
+f.nome AS fornecedor
+
+
+FROM produtos p
+
+
+LEFT JOIN fornecedores f
+
+ON f.id = p.fornecedor_id
+
+
+WHERE p.id = ?
+
+`,
+
+[id]
+
+);
+
+
+return rows[0];
+
 }
 
-export async function create({ nome, tipo, estoque, precoVenda, precoAluguel }) {
-  await db.query(
-    `INSERT INTO produtos
-    (nome, tipo, estoque, preco_venda, preco_aluguel, createdAt, updatedAt)
-    VALUES (?, ?, ?, ?, ?, NOW(), NOW())`,
-    [nome, tipo, estoque, precoVenda, precoAluguel]
-  );
+
+
+
+// ==========================================
+// CRIAR
+// ==========================================
+
+export async function create(dados){
+
+
+await db.query(
+
+`
+
+INSERT INTO produtos
+
+(
+
+nome,
+codigo,
+categoria,
+tipo,
+fornecedor_id,
+imagem,
+localizacao,
+estoque,
+preco_venda,
+preco_aluguel,
+estoque_reservado,
+estoque_manutencao,
+estoque_danificado
+
+)
+
+
+VALUES
+
+(?,?,?,?,?,?,?,?,?,?,?,?,?)
+
+`,
+
+[
+
+dados.nome,
+
+dados.codigo || null,
+
+dados.categoria || null,
+
+dados.tipo || null,
+
+dados.fornecedor_id || null,
+
+dados.imagem || null,
+
+dados.localizacao || null,
+
+Number(dados.estoque || 0),
+
+Number(dados.precoVenda || 0),
+
+Number(dados.precoAluguel || 0),
+
+0,
+
+0,
+
+0
+
+]
+
+
+);
+
+
 }
 
-export async function excluir(id) {
-  await db.query(
-    "DELETE FROM produtos WHERE id = ?",
-    [id]
-  );
+
+
+
+
+// ==========================================
+// ATUALIZAR
+// ==========================================
+
+export async function atualizar(id,dados){
+
+
+await db.query(
+
+`
+
+UPDATE produtos
+
+SET
+
+
+nome=?,
+
+codigo=?,
+
+categoria=?,
+
+tipo=?,
+
+fornecedor_id=?,
+
+imagem=?,
+
+localizacao=?,
+
+estoque=?,
+
+preco_venda=?,
+
+preco_aluguel=?,
+
+updatedAt=NOW()
+
+
+WHERE id=?
+
+
+`,
+
+[
+
+dados.nome,
+
+dados.codigo || null,
+
+dados.categoria || null,
+
+dados.tipo || null,
+
+dados.fornecedor_id || null,
+
+dados.imagem || null,
+
+dados.localizacao || null,
+
+Number(dados.estoque || 0),
+
+Number(dados.precoVenda || 0),
+
+Number(dados.precoAluguel || 0),
+
+id
+
+]
+
+
+);
+
+
 }
 
-export async function atualizar(id, dados) {
-  const { nome, tipo, estoque, precoVenda, precoAluguel } = dados;
 
-  await db.query(
-    `UPDATE produtos
-     SET nome = ?,
-         tipo = ?,
-         estoque = ?,
-         preco_venda = ?,
-         preco_aluguel = ?
-     WHERE id = ?`,
-    [nome, tipo, estoque, precoVenda, precoAluguel, id]
-  );
+
+
+// ==========================================
+// EXCLUIR
+// ==========================================
+
+export async function excluir(id){
+
+
+await db.query(
+
+`
+
+UPDATE produtos
+
+SET ativo = 0
+
+WHERE id=?
+
+`,
+
+[id]
+
+);
+
+
+}
+
+
+
+
+// ==========================================
+// DASHBOARD
+// ==========================================
+
+export async function dashboard(){
+
+
+const [rows] = await db.query(
+
+`
+
+SELECT
+
+
+COUNT(*) total,
+
+
+COALESCE(SUM(
+estoque -
+estoque_reservado -
+estoque_manutencao -
+estoque_danificado
+),0) disponiveis,
+
+
+COALESCE(SUM(estoque_reservado),0) reservados,
+
+
+COALESCE(SUM(estoque_manutencao),0) manutencao,
+
+
+COALESCE(SUM(estoque_danificado),0) danificados,
+
+
+SUM(
+
+CASE
+
+WHEN estoque <=5
+
+THEN 1
+
+ELSE 0
+
+END
+
+) baixo_estoque,
+
+
+COALESCE(
+SUM(
+estoque * preco_venda
+),
+0
+) valor_estoque
+
+
+FROM produtos
+
+
+WHERE ativo=1
+
+
+`
+
+);
+
+
+return rows[0];
+
+}
+
+
+
+
+
+// ==========================================
+// HISTÓRICO
+// ==========================================
+
+export async function historico(){
+
+
+const [rows] = await db.query(
+
+`
+
+SELECT
+
+
+m.*,
+
+p.nome AS produto
+
+
+FROM movimentacao_estoque m
+
+
+INNER JOIN produtos p
+
+ON p.id=m.produto_id
+
+
+ORDER BY
+
+m.data_movimentacao DESC
+
+
+LIMIT 100
+
+
+`
+
+);
+
+
+return rows;
+
+}
+
+
+
+
+// ==========================================
+// ENTRADA
+// ==========================================
+
+export async function entradaEstoque(
+id,
+quantidade,
+observacao=""
+){
+
+
+await db.query(
+
+`
+
+UPDATE produtos
+
+SET estoque = estoque + ?
+
+WHERE id=?
+
+`,
+
+[
+quantidade,
+id
+]
+
+);
+
+
+
+await db.query(
+
+`
+
+INSERT INTO movimentacao_estoque
+
+(
+produto_id,
+tipo,
+quantidade,
+observacao
+)
+
+VALUES(?,?,?,?)
+
+`,
+
+[
+id,
+"ENTRADA",
+quantidade,
+observacao
+]
+
+);
+
+
+}
+
+
+
+
+
+
+
+// ==========================================
+// SAÍDA
+// ==========================================
+
+export async function saidaEstoque(
+id,
+quantidade,
+observacao=""
+){
+
+
+const [produto] = await db.query(
+
+`
+
+SELECT estoque
+
+FROM produtos
+
+WHERE id=?
+
+`,
+
+[id]
+
+);
+
+
+if(produto[0].estoque < quantidade){
+
+throw new Error(
+"Estoque insuficiente."
+);
+
+}
+
+
+
+await db.query(
+
+`
+
+UPDATE produtos
+
+SET estoque = estoque - ?
+
+WHERE id=?
+
+`,
+
+[
+quantidade,
+id
+]
+
+);
+
+
+
+await db.query(
+
+`
+
+INSERT INTO movimentacao_estoque
+
+(
+produto_id,
+tipo,
+quantidade,
+observacao
+)
+
+VALUES(?,?,?,?)
+
+`,
+
+[
+id,
+"SAIDA",
+quantidade,
+observacao
+]
+
+);
+
+
+}
+
+
+
+
+
+
+// ==========================================
+// RESERVAR
+// ==========================================
+
+export async function reservar(id,quantidade){
+
+
+const [produto]=await db.query(
+
+`
+
+SELECT
+
+estoque,
+estoque_reservado
+
+FROM produtos
+
+WHERE id=?
+
+`,
+
+[id]
+
+);
+
+
+
+const disponivel =
+produto[0].estoque -
+produto[0].estoque_reservado;
+
+
+
+if(disponivel < quantidade){
+
+throw new Error(
+"Quantidade indisponível."
+);
+
+}
+
+
+
+await db.query(
+
+`
+
+UPDATE produtos
+
+SET estoque_reservado =
+estoque_reservado + ?
+
+WHERE id=?
+
+`,
+
+[
+quantidade,
+id
+]
+
+);
+
+
+}
+
+
+
+
+
+
+// ==========================================
+// DEVOLVER
+// ==========================================
+
+export async function devolver(id,quantidade){
+
+
+await db.query(
+
+`
+
+UPDATE produtos
+
+SET estoque_reservado =
+GREATEST(
+estoque_reservado-?,
+0
+)
+
+WHERE id=?
+
+`,
+
+[
+quantidade,
+id
+]
+
+);
+
+
+
+await db.query(
+
+`
+
+INSERT INTO movimentacao_estoque
+
+(
+produto_id,
+tipo,
+quantidade
+)
+
+VALUES(?,?,?)
+
+`,
+
+[
+id,
+"RETORNO",
+quantidade
+]
+
+);
+
+
+}
+
+
+
+
+
+
+// ==========================================
+// MANUTENÇÃO
+// ==========================================
+
+export async function manutencao(id){
+
+
+await db.query(
+
+`
+
+UPDATE produtos
+
+SET estoque_manutencao =
+estoque_manutencao + 1
+
+WHERE id=?
+
+`,
+
+[id]
+
+);
+
+
+}
+
+
+
+
+
+// ==========================================
+// FINALIZAR MANUTENÇÃO
+// ==========================================
+
+export async function finalizarManutencao(id){
+
+
+await db.query(
+
+`
+
+UPDATE produtos
+
+SET estoque_manutencao =
+GREATEST(
+estoque_manutencao-1,
+0
+)
+
+WHERE id=?
+
+`,
+
+[id]
+
+);
+
+
 }

@@ -1,1696 +1,595 @@
--- seed.sql
-USE fest;
+SET FOREIGN_KEY_CHECKS = 0;
 
-INSERT INTO usuario (nome,email,senha) VALUES
-('Administrador','admin@fest.com','$2y$10$hash'),
-('João Silva','joao@fest.com','$2y$10$hash'),
-('Maria Souza','maria@fest.com','$2y$10$hash'),
-('Carlos Lima','carlos@fest.com','$2y$10$hash'),
-('Ana Costa','ana@fest.com','$2y$10$hash'),
-('Pedro Alves','pedro@fest.com','$2y$10$hash'),
-('Julia Rocha','julia@fest.com','$2y$10$hash'),
-('leo','leo@gmail.com','$2b$10$YFGJYHADCB0DcLzZWfewUu9Q78BVogEDhomCODn1rPKx0KCnbfZBe');
+/* ==========================================================
+   USUÁRIOS
+========================================================== */
 
-INSERT INTO user_permissions (usuario_id,dashboard,clientes,produtos,pedidos,relatorios,funcionarios,entregas,retiradas,pagamentos,fornecedor,cadastro_admin) VALUES (1,1,1,1,1,1,1,1,1,1,1,1);
-INSERT INTO user_permissions (usuario_id,dashboard,clientes,produtos,pedidos,relatorios,funcionarios,entregas,retiradas,pagamentos,fornecedor,cadastro_admin) VALUES (2,1,1,1,1,1,1,1,1,1,1,0);
-INSERT INTO user_permissions (usuario_id,dashboard,clientes,produtos,pedidos,relatorios,funcionarios,entregas,retiradas,pagamentos,fornecedor,cadastro_admin) VALUES (3,1,1,1,1,1,1,1,1,1,1,0);
-INSERT INTO user_permissions (usuario_id,dashboard,clientes,produtos,pedidos,relatorios,funcionarios,entregas,retiradas,pagamentos,fornecedor,cadastro_admin) VALUES (4,1,1,1,1,1,1,1,1,1,1,0);
-INSERT INTO user_permissions (usuario_id,dashboard,clientes,produtos,pedidos,relatorios,funcionarios,entregas,retiradas,pagamentos,fornecedor,cadastro_admin) VALUES (5,1,1,1,1,1,1,1,1,1,1,0);
-INSERT INTO user_permissions (usuario_id,dashboard,clientes,produtos,pedidos,relatorios,funcionarios,entregas,retiradas,pagamentos,fornecedor,cadastro_admin) VALUES (6,1,1,1,1,1,1,1,1,1,1,0);
-INSERT INTO user_permissions (usuario_id,dashboard,clientes,produtos,pedidos,relatorios,funcionarios,entregas,retiradas,pagamentos,fornecedor,cadastro_admin) VALUES (7,1,1,1,1,1,1,1,1,1,1,0);
-INSERT INTO user_permissions (usuario_id,dashboard,clientes,produtos,pedidos,relatorios,funcionarios,entregas,retiradas,pagamentos,fornecedor,cadastro_admin) VALUES (8,1,1,1,1,1,1,1,1,1,1,0);
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 1','1','Centro','Cidade 1','SP','1300001');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 2','2','Centro','Cidade 2','SP','1300002');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 3','3','Centro','Cidade 3','SP','1300003');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 4','4','Centro','Cidade 4','SP','1300004');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 5','5','Centro','Cidade 5','SP','1300005');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 6','6','Centro','Cidade 1','SP','1300006');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 7','7','Centro','Cidade 2','SP','1300007');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 8','8','Centro','Cidade 3','SP','1300008');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 9','9','Centro','Cidade 4','SP','1300009');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 10','10','Centro','Cidade 5','SP','1300010');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 11','11','Centro','Cidade 1','SP','1300011');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 12','12','Centro','Cidade 2','SP','1300012');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 13','13','Centro','Cidade 3','SP','1300013');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 14','14','Centro','Cidade 4','SP','1300014');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 15','15','Centro','Cidade 5','SP','1300015');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 16','16','Centro','Cidade 1','SP','1300016');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 17','17','Centro','Cidade 2','SP','1300017');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 18','18','Centro','Cidade 3','SP','1300018');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 19','19','Centro','Cidade 4','SP','1300019');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 20','20','Centro','Cidade 5','SP','1300020');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 21','21','Centro','Cidade 1','SP','1300021');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 22','22','Centro','Cidade 2','SP','1300022');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 23','23','Centro','Cidade 3','SP','1300023');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 24','24','Centro','Cidade 4','SP','1300024');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 25','25','Centro','Cidade 5','SP','1300025');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 26','26','Centro','Cidade 1','SP','1300026');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 27','27','Centro','Cidade 2','SP','1300027');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 28','28','Centro','Cidade 3','SP','1300028');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 29','29','Centro','Cidade 4','SP','1300029');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 30','30','Centro','Cidade 5','SP','1300030');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 31','31','Centro','Cidade 1','SP','1300031');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 32','32','Centro','Cidade 2','SP','1300032');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 33','33','Centro','Cidade 3','SP','1300033');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 34','34','Centro','Cidade 4','SP','1300034');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 35','35','Centro','Cidade 5','SP','1300035');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 36','36','Centro','Cidade 1','SP','1300036');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 37','37','Centro','Cidade 2','SP','1300037');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 38','38','Centro','Cidade 3','SP','1300038');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 39','39','Centro','Cidade 4','SP','1300039');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 40','40','Centro','Cidade 5','SP','1300040');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 41','41','Centro','Cidade 1','SP','1300041');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 42','42','Centro','Cidade 2','SP','1300042');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 43','43','Centro','Cidade 3','SP','1300043');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 44','44','Centro','Cidade 4','SP','1300044');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 45','45','Centro','Cidade 5','SP','1300045');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 46','46','Centro','Cidade 1','SP','1300046');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 47','47','Centro','Cidade 2','SP','1300047');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 48','48','Centro','Cidade 3','SP','1300048');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 49','49','Centro','Cidade 4','SP','1300049');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 50','50','Centro','Cidade 5','SP','1300050');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 51','51','Centro','Cidade 1','SP','1300051');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 52','52','Centro','Cidade 2','SP','1300052');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 53','53','Centro','Cidade 3','SP','1300053');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 54','54','Centro','Cidade 4','SP','1300054');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 55','55','Centro','Cidade 5','SP','1300055');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 56','56','Centro','Cidade 1','SP','1300056');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 57','57','Centro','Cidade 2','SP','1300057');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 58','58','Centro','Cidade 3','SP','1300058');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 59','59','Centro','Cidade 4','SP','1300059');
-INSERT INTO endereco (rua,numero,bairro,cidade,estado,cep) VALUES ('Rua 60','60','Centro','Cidade 5','SP','1300060');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 1','cliente1@mail.com','11999990001',1,'00000000001','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 2','cliente2@mail.com','11999990002',2,'00000000002','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 3','cliente3@mail.com','11999990003',3,'00000000003','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 4','cliente4@mail.com','11999990004',4,'00000000004','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 5','cliente5@mail.com','11999990005',5,'00000000005','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 6','cliente6@mail.com','11999990006',6,'00000000006','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 7','cliente7@mail.com','11999990007',7,'00000000007','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 8','cliente8@mail.com','11999990008',8,'00000000008','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 9','cliente9@mail.com','11999990009',9,'00000000009','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 10','cliente10@mail.com','11999990010',10,'00000000010','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 11','cliente11@mail.com','11999990011',11,'00000000011','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 12','cliente12@mail.com','11999990012',12,'00000000012','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 13','cliente13@mail.com','11999990013',13,'00000000013','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 14','cliente14@mail.com','11999990014',14,'00000000014','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 15','cliente15@mail.com','11999990015',15,'00000000015','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 16','cliente16@mail.com','11999990016',16,'00000000016','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 17','cliente17@mail.com','11999990017',17,'00000000017','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 18','cliente18@mail.com','11999990018',18,'00000000018','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 19','cliente19@mail.com','11999990019',19,'00000000019','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 20','cliente20@mail.com','11999990020',20,'00000000020','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 21','cliente21@mail.com','11999990021',21,'00000000021','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 22','cliente22@mail.com','11999990022',22,'00000000022','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 23','cliente23@mail.com','11999990023',23,'00000000023','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 24','cliente24@mail.com','11999990024',24,'00000000024','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 25','cliente25@mail.com','11999990025',25,'00000000025','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 26','cliente26@mail.com','11999990026',26,'00000000026','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 27','cliente27@mail.com','11999990027',27,'00000000027','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 28','cliente28@mail.com','11999990028',28,'00000000028','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 29','cliente29@mail.com','11999990029',29,'00000000029','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 30','cliente30@mail.com','11999990030',30,'00000000030','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 31','cliente31@mail.com','11999990031',31,'00000000031','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 32','cliente32@mail.com','11999990032',32,'00000000032','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 33','cliente33@mail.com','11999990033',33,'00000000033','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 34','cliente34@mail.com','11999990034',34,'00000000034','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 35','cliente35@mail.com','11999990035',35,'00000000035','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 36','cliente36@mail.com','11999990036',36,'00000000036','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 37','cliente37@mail.com','11999990037',37,'00000000037','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 38','cliente38@mail.com','11999990038',38,'00000000038','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 39','cliente39@mail.com','11999990039',39,'00000000039','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 40','cliente40@mail.com','11999990040',40,'00000000040','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 41','cliente41@mail.com','11999990041',41,'00000000041','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 42','cliente42@mail.com','11999990042',42,'00000000042','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 43','cliente43@mail.com','11999990043',43,'00000000043','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 44','cliente44@mail.com','11999990044',44,'00000000044','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 45','cliente45@mail.com','11999990045',45,'00000000045','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 46','cliente46@mail.com','11999990046',46,'00000000046','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 47','cliente47@mail.com','11999990047',47,'00000000047','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 48','cliente48@mail.com','11999990048',48,'00000000048','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 49','cliente49@mail.com','11999990049',49,'00000000049','1990-01-01');
-INSERT INTO cliente (nome,email,telefone,id_endereco,cpf,nascimento) VALUES ('Cliente 50','cliente50@mail.com','11999990050',50,'00000000050','1990-01-01');
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 1','Locação',51,102.00,11.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 2','Locação',52,104.00,12.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 3','Locação',53,106.00,13.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 4','Locação',54,108.00,14.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 5','Locação',55,110.00,15.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 6','Locação',56,112.00,16.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 7','Locação',57,114.00,17.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 8','Locação',58,116.00,18.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 9','Locação',59,118.00,19.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 10','Locação',60,120.00,20.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 11','Locação',61,122.00,21.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 12','Locação',62,124.00,22.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 13','Locação',63,126.00,23.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 14','Locação',64,128.00,24.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 15','Locação',65,130.00,25.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 16','Locação',66,132.00,26.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 17','Locação',67,134.00,27.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 18','Locação',68,136.00,28.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 19','Locação',69,138.00,29.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 20','Locação',70,140.00,30.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 21','Locação',71,142.00,31.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 22','Locação',72,144.00,32.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 23','Locação',73,146.00,33.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 24','Locação',74,148.00,34.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 25','Locação',75,150.00,35.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 26','Locação',76,152.00,36.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 27','Locação',77,154.00,37.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 28','Locação',78,156.00,38.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 29','Locação',79,158.00,39.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 30','Locação',80,160.00,40.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 31','Locação',81,162.00,41.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 32','Locação',82,164.00,42.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 33','Locação',83,166.00,43.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 34','Locação',84,168.00,44.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 35','Locação',85,170.00,45.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 36','Locação',86,172.00,46.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 37','Locação',87,174.00,47.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 38','Locação',88,176.00,48.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 39','Locação',89,178.00,49.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 40','Locação',90,180.00,50.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 41','Locação',91,182.00,51.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 42','Locação',92,184.00,52.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 43','Locação',93,186.00,53.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 44','Locação',94,188.00,54.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 45','Locação',95,190.00,55.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 46','Locação',96,192.00,56.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 47','Locação',97,194.00,57.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 48','Locação',98,196.00,58.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 49','Locação',99,198.00,59.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 50','Locação',100,200.00,60.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 51','Locação',101,202.00,61.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 52','Locação',102,204.00,62.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 53','Locação',103,206.00,63.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 54','Locação',104,208.00,64.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 55','Locação',105,210.00,65.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 56','Locação',106,212.00,66.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 57','Locação',107,214.00,67.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 58','Locação',108,216.00,68.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 59','Locação',109,218.00,69.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 60','Locação',110,220.00,70.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 61','Locação',111,222.00,71.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 62','Locação',112,224.00,72.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 63','Locação',113,226.00,73.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 64','Locação',114,228.00,74.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 65','Locação',115,230.00,75.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 66','Locação',116,232.00,76.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 67','Locação',117,234.00,77.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 68','Locação',118,236.00,78.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 69','Locação',119,238.00,79.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 70','Locação',120,240.00,80.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 71','Locação',121,242.00,81.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 72','Locação',122,244.00,82.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 73','Locação',123,246.00,83.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 74','Locação',124,248.00,84.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 75','Locação',125,250.00,85.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 76','Locação',126,252.00,86.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 77','Locação',127,254.00,87.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 78','Locação',128,256.00,88.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 79','Locação',129,258.00,89.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 80','Locação',130,260.00,90.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 81','Locação',131,262.00,91.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 82','Locação',132,264.00,92.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 83','Locação',133,266.00,93.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 84','Locação',134,268.00,94.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 85','Locação',135,270.00,95.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 86','Locação',136,272.00,96.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 87','Locação',137,274.00,97.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 88','Locação',138,276.00,98.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 89','Locação',139,278.00,99.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 90','Locação',140,280.00,100.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 91','Locação',141,282.00,101.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 92','Locação',142,284.00,102.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 93','Locação',143,286.00,103.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 94','Locação',144,288.00,104.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 95','Locação',145,290.00,105.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 96','Locação',146,292.00,106.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 97','Locação',147,294.00,107.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 98','Locação',148,296.00,108.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 99','Locação',149,298.00,109.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 100','Locação',150,300.00,110.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 101','Locação',151,302.00,111.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 102','Locação',152,304.00,112.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 103','Locação',153,306.00,113.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 104','Locação',154,308.00,114.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 105','Locação',155,310.00,115.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 106','Locação',156,312.00,116.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 107','Locação',157,314.00,117.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 108','Locação',158,316.00,118.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 109','Locação',159,318.00,119.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 110','Locação',160,320.00,120.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 111','Locação',161,322.00,121.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 112','Locação',162,324.00,122.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 113','Locação',163,326.00,123.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 114','Locação',164,328.00,124.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 115','Locação',165,330.00,125.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 116','Locação',166,332.00,126.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 117','Locação',167,334.00,127.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 118','Locação',168,336.00,128.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 119','Locação',169,338.00,129.00);
-INSERT INTO produtos (nome,tipo,estoque,preco_venda,preco_aluguel) VALUES ('Produto 120','Locação',170,340.00,130.00);
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 1','00.000.000/00001-00','Resp 1','11988880001','forn1@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 2','00.000.000/00002-00','Resp 2','11988880002','forn2@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 3','00.000.000/00003-00','Resp 3','11988880003','forn3@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 4','00.000.000/00004-00','Resp 4','11988880004','forn4@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 5','00.000.000/00005-00','Resp 5','11988880005','forn5@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 6','00.000.000/00006-00','Resp 6','11988880006','forn6@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 7','00.000.000/00007-00','Resp 7','11988880007','forn7@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 8','00.000.000/00008-00','Resp 8','11988880008','forn8@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 9','00.000.000/00009-00','Resp 9','11988880009','forn9@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 10','00.000.000/00010-00','Resp 10','11988880010','forn10@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 11','00.000.000/00011-00','Resp 11','11988880011','forn11@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 12','00.000.000/00012-00','Resp 12','11988880012','forn12@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 13','00.000.000/00013-00','Resp 13','11988880013','forn13@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 14','00.000.000/00014-00','Resp 14','11988880014','forn14@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 15','00.000.000/00015-00','Resp 15','11988880015','forn15@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 16','00.000.000/00016-00','Resp 16','11988880016','forn16@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 17','00.000.000/00017-00','Resp 17','11988880017','forn17@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 18','00.000.000/00018-00','Resp 18','11988880018','forn18@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 19','00.000.000/00019-00','Resp 19','11988880019','forn19@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 20','00.000.000/00020-00','Resp 20','11988880020','forn20@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 21','00.000.000/00021-00','Resp 21','11988880021','forn21@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 22','00.000.000/00022-00','Resp 22','11988880022','forn22@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 23','00.000.000/00023-00','Resp 23','11988880023','forn23@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 24','00.000.000/00024-00','Resp 24','11988880024','forn24@mail.com','Campinas','SP');
-INSERT INTO fornecedores (nome,cnpj,responsavel,phone,email,city,state) VALUES ('Fornecedor 25','00.000.000/00025-00','Resp 25','11988880025','forn25@mail.com','Campinas','SP');
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (1,1,1,DATE_ADD(CURDATE(),INTERVAL 1 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (2,2,2,DATE_ADD(CURDATE(),INTERVAL 2 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (3,3,3,DATE_ADD(CURDATE(),INTERVAL 3 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (4,4,4,DATE_ADD(CURDATE(),INTERVAL 4 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (5,5,5,DATE_ADD(CURDATE(),INTERVAL 5 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (6,6,6,DATE_ADD(CURDATE(),INTERVAL 6 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (7,7,7,DATE_ADD(CURDATE(),INTERVAL 7 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (8,8,8,DATE_ADD(CURDATE(),INTERVAL 8 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (9,9,1,DATE_ADD(CURDATE(),INTERVAL 9 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (10,10,2,DATE_ADD(CURDATE(),INTERVAL 10 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (11,11,3,DATE_ADD(CURDATE(),INTERVAL 11 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (12,12,4,DATE_ADD(CURDATE(),INTERVAL 12 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (13,13,5,DATE_ADD(CURDATE(),INTERVAL 13 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (14,14,6,DATE_ADD(CURDATE(),INTERVAL 14 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (15,15,7,DATE_ADD(CURDATE(),INTERVAL 15 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (16,16,8,DATE_ADD(CURDATE(),INTERVAL 16 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (17,17,1,DATE_ADD(CURDATE(),INTERVAL 17 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (18,18,2,DATE_ADD(CURDATE(),INTERVAL 18 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (19,19,3,DATE_ADD(CURDATE(),INTERVAL 19 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (20,20,4,DATE_ADD(CURDATE(),INTERVAL 20 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (21,21,5,DATE_ADD(CURDATE(),INTERVAL 21 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (22,22,6,DATE_ADD(CURDATE(),INTERVAL 22 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (23,23,7,DATE_ADD(CURDATE(),INTERVAL 23 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (24,24,8,DATE_ADD(CURDATE(),INTERVAL 24 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (25,25,1,DATE_ADD(CURDATE(),INTERVAL 25 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (26,26,2,DATE_ADD(CURDATE(),INTERVAL 26 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (27,27,3,DATE_ADD(CURDATE(),INTERVAL 27 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (28,28,4,DATE_ADD(CURDATE(),INTERVAL 28 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (29,29,5,DATE_ADD(CURDATE(),INTERVAL 29 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (30,30,6,DATE_ADD(CURDATE(),INTERVAL 30 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (31,31,7,DATE_ADD(CURDATE(),INTERVAL 31 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (32,32,8,DATE_ADD(CURDATE(),INTERVAL 32 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (33,33,1,DATE_ADD(CURDATE(),INTERVAL 33 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (34,34,2,DATE_ADD(CURDATE(),INTERVAL 34 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (35,35,3,DATE_ADD(CURDATE(),INTERVAL 35 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (36,36,4,DATE_ADD(CURDATE(),INTERVAL 36 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (37,37,5,DATE_ADD(CURDATE(),INTERVAL 37 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (38,38,6,DATE_ADD(CURDATE(),INTERVAL 38 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (39,39,7,DATE_ADD(CURDATE(),INTERVAL 39 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (40,40,8,DATE_ADD(CURDATE(),INTERVAL 40 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (41,41,1,DATE_ADD(CURDATE(),INTERVAL 41 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (42,42,2,DATE_ADD(CURDATE(),INTERVAL 42 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (43,43,3,DATE_ADD(CURDATE(),INTERVAL 43 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (44,44,4,DATE_ADD(CURDATE(),INTERVAL 44 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (45,45,5,DATE_ADD(CURDATE(),INTERVAL 45 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (46,46,6,DATE_ADD(CURDATE(),INTERVAL 46 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (47,47,7,DATE_ADD(CURDATE(),INTERVAL 47 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (48,48,8,DATE_ADD(CURDATE(),INTERVAL 48 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (49,49,1,DATE_ADD(CURDATE(),INTERVAL 49 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (50,50,2,DATE_ADD(CURDATE(),INTERVAL 50 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (1,51,3,DATE_ADD(CURDATE(),INTERVAL 51 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (2,52,4,DATE_ADD(CURDATE(),INTERVAL 52 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (3,53,5,DATE_ADD(CURDATE(),INTERVAL 53 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (4,54,6,DATE_ADD(CURDATE(),INTERVAL 54 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (5,55,7,DATE_ADD(CURDATE(),INTERVAL 55 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (6,56,8,DATE_ADD(CURDATE(),INTERVAL 56 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (7,57,1,DATE_ADD(CURDATE(),INTERVAL 57 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (8,58,2,DATE_ADD(CURDATE(),INTERVAL 58 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (9,59,3,DATE_ADD(CURDATE(),INTERVAL 59 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (10,60,4,DATE_ADD(CURDATE(),INTERVAL 60 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (11,1,5,DATE_ADD(CURDATE(),INTERVAL 61 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (12,2,6,DATE_ADD(CURDATE(),INTERVAL 62 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (13,3,7,DATE_ADD(CURDATE(),INTERVAL 63 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (14,4,8,DATE_ADD(CURDATE(),INTERVAL 64 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (15,5,1,DATE_ADD(CURDATE(),INTERVAL 65 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (16,6,2,DATE_ADD(CURDATE(),INTERVAL 66 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (17,7,3,DATE_ADD(CURDATE(),INTERVAL 67 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (18,8,4,DATE_ADD(CURDATE(),INTERVAL 68 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (19,9,5,DATE_ADD(CURDATE(),INTERVAL 69 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (20,10,6,DATE_ADD(CURDATE(),INTERVAL 70 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (21,11,7,DATE_ADD(CURDATE(),INTERVAL 71 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (22,12,8,DATE_ADD(CURDATE(),INTERVAL 72 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (23,13,1,DATE_ADD(CURDATE(),INTERVAL 73 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (24,14,2,DATE_ADD(CURDATE(),INTERVAL 74 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (25,15,3,DATE_ADD(CURDATE(),INTERVAL 75 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (26,16,4,DATE_ADD(CURDATE(),INTERVAL 76 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (27,17,5,DATE_ADD(CURDATE(),INTERVAL 77 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (28,18,6,DATE_ADD(CURDATE(),INTERVAL 78 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (29,19,7,DATE_ADD(CURDATE(),INTERVAL 79 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (30,20,8,DATE_ADD(CURDATE(),INTERVAL 80 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (31,21,1,DATE_ADD(CURDATE(),INTERVAL 81 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (32,22,2,DATE_ADD(CURDATE(),INTERVAL 82 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (33,23,3,DATE_ADD(CURDATE(),INTERVAL 83 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (34,24,4,DATE_ADD(CURDATE(),INTERVAL 84 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (35,25,5,DATE_ADD(CURDATE(),INTERVAL 85 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (36,26,6,DATE_ADD(CURDATE(),INTERVAL 86 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (37,27,7,DATE_ADD(CURDATE(),INTERVAL 87 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (38,28,8,DATE_ADD(CURDATE(),INTERVAL 88 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (39,29,1,DATE_ADD(CURDATE(),INTERVAL 89 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (40,30,2,DATE_ADD(CURDATE(),INTERVAL 90 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (41,31,3,DATE_ADD(CURDATE(),INTERVAL 91 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (42,32,4,DATE_ADD(CURDATE(),INTERVAL 92 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (43,33,5,DATE_ADD(CURDATE(),INTERVAL 93 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (44,34,6,DATE_ADD(CURDATE(),INTERVAL 94 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (45,35,7,DATE_ADD(CURDATE(),INTERVAL 95 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (46,36,8,DATE_ADD(CURDATE(),INTERVAL 96 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (47,37,1,DATE_ADD(CURDATE(),INTERVAL 97 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (48,38,2,DATE_ADD(CURDATE(),INTERVAL 98 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (49,39,3,DATE_ADD(CURDATE(),INTERVAL 99 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedidos (cliente_id,endereco_id,usuario_id,data_evento,telefone_contato,status,status_documento,valor_produtos,valor_frete,valor_total) VALUES (50,40,4,DATE_ADD(CURDATE(),INTERVAL 100 DAY),'11999999999','ORCAMENTO','ORCAMENTO',500,50,550);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (1,1,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (2,2,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (3,3,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (4,4,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (5,5,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (6,6,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (7,7,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (8,8,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (9,9,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (10,10,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (11,11,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (12,12,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (13,13,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (14,14,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (15,15,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (16,16,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (17,17,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (18,18,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (19,19,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (20,20,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (21,21,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (22,22,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (23,23,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (24,24,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (25,25,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (26,26,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (27,27,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (28,28,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (29,29,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (30,30,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (31,31,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (32,32,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (33,33,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (34,34,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (35,35,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (36,36,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (37,37,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (38,38,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (39,39,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (40,40,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (41,41,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (42,42,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (43,43,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (44,44,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (45,45,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (46,46,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (47,47,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (48,48,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (49,49,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (50,50,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (51,51,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (52,52,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (53,53,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (54,54,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (55,55,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (56,56,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (57,57,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (58,58,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (59,59,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (60,60,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (61,61,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (62,62,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (63,63,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (64,64,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (65,65,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (66,66,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (67,67,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (68,68,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (69,69,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (70,70,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (71,71,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (72,72,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (73,73,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (74,74,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (75,75,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (76,76,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (77,77,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (78,78,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (79,79,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (80,80,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (81,81,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (82,82,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (83,83,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (84,84,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (85,85,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (86,86,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (87,87,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (88,88,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (89,89,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (90,90,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (91,91,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (92,92,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (93,93,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (94,94,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (95,95,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (96,96,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (97,97,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (98,98,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (99,99,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (100,100,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (1,101,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (2,102,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (3,103,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (4,104,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (5,105,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (6,106,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (7,107,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (8,108,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (9,109,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (10,110,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (11,111,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (12,112,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (13,113,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (14,114,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (15,115,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (16,116,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (17,117,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (18,118,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (19,119,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (20,120,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (21,1,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (22,2,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (23,3,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (24,4,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (25,5,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (26,6,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (27,7,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (28,8,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (29,9,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (30,10,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (31,11,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (32,12,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (33,13,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (34,14,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (35,15,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (36,16,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (37,17,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (38,18,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (39,19,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (40,20,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (41,21,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (42,22,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (43,23,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (44,24,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (45,25,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (46,26,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (47,27,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (48,28,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (49,29,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (50,30,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (51,31,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (52,32,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (53,33,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (54,34,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (55,35,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (56,36,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (57,37,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (58,38,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (59,39,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (60,40,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (61,41,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (62,42,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (63,43,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (64,44,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (65,45,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (66,46,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (67,47,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (68,48,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (69,49,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (70,50,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (71,51,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (72,52,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (73,53,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (74,54,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (75,55,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (76,56,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (77,57,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (78,58,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (79,59,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (80,60,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (81,61,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (82,62,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (83,63,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (84,64,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (85,65,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (86,66,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (87,67,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (88,68,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (89,69,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (90,70,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (91,71,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (92,72,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (93,73,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (94,74,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (95,75,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (96,76,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (97,77,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (98,78,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (99,79,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (100,80,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (1,81,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (2,82,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (3,83,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (4,84,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (5,85,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (6,86,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (7,87,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (8,88,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (9,89,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (10,90,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (11,91,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (12,92,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (13,93,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (14,94,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (15,95,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (16,96,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (17,97,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (18,98,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (19,99,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (20,100,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (21,101,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (22,102,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (23,103,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (24,104,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (25,105,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (26,106,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (27,107,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (28,108,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (29,109,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (30,110,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (31,111,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (32,112,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (33,113,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (34,114,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (35,115,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (36,116,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (37,117,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (38,118,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (39,119,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (40,120,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (41,1,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (42,2,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (43,3,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (44,4,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (45,5,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (46,6,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (47,7,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (48,8,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (49,9,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (50,10,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (51,11,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (52,12,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (53,13,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (54,14,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (55,15,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (56,16,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (57,17,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (58,18,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (59,19,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (60,20,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (61,21,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (62,22,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (63,23,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (64,24,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (65,25,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (66,26,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (67,27,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (68,28,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (69,29,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (70,30,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (71,31,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (72,32,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (73,33,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (74,34,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (75,35,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (76,36,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (77,37,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (78,38,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (79,39,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (80,40,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (81,41,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (82,42,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (83,43,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (84,44,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (85,45,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (86,46,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (87,47,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (88,48,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (89,49,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (90,50,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (91,51,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (92,52,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (93,53,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (94,54,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (95,55,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (96,56,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (97,57,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (98,58,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (99,59,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (100,60,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (1,61,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (2,62,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (3,63,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (4,64,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (5,65,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (6,66,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (7,67,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (8,68,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (9,69,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (10,70,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (11,71,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (12,72,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (13,73,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (14,74,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (15,75,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (16,76,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (17,77,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (18,78,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (19,79,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (20,80,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (21,81,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (22,82,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (23,83,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (24,84,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (25,85,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (26,86,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (27,87,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (28,88,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (29,89,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (30,90,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (31,91,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (32,92,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (33,93,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (34,94,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (35,95,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (36,96,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (37,97,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (38,98,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (39,99,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (40,100,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (41,101,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (42,102,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (43,103,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (44,104,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (45,105,5,20,100);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (46,106,1,20,20);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (47,107,2,20,40);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (48,108,3,20,60);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (49,109,4,20,80);
-INSERT INTO pedido_itens (pedido_id,produto_id,quantidade,valor_unitario,subtotal) VALUES (50,110,5,20,100);
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (1,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (2,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (3,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (4,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (5,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (6,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (7,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (8,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (9,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (10,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (11,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (12,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (13,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (14,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (15,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (16,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (17,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (18,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (19,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (20,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (21,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (22,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (23,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (24,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (25,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (26,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (27,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (28,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (29,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (30,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (31,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (32,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (33,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (34,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (35,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (36,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (37,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (38,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (39,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (40,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (41,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (42,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (43,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (44,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (45,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (46,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (47,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (48,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (49,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (50,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (51,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (52,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (53,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (54,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (55,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (56,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (57,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (58,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (59,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (60,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (61,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (62,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (63,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (64,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (65,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (66,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (67,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (68,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (69,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (70,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (71,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (72,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (73,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (74,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (75,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (76,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (77,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (78,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (79,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (80,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (81,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (82,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (83,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (84,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (85,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (86,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (87,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (88,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (89,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (90,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (91,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (92,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (93,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (94,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (95,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (96,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (97,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (98,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (99,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (100,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (1,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (2,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (3,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (4,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (5,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (6,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (7,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (8,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (9,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (10,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (11,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (12,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (13,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (14,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (15,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (16,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (17,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (18,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (19,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (20,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (21,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (22,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (23,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (24,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (25,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (26,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (27,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (28,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (29,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (30,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (31,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (32,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (33,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (34,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (35,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (36,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (37,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (38,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (39,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (40,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (41,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (42,6,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (43,7,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (44,8,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (45,1,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (46,2,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (47,3,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (48,4,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (49,5,100,'PIX');
-INSERT INTO pagamentos (pedido_id,usuario_id,valor,forma_pagamento) VALUES (50,6,100,'PIX');
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (1,1,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (2,2,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (3,3,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (4,4,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (5,5,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (6,6,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (7,7,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (8,8,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (9,1,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (10,2,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (11,3,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (12,4,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (13,5,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (14,6,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (15,7,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (16,8,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (17,1,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (18,2,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (19,3,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (20,4,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (21,5,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (22,6,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (23,7,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (24,8,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (25,1,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (26,2,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (27,3,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (28,4,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (29,5,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (30,6,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (31,7,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (32,8,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (33,1,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (34,2,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (35,3,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (36,4,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (37,5,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (38,6,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (39,7,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (40,8,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (41,1,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (42,2,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (43,3,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (44,4,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (45,5,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (46,6,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (47,7,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (48,8,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (49,1,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (50,2,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (51,3,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (52,4,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (53,5,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (54,6,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (55,7,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (56,8,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (57,1,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (58,2,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (59,3,NOW());
-INSERT INTO devolucoes (pedido_id,usuario_id,data_devolucao) VALUES (60,4,NOW());
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (1,1,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (2,2,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (3,3,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (4,4,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (5,5,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (6,6,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (7,7,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (8,8,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (9,9,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (10,10,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (11,11,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (12,12,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (13,13,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (14,14,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (15,15,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (16,16,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (17,17,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (18,18,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (19,19,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (20,20,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (21,21,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (22,22,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (23,23,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (24,24,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (25,25,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (26,26,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (27,27,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (28,28,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (29,29,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (30,30,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (31,31,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (32,32,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (33,33,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (34,34,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (35,35,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (36,36,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (37,37,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (38,38,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (39,39,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (40,40,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (41,41,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (42,42,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (43,43,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (44,44,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (45,45,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (46,46,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (47,47,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (48,48,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (49,49,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (50,50,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (51,51,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (52,52,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (53,53,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (54,54,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (55,55,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (56,56,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (57,57,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (58,58,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (59,59,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (60,60,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (1,61,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (2,62,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (3,63,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (4,64,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (5,65,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (6,66,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (7,67,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (8,68,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (9,69,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (10,70,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (11,71,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (12,72,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (13,73,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (14,74,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (15,75,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (16,76,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (17,77,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (18,78,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (19,79,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (20,80,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (21,81,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (22,82,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (23,83,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (24,84,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (25,85,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (26,86,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (27,87,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (28,88,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (29,89,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (30,90,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (31,91,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (32,92,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (33,93,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (34,94,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (35,95,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (36,96,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (37,97,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (38,98,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (39,99,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (40,100,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (41,101,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (42,102,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (43,103,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (44,104,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (45,105,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (46,106,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (47,107,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (48,108,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (49,109,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (50,110,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (51,111,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (52,112,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (53,113,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (54,114,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (55,115,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (56,116,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (57,117,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (58,118,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (59,119,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (60,120,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (1,1,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (2,2,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (3,3,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (4,4,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (5,5,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (6,6,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (7,7,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (8,8,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (9,9,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (10,10,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (11,11,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (12,12,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (13,13,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (14,14,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (15,15,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (16,16,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (17,17,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (18,18,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (19,19,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (20,20,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (21,21,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (22,22,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (23,23,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (24,24,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (25,25,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (26,26,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (27,27,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (28,28,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (29,29,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (30,30,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (31,31,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (32,32,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (33,33,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (34,34,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (35,35,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (36,36,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (37,37,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (38,38,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (39,39,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (40,40,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (41,41,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (42,42,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (43,43,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (44,44,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (45,45,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (46,46,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (47,47,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (48,48,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (49,49,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (50,50,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (51,51,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (52,52,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (53,53,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (54,54,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (55,55,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (56,56,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (57,57,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (58,58,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (59,59,1);
-INSERT INTO devolucao_itens (devolucao_id,produto_id,quantidade_recebida) VALUES (60,60,1);
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (1,1,'ATRASO','Ocorrência de teste 1');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (2,2,'ATRASO','Ocorrência de teste 2');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (3,3,'ATRASO','Ocorrência de teste 3');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (4,4,'ATRASO','Ocorrência de teste 4');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (5,5,'ATRASO','Ocorrência de teste 5');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (6,6,'ATRASO','Ocorrência de teste 6');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (7,7,'ATRASO','Ocorrência de teste 7');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (8,8,'ATRASO','Ocorrência de teste 8');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (9,1,'ATRASO','Ocorrência de teste 9');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (10,2,'ATRASO','Ocorrência de teste 10');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (11,3,'ATRASO','Ocorrência de teste 11');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (12,4,'ATRASO','Ocorrência de teste 12');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (13,5,'ATRASO','Ocorrência de teste 13');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (14,6,'ATRASO','Ocorrência de teste 14');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (15,7,'ATRASO','Ocorrência de teste 15');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (16,8,'ATRASO','Ocorrência de teste 16');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (17,1,'ATRASO','Ocorrência de teste 17');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (18,2,'ATRASO','Ocorrência de teste 18');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (19,3,'ATRASO','Ocorrência de teste 19');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (20,4,'ATRASO','Ocorrência de teste 20');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (21,5,'ATRASO','Ocorrência de teste 21');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (22,6,'ATRASO','Ocorrência de teste 22');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (23,7,'ATRASO','Ocorrência de teste 23');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (24,8,'ATRASO','Ocorrência de teste 24');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (25,1,'ATRASO','Ocorrência de teste 25');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (26,2,'ATRASO','Ocorrência de teste 26');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (27,3,'ATRASO','Ocorrência de teste 27');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (28,4,'ATRASO','Ocorrência de teste 28');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (29,5,'ATRASO','Ocorrência de teste 29');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (30,6,'ATRASO','Ocorrência de teste 30');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (31,7,'ATRASO','Ocorrência de teste 31');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (32,8,'ATRASO','Ocorrência de teste 32');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (33,1,'ATRASO','Ocorrência de teste 33');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (34,2,'ATRASO','Ocorrência de teste 34');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (35,3,'ATRASO','Ocorrência de teste 35');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (36,4,'ATRASO','Ocorrência de teste 36');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (37,5,'ATRASO','Ocorrência de teste 37');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (38,6,'ATRASO','Ocorrência de teste 38');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (39,7,'ATRASO','Ocorrência de teste 39');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (40,8,'ATRASO','Ocorrência de teste 40');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (41,1,'ATRASO','Ocorrência de teste 41');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (42,2,'ATRASO','Ocorrência de teste 42');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (43,3,'ATRASO','Ocorrência de teste 43');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (44,4,'ATRASO','Ocorrência de teste 44');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (45,5,'ATRASO','Ocorrência de teste 45');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (46,6,'ATRASO','Ocorrência de teste 46');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (47,7,'ATRASO','Ocorrência de teste 47');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (48,8,'ATRASO','Ocorrência de teste 48');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (49,1,'ATRASO','Ocorrência de teste 49');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (50,2,'ATRASO','Ocorrência de teste 50');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (51,3,'ATRASO','Ocorrência de teste 51');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (52,4,'ATRASO','Ocorrência de teste 52');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (53,5,'ATRASO','Ocorrência de teste 53');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (54,6,'ATRASO','Ocorrência de teste 54');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (55,7,'ATRASO','Ocorrência de teste 55');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (56,8,'ATRASO','Ocorrência de teste 56');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (57,1,'ATRASO','Ocorrência de teste 57');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (58,2,'ATRASO','Ocorrência de teste 58');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (59,3,'ATRASO','Ocorrência de teste 59');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (60,4,'ATRASO','Ocorrência de teste 60');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (61,5,'ATRASO','Ocorrência de teste 61');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (62,6,'ATRASO','Ocorrência de teste 62');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (63,7,'ATRASO','Ocorrência de teste 63');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (64,8,'ATRASO','Ocorrência de teste 64');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (65,1,'ATRASO','Ocorrência de teste 65');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (66,2,'ATRASO','Ocorrência de teste 66');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (67,3,'ATRASO','Ocorrência de teste 67');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (68,4,'ATRASO','Ocorrência de teste 68');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (69,5,'ATRASO','Ocorrência de teste 69');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (70,6,'ATRASO','Ocorrência de teste 70');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (71,7,'ATRASO','Ocorrência de teste 71');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (72,8,'ATRASO','Ocorrência de teste 72');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (73,1,'ATRASO','Ocorrência de teste 73');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (74,2,'ATRASO','Ocorrência de teste 74');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (75,3,'ATRASO','Ocorrência de teste 75');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (76,4,'ATRASO','Ocorrência de teste 76');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (77,5,'ATRASO','Ocorrência de teste 77');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (78,6,'ATRASO','Ocorrência de teste 78');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (79,7,'ATRASO','Ocorrência de teste 79');
-INSERT INTO ocorrencias (pedido_id,usuario_id,tipo,descricao) VALUES (80,8,'ATRASO','Ocorrência de teste 80');
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (1,1,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (2,2,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (3,3,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (4,4,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (5,5,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (6,6,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (7,7,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (8,8,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (9,9,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (10,10,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (11,11,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (12,12,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (13,13,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (14,14,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (15,15,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (16,16,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (17,17,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (18,18,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (19,19,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (20,20,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (21,21,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (22,22,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (23,23,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (24,24,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (25,25,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (26,26,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (27,27,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (28,28,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (29,29,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (30,30,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (31,31,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (32,32,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (33,33,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (34,34,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (35,35,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (36,36,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (37,37,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (38,38,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (39,39,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (40,40,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (41,41,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (42,42,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (43,43,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (44,44,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (45,45,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (46,46,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (47,47,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (48,48,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (49,49,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (50,50,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (51,51,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (52,52,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (53,53,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (54,54,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (55,55,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (56,56,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (57,57,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (58,58,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (59,59,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (60,60,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (61,61,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (62,62,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (63,63,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (64,64,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (65,65,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (66,66,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (67,67,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (68,68,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (69,69,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (70,70,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (71,71,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (72,72,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (73,73,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (74,74,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (75,75,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (76,76,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (77,77,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (78,78,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (79,79,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (80,80,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (81,81,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (82,82,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (83,83,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (84,84,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (85,85,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (86,86,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (87,87,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (88,88,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (89,89,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (90,90,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (91,91,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (92,92,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (93,93,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (94,94,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (95,95,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (96,96,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (97,97,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (98,98,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (99,99,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (100,100,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (101,1,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (102,2,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (103,3,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (104,4,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (105,5,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (106,6,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (107,7,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (108,8,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (109,9,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (110,10,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (111,11,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (112,12,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (113,13,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (114,14,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (115,15,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (116,16,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (117,17,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (118,18,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (119,19,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (120,20,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (1,21,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (2,22,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (3,23,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (4,24,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (5,25,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (6,26,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (7,27,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (8,28,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (9,29,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (10,30,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (11,31,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (12,32,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (13,33,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (14,34,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (15,35,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (16,36,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (17,37,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (18,38,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (19,39,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (20,40,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (21,41,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (22,42,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (23,43,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (24,44,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (25,45,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (26,46,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (27,47,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (28,48,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (29,49,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (30,50,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (31,51,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (32,52,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (33,53,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (34,54,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (35,55,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (36,56,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (37,57,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (38,58,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (39,59,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (40,60,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (41,61,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (42,62,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (43,63,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (44,64,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (45,65,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (46,66,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (47,67,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (48,68,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (49,69,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (50,70,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (51,71,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (52,72,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (53,73,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (54,74,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (55,75,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (56,76,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (57,77,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (58,78,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (59,79,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (60,80,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (61,81,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (62,82,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (63,83,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (64,84,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (65,85,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (66,86,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (67,87,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (68,88,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (69,89,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (70,90,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (71,91,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (72,92,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (73,93,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (74,94,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (75,95,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (76,96,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (77,97,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (78,98,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (79,99,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (80,100,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (81,1,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (82,2,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (83,3,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (84,4,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (85,5,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (86,6,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (87,7,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (88,8,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (89,9,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (90,10,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (91,11,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (92,12,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (93,13,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (94,14,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (95,15,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (96,16,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (97,17,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (98,18,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (99,19,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (100,20,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (101,21,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (102,22,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (103,23,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (104,24,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (105,25,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (106,26,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (107,27,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (108,28,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (109,29,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (110,30,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (111,31,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (112,32,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (113,33,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (114,34,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (115,35,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (116,36,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (117,37,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (118,38,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (119,39,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (120,40,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (1,41,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (2,42,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (3,43,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (4,44,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (5,45,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (6,46,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (7,47,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (8,48,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (9,49,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (10,50,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (11,51,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (12,52,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (13,53,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (14,54,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (15,55,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (16,56,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (17,57,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (18,58,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (19,59,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (20,60,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (21,61,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (22,62,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (23,63,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (24,64,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (25,65,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (26,66,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (27,67,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (28,68,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (29,69,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (30,70,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (31,71,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (32,72,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (33,73,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (34,74,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (35,75,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (36,76,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (37,77,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (38,78,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (39,79,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (40,80,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (41,81,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (42,82,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (43,83,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (44,84,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (45,85,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (46,86,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (47,87,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (48,88,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (49,89,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (50,90,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (51,91,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (52,92,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (53,93,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (54,94,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (55,95,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (56,96,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (57,97,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (58,98,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (59,99,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (60,100,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (61,1,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (62,2,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (63,3,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (64,4,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (65,5,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (66,6,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (67,7,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (68,8,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (69,9,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (70,10,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (71,11,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (72,12,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (73,13,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (74,14,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (75,15,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (76,16,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (77,17,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (78,18,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (79,19,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (80,20,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (81,21,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (82,22,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (83,23,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (84,24,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (85,25,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (86,26,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (87,27,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (88,28,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (89,29,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (90,30,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (91,31,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (92,32,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (93,33,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (94,34,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (95,35,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (96,36,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (97,37,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (98,38,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (99,39,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (100,40,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (101,41,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (102,42,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (103,43,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (104,44,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (105,45,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (106,46,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (107,47,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (108,48,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (109,49,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (110,50,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (111,51,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (112,52,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (113,53,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (114,54,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (115,55,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (116,56,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (117,57,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (118,58,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (119,59,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (120,60,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (1,61,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (2,62,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (3,63,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (4,64,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (5,65,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (6,66,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (7,67,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (8,68,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (9,69,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (10,70,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (11,71,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (12,72,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (13,73,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (14,74,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (15,75,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (16,76,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (17,77,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (18,78,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (19,79,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (20,80,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (21,81,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (22,82,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (23,83,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (24,84,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (25,85,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (26,86,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (27,87,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (28,88,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (29,89,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (30,90,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (31,91,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (32,92,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (33,93,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (34,94,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (35,95,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (36,96,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (37,97,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (38,98,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (39,99,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (40,100,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (41,1,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (42,2,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (43,3,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (44,4,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (45,5,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (46,6,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (47,7,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (48,8,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (49,9,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (50,10,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (51,11,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (52,12,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (53,13,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (54,14,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (55,15,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (56,16,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (57,17,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (58,18,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (59,19,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (60,20,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (61,21,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (62,22,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (63,23,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (64,24,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (65,25,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (66,26,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (67,27,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (68,28,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (69,29,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (70,30,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (71,31,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (72,32,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (73,33,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (74,34,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (75,35,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (76,36,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (77,37,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (78,38,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (79,39,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (80,40,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (81,41,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (82,42,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (83,43,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (84,44,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (85,45,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (86,46,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (87,47,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (88,48,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (89,49,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (90,50,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (91,51,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (92,52,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (93,53,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (94,54,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (95,55,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (96,56,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (97,57,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (98,58,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (99,59,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (100,60,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (101,61,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (102,62,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (103,63,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (104,64,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (105,65,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (106,66,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (107,67,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (108,68,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (109,69,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (110,70,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (111,71,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (112,72,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (113,73,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (114,74,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (115,75,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (116,76,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (117,77,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (118,78,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (119,79,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (120,80,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (1,81,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (2,82,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (3,83,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (4,84,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (5,85,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (6,86,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (7,87,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (8,88,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (9,89,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (10,90,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (11,91,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (12,92,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (13,93,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (14,94,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (15,95,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (16,96,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (17,97,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (18,98,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (19,99,'SAIDA',1);
-INSERT INTO movimentacao_estoque (produto_id,pedido_id,tipo,quantidade) VALUES (20,100,'SAIDA',1);
+INSERT INTO usuario (
+    id,
+    nome,
+    email,
+    senha
+)
+VALUES
+    (
+        1,
+        'Administrador',
+        'admin@fest.com',
+        '$2b$10$YFGJYHADCB0DcLzZWfewUu9Q78BVogEDhomCODn1rPKx0KCnbfZBe'
+    ),
+    (
+        2,
+        'João Silva',
+        'joao@fest.com',
+        '$2b$10$YFGJYHADCB0DcLzZWfewUu9Q78BVogEDhomCODn1rPKx0KCnbfZBe'
+    ),
+    (
+        3,
+        'Maria Oliveira',
+        'maria@fest.com',
+        '$2b$10$YFGJYHADCB0DcLzZWfewUu9Q78BVogEDhomCODn1rPKx0KCnbfZBe'
+    ),
+    (
+        4,
+        'Leo',
+        'leo@gmail.com',
+        '$2b$10$YFGJYHADCB0DcLzZWfewUu9Q78BVogEDhomCODn1rPKx0KCnbfZBe'
+    );
+
+/* ==========================================================
+   PERMISSÕES
+========================================================== */
+
+INSERT INTO user_permissions (
+    id,
+    usuario_id,
+    dashboard,
+    clientes,
+    produtos,
+    pedidos,
+    relatorios,
+    funcionarios,
+    entregas,
+    retiradas,
+    pagamentos,
+    fornecedor,
+    cadastro_admin
+)
+VALUES
+    (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+    (2, 2, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0),
+    (3, 3, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0),
+    (4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+
+/* ==========================================================
+   ENDEREÇOS
+========================================================== */
+
+INSERT INTO endereco (
+    id,
+    rua,
+    numero,
+    bairro,
+    cidade,
+    estado,
+    cep
+)
+VALUES
+    (1, 'Rua das Flores', '120', 'Centro', 'Tupã', 'SP', '17600-001'),
+    (2, 'Rua Brasil', '85', 'Vila Independência', 'Tupã', 'SP', '17600-020'),
+    (3, 'Av. Tamoios', '1500', 'Centro', 'Tupã', 'SP', '17600-040'),
+    (4, 'Rua Aimorés', '44', 'Jardim América', 'Tupã', 'SP', '17600-055'),
+    (5, 'Rua Guaicurus', '305', 'Centro', 'Tupã', 'SP', '17600-070'),
+    (6, 'Rua Marília', '95', 'Centro', 'Tupã', 'SP', '17600-080'),
+    (7, 'Rua Caetés', '100', 'Vila Marajoara', 'Tupã', 'SP', '17600-090'),
+    (8, 'Rua dos Lírios', '455', 'Jardim Santa Adélia', 'Tupã', 'SP', '17600-120'),
+    (9, 'Rua Paraná', '600', 'Centro', 'Tupã', 'SP', '17600-140'),
+    (10, 'Rua São Paulo', '710', 'Vila Abarca', 'Tupã', 'SP', '17600-160');
+
+
+/* ==========================================================
+   CLIENTES
+========================================================== */
+
+INSERT INTO cliente (
+    id,
+    nome,
+    email,
+    telefone,
+    id_endereco,
+    cpf,
+    nascimento
+)
+VALUES
+    (1, 'Carlos Henrique', 'carlos@email.com', '14999990001', 1, '11111111111', '1990-05-12'),
+    (2, 'Fernanda Souza', 'fernanda@email.com', '14999990002', 2, '22222222222', '1992-09-20'),
+    (3, 'Ricardo Lima', 'ricardo@email.com', '14999990003', 3, '33333333333', '1988-11-02'),
+    (4, 'Juliana Martins', 'juliana@email.com', '14999990004', 4, '44444444444', '1994-04-17'),
+    (5, 'Paulo Henrique', 'paulo@email.com', '14999990005', 5, '55555555555', '1998-01-25'),
+    (6, 'Camila Rocha', 'camila@email.com', '14999990006', 6, '66666666666', '1995-07-30'),
+    (7, 'Lucas Almeida', 'lucas@email.com', '14999990007', 7, '77777777777', '2000-08-10'),
+    (8, 'Patrícia Gomes', 'patricia@email.com', '14999990008', 8, '88888888888', '1989-02-13'),
+    (9, 'Eduardo Santos', 'eduardo@email.com', '14999990009', 9, '99999999999', '1996-10-05'),
+    (10, 'Ana Beatriz', 'ana@email.com', '14999990010', 10, '12312312312', '1993-03-15');
+
+/* ==========================================================
+   FORNECEDORES
+========================================================== */
+
+INSERT INTO fornecedores (
+    id,
+    nome,
+    cnpj,
+    responsavel,
+    categoria,
+    telefone,
+    whatsapp,
+    email,
+    site,
+    rua,
+    numero,
+    bairro,
+    cidade,
+    estado,
+    cep,
+    produtos,
+    entrega,
+    pagamento,
+    observacoes,
+    status,
+    criado_em,
+    atualizado_em
+)
+VALUES
+    (
+        1,
+        'Fornecedor Festas LTDA',
+        '11.111.111/0001-11',
+        'Carlos Roberto',
+        'Mesas e Cadeiras',
+        '(14)99999-1001',
+        '(14)99999-1001',
+        'contato@fornecedorfestas.com',
+        'www.fornecedorfestas.com.br',
+        'Rua Industrial',
+        '120',
+        'Distrito Industrial',
+        'Tupã',
+        'SP',
+        '17600-300',
+        'Mesas, Cadeiras',
+        'Entrega Própria',
+        'PIX',
+        'Fornecedor principal',
+        'Ativo',
+        NOW(),
+        NOW()
+    ),
+    (
+        2,
+        'Decor Fest',
+        '22.222.222/0001-22',
+        'Marcos Paulo',
+        'Decoração',
+        '(14)99999-1002',
+        '(14)99999-1002',
+        'decor@fest.com',
+        'www.decorfest.com.br',
+        'Rua Flores',
+        '50',
+        'Centro',
+        'Tupã',
+        'SP',
+        '17600-310',
+        'Painéis, Arcos',
+        'Entrega Própria',
+        'Boleto',
+        '',
+        'Ativo',
+        NOW(),
+        NOW()
+    ),
+    (
+        3,
+        'Louças Brasil',
+        '33.333.333/0001-33',
+        'Fernanda Lima',
+        'Louças',
+        '(14)99999-1003',
+        '(14)99999-1003',
+        'contato@loucas.com',
+        'www.loucas.com.br',
+        'Rua Paraná',
+        '89',
+        'Centro',
+        'Tupã',
+        'SP',
+        '17600-320',
+        'Pratos e Copos',
+        'Transportadora',
+        'PIX',
+        '',
+        'Ativo',
+        NOW(),
+        NOW()
+    ),
+    (
+        4,
+        'Som & Luz Eventos',
+        '44.444.444/0001-44',
+        'João Pedro',
+        'Som',
+        '(14)99999-1004',
+        '(14)99999-1004',
+        'contato@somluz.com',
+        'www.somluz.com.br',
+        'Rua XV',
+        '215',
+        'Centro',
+        'Tupã',
+        'SP',
+        '17600-330',
+        'Caixas e Iluminação',
+        'Entrega Própria',
+        'Transferência',
+        '',
+        'Ativo',
+        NOW(),
+        NOW()
+    ),
+    (
+        5,
+        'Mega Eventos',
+        '55.555.555/0001-55',
+        'Pedro Augusto',
+        'Diversos',
+        '(14)99999-1005',
+        '(14)99999-1005',
+        'contato@megaeventos.com',
+        'www.megaeventos.com.br',
+        'Av. Tamoios',
+        '900',
+        'Centro',
+        'Tupã',
+        'SP',
+        '17600-340',
+        'Diversos',
+        'Entrega Própria',
+        'PIX',
+        '',
+        'Ativo',
+        NOW(),
+        NOW()
+    );
+
+/* ==========================================================
+   PRODUTOS
+========================================================== */
+
+INSERT INTO produtos (
+    id,
+    nome,
+    tipo,
+    estoque,
+    preco_venda,
+    preco_aluguel,
+    codigo,
+    categoria,
+    fornecedor_id,
+    imagem,
+    localizacao,
+    estoque_reservado,
+    estoque_manutencao,
+    estoque_danificado,
+    ativo
+)
+VALUES
+    (1, 'Mesa Plástica Branca', 'Mesa', 50, 90, 15, 'MES001', 'Mesas', 1, NULL, 'A1', 0, 0, 0, 1),
+    (2, 'Mesa Redonda', 'Mesa', 20, 150, 25, 'MES002', 'Mesas', 1, NULL, 'A1', 0, 0, 0, 1),
+    (3, 'Mesa Infantil', 'Mesa', 15, 120, 20, 'MES003', 'Mesas', 1, NULL, 'A1', 0, 0, 0, 1),
+    (4, 'Cadeira Branca', 'Cadeira', 200, 35, 5, 'CAD001', 'Cadeiras', 1, NULL, 'A2', 0, 0, 0, 1),
+    (5, 'Cadeira Tiffany', 'Cadeira', 80, 90, 18, 'CAD002', 'Cadeiras', 1, NULL, 'A2', 0, 0, 0, 1),
+    (6, 'Banqueta', 'Cadeira', 30, 120, 25, 'CAD003', 'Cadeiras', 1, NULL, 'A2', 0, 0, 0, 1),
+    (7, 'Toalha Branca', 'Toalha', 60, 40, 8, 'TOA001', 'Toalhas', 2, NULL, 'B1', 0, 0, 0, 1),
+    (8, 'Toalha Preta', 'Toalha', 50, 45, 8, 'TOA002', 'Toalhas', 2, NULL, 'B1', 0, 0, 0, 1),
+    (9, 'Toalha Vermelha', 'Toalha', 40, 45, 8, 'TOA003', 'Toalhas', 2, NULL, 'B1', 0, 0, 0, 1),
+    (10, 'Painel Luxo', 'Painel', 8, 450, 120, 'DEC001', 'Decoração', 2, NULL, 'B2', 0, 0, 0, 1),
+    (11, 'Arco Desconstruído', 'Painel', 10, 350, 80, 'DEC002', 'Decoração', 2, NULL, 'B2', 0, 0, 0, 1),
+    (12, 'Tapete Vermelho', 'Decoração', 10, 200, 40, 'DEC003', 'Decoração', 2, NULL, 'B2', 0, 0, 0, 1),
+    (13, 'Prato Branco', 'Louça', 300, 12, 2, 'LOU001', 'Louças', 3, NULL, 'C1', 0, 0, 0, 1),
+    (14, 'Prato Fundo', 'Louça', 200, 15, 2.5, 'LOU002', 'Louças', 3, NULL, 'C1', 0, 0, 0, 1),
+    (15, 'Taça Vidro', 'Louça', 180, 18, 3, 'LOU003', 'Louças', 3, NULL, 'C1', 0, 0, 0, 1),
+    (16, 'Copo Long Drink', 'Louça', 250, 10, 2, 'LOU004', 'Louças', 3, NULL, 'C1', 0, 0, 0, 1),
+    (17, 'Jarra Vidro', 'Louça', 40, 40, 8, 'LOU005', 'Louças', 3, NULL, 'C1', 0, 0, 0, 1),
+    (18, 'Caixa de Som JBL', 'Som', 6, 1800, 180, 'SOM001', 'Som', 4, NULL, 'D1', 0, 0, 0, 1),
+    (19, 'Microfone Sem Fio', 'Som', 10, 450, 50, 'SOM002', 'Som', 4, NULL, 'D1', 0, 0, 0, 1),
+    (20, 'Mesa de Som', 'Som', 4, 1200, 120, 'SOM003', 'Som', 4, NULL, 'D1', 0, 0, 0, 1),
+    (21, 'Refletor LED', 'Iluminação', 15, 180, 35, 'LUZ001', 'Iluminação', 4, NULL, 'D2', 0, 0, 0, 1),
+    (22, 'Canhão de LED', 'Iluminação', 12, 350, 70, 'LUZ002', 'Iluminação', 4, NULL, 'D2', 0, 0, 0, 1),
+    (23, 'Máquina de Fumaça', 'Iluminação', 5, 700, 120, 'LUZ003', 'Iluminação', 4, NULL, 'D2', 0, 0, 0, 1),
+    (24, 'Pula Pula', 'Brinquedo', 3, 2500, 350, 'BRI001', 'Brinquedos', 5, NULL, 'E1', 0, 0, 0, 1),
+    (25, 'Piscina de Bolinhas', 'Brinquedo', 2, 1800, 250, 'BRI002', 'Brinquedos', 5, NULL, 'E1', 0, 0, 0, 1);
+
+
+/* ==========================================================
+   MOVIMENTAÇÃO INICIAL DE ESTOQUE
+========================================================== */
+
+INSERT INTO movimentacao_estoque
+(
+    produto_id,
+    tipo,
+    quantidade,
+    observacao
+)
+VALUES
+    (1, 'ENTRADA', 50, 'Estoque inicial'),
+    (2, 'ENTRADA', 20, 'Estoque inicial'),
+    (3, 'ENTRADA', 15, 'Estoque inicial'),
+    (4, 'ENTRADA', 200, 'Estoque inicial'),
+    (5, 'ENTRADA', 80, 'Estoque inicial'),
+    (6, 'ENTRADA', 30, 'Estoque inicial'),
+    (7, 'ENTRADA', 60, 'Estoque inicial'),
+    (8, 'ENTRADA', 50, 'Estoque inicial'),
+    (9, 'ENTRADA', 40, 'Estoque inicial'),
+    (10, 'ENTRADA', 8, 'Estoque inicial'),
+    (11, 'ENTRADA', 10, 'Estoque inicial'),
+    (12, 'ENTRADA', 10, 'Estoque inicial'),
+    (13, 'ENTRADA', 300, 'Estoque inicial'),
+    (14, 'ENTRADA', 200, 'Estoque inicial'),
+    (15, 'ENTRADA', 180, 'Estoque inicial'),
+    (16, 'ENTRADA', 250, 'Estoque inicial'),
+    (17, 'ENTRADA', 40, 'Estoque inicial'),
+    (18, 'ENTRADA', 6, 'Estoque inicial'),
+    (19, 'ENTRADA', 10, 'Estoque inicial'),
+    (20, 'ENTRADA', 4, 'Estoque inicial'),
+    (21, 'ENTRADA', 15, 'Estoque inicial'),
+    (22, 'ENTRADA', 12, 'Estoque inicial'),
+    (23, 'ENTRADA', 5, 'Estoque inicial'),
+    (24, 'ENTRADA', 3, 'Estoque inicial'),
+    (25, 'ENTRADA', 2, 'Estoque inicial');
+
+
+/* ==========================================================
+   PEDIDOS
+========================================================== */
+
+INSERT INTO pedidos
+(
+    cliente_id,
+    endereco_id,
+    usuario_id,
+    data_evento,
+    data_entrega,
+    data_retirada,
+    telefone_contato,
+    tipo_pedido,
+    status,
+    status_documento,
+    valor_produtos,
+    valor_frete,
+    valor_desconto,
+    valor_total,
+    local_evento,
+    motorista,
+    veiculo,
+    responsavel_entrega,
+    responsavel_retirada,
+    observacoes,
+    conferencia_finalizada
+)
+VALUES
+(
+    1,
+    1,
+    1,
+    '2026-08-10',
+    '2026-08-09',
+    '2026-08-11',
+    '14999990001',
+    'ALUGUEL',
+    'CONFIRMADO',
+    'PEDIDO',
+    300.00,
+    30.00,
+    0.00,
+    330.00,
+    'Salão Primavera',
+    'Carlos',
+    'Fiorino',
+    'Carlos',
+    'João',
+    'Aniversário',
+    0
+),
+
+(
+    2,
+    2,
+    2,
+    '2026-08-15',
+    '2026-08-14',
+    '2026-08-16',
+    '14999990002',
+    'ALUGUEL',
+    'ENTREGUE',
+    'PEDIDO',
+    600.00,
+    40.00,
+    20.00,
+    620.00,
+    'Chácara Verde',
+    'Paulo',
+    'HR',
+    'Paulo',
+    'Marcos',
+    'Casamento',
+    0
+),
+
+(
+    3,
+    3,
+    1,
+    '2026-08-20',
+    '2026-08-19',
+    '2026-08-21',
+    '14999990003',
+    'VENDA',
+    'FINALIZADO',
+    'PEDIDO',
+    150.00,
+    0.00,
+    0.00,
+    150.00,
+    'Loja',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    'Venda balcão',
+    1
+);
+
+
+/* ==========================================================
+   ITENS DOS PEDIDOS
+========================================================== */
+
+INSERT INTO pedido_itens
+(
+    pedido_id,
+    produto_id,
+    quantidade,
+    valor_unitario,
+    subtotal,
+    quantidade_entregue,
+    quantidade_devolvida
+)
+VALUES
+    (1, 1, 50, 2.50, 125.00, 50, 0),
+    (1, 2, 50, 3.50, 175.00, 50, 0),
+    (2, 3, 20, 20.00, 400.00, 20, 0),
+    (2, 4, 10, 20.00, 200.00, 10, 0),
+    (3, 5, 30, 5.00, 150.00, 30, 30);
+
+
+/* ==========================================================
+   PAGAMENTOS
+========================================================== */
+
+INSERT INTO pagamentos
+(
+    pedido_id,
+    usuario_id,
+    valor,
+    forma_pagamento,
+    observacao
+)
+VALUES
+    (1, 1, 100.00, 'PIX', 'Entrada'),
+    (1, 1, 230.00, 'DINHEIRO', 'Quitação'),
+    (2, 2, 620.00, 'TRANSFERENCIA', 'Pagamento integral'),
+    (3, 1, 150.00, 'CARTAO_CREDITO', 'Venda balcão');
+
+
+/* ==========================================================
+   DEVOLUÇÕES
+========================================================== */
+
+INSERT INTO devolucoes
+(
+    pedido_id,
+    usuario_id,
+    data_devolucao,
+    valor_multa,
+    observacao
+)
+VALUES
+    (2, 2, NOW(), 0.00, 'Devolução completa');
+
+
+/* ==========================================================
+   ITENS DEVOLVIDOS
+========================================================== */
+
+INSERT INTO devolucao_itens
+(
+    devolucao_id,
+    produto_id,
+    quantidade_recebida,
+    quantidade_faltando,
+    quantidade_danificada,
+    valor_cobranca,
+    observacao
+)
+VALUES
+    (1, 3, 20, 0, 0, 0.00, 'Tudo correto'),
+    (1, 4, 10, 0, 0, 0.00, 'Tudo correto');
+
+
+/* ==========================================================
+   OCORRÊNCIAS
+========================================================== */
+
+INSERT INTO ocorrencias
+(
+    pedido_id,
+    usuario_id,
+    tipo,
+    descricao,
+    valor,
+    status
+)
+VALUES
+(
+    2,
+    2,
+    'Cobrança',
+    'Cliente solicitou hora extra.',
+    50.00,
+    'EM_ANDAMENTO'
+);
+
+
+/* ==========================================================
+   MOVIMENTAÇÃO DE ESTOQUE
+========================================================== */
+
+INSERT INTO movimentacao_estoque
+(
+    produto_id,
+    pedido_id,
+    tipo,
+    quantidade,
+    observacao
+)
+VALUES
+    (1, 1, 'SAIDA', 50, 'Entrega Pedido 1'),
+    (2, 1, 'SAIDA', 50, 'Entrega Pedido 1'),
+    (3, 2, 'SAIDA', 20, 'Entrega Pedido 2'),
+    (4, 2, 'SAIDA', 10, 'Entrega Pedido 2'),
+    (3, 2, 'RETORNO', 20, 'Retorno Pedido 2'),
+    (4, 2, 'RETORNO', 10, 'Retorno Pedido 2'),
+    (5, 3, 'VENDA', 30, 'Venda definitiva');
+
+
+/* ==========================================================
+   AUTO_INCREMENT
+========================================================== */
+
+ALTER TABLE usuario AUTO_INCREMENT = 5;
+ALTER TABLE endereco AUTO_INCREMENT = 11;
+ALTER TABLE cliente AUTO_INCREMENT = 11;
+ALTER TABLE fornecedores AUTO_INCREMENT = 6;
+ALTER TABLE produtos AUTO_INCREMENT = 26;
+ALTER TABLE pedidos AUTO_INCREMENT = 4;
+ALTER TABLE pagamentos AUTO_INCREMENT = 5;
+ALTER TABLE devolucoes AUTO_INCREMENT = 2;
+ALTER TABLE devolucao_itens AUTO_INCREMENT = 3;
+ALTER TABLE ocorrencias AUTO_INCREMENT = 2;
+ALTER TABLE movimentacao_estoque AUTO_INCREMENT = 33;
+ALTER TABLE user_permissions AUTO_INCREMENT = 5;
+
+
+SET FOREIGN_KEY_CHECKS = 1;

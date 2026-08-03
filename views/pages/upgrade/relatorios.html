@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Relatórios · Serve Festa</title>
+<style>
+  :root{
+    --bg:#f7f8fc;
+    --card:#ffffff;
+    --border:#e8eaf0;
+    --text:#0f172a;
+    --muted:#64748b;
+    --dark:#111827;
+    --green:#059669;
+    --blue:#2563eb;
+    --amber:#d97706;
+    --red:#dc2626;
+    --purple:#7c3aed;
+    --pink:#db2777;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+    --sidebar:264px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:14px;-webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit}
+
+  /* ---------- Layout ---------- */
+  .app{display:flex;min-height:100vh}
+  .content{flex:1;min-width:0;padding:26px 30px 46px;margin-left:var(--sidebar)}
+  .wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:var(--sidebar);position:fixed;inset:0 auto 0 0;background:var(--dark);color:#cbd5e1;
+    display:flex;flex-direction:column;padding:20px 14px;gap:6px;overflow-y:auto;z-index:40;
+  }
+  .brand{display:flex;align-items:center;gap:11px;padding:6px 8px 18px}
+  .brand .logo{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;font-size:19px;
+    background:linear-gradient(135deg,#7c3aed,#db2777)}
+  .brand b{color:#fff;font-size:15.5px;display:block;line-height:1.2;letter-spacing:-.2px}
+  .brand small{color:#94a3b8;font-size:11px}
+  .nav-label{font-size:10px;letter-spacing:.9px;text-transform:uppercase;color:#64748b;font-weight:700;padding:14px 10px 6px}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:10px;font-size:13.5px;
+    color:#cbd5e1;cursor:pointer;border:0;background:transparent;width:100%;text-align:left}
+  .nav-item:hover{background:#1f2937;color:#fff}
+  .nav-item.active{background:#fff;color:#0f172a;font-weight:600}
+  .nav-item .ni{width:20px;text-align:center;font-size:15px}
+  .nav-item .badge{margin-left:auto;background:#dc2626;color:#fff;font-size:10.5px;font-weight:700;
+    padding:2px 7px;border-radius:999px}
+  .sidebar-foot{margin-top:auto;padding:14px 10px 4px;border-top:1px solid #1f2937;display:flex;align-items:center;gap:10px}
+  .avatar{width:34px;height:34px;border-radius:50%;background:#334155;display:grid;place-items:center;color:#fff;font-size:12.5px;font-weight:700;flex:none}
+  .sidebar-foot b{color:#fff;font-size:13px;display:block}
+  .sidebar-foot small{color:#94a3b8;font-size:11px}
+
+  /* ---------- Cards / generic ---------- */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .pad{padding:18px 20px}
+  .card-title{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:15px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .card-title h2{margin:0;font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .card-title .count{font-size:12.5px;color:var(--muted);font-weight:500}
+  .muted{color:var(--muted)}
+  .sec-title{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:.7px;
+    text-transform:uppercase;color:var(--muted);margin:6px 2px -4px}
+
+  /* ---------- Header ---------- */
+  .header{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap}
+  .header h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.7px;display:flex;align-items:center;gap:10px}
+  .header p{margin:6px 0 0;color:var(--muted);font-size:13.5px}
+  .actions{display:flex;gap:9px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 15px;border-radius:10px;border:1px solid var(--border);
+    background:#fff;color:var(--text);font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:var(--shadow);
+    transition:.15s background,.15s border-color,.15s transform}
+  .btn:hover{background:#f8fafc}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--dark);color:#fff;border-color:var(--dark)}
+  .btn.primary:hover{background:#1f2937}
+  .btn.ghost{background:transparent;box-shadow:none}
+
+  /* period bar */
+  .periodbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{padding:8px 15px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--text);
+    font-size:13px;cursor:pointer;font-weight:500;transition:.15s}
+  .chip:hover{background:#f1f5f9}
+  .chip.active{background:var(--dark);color:#fff;border-color:var(--dark)}
+  .range{display:none;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+  .range.show{display:flex}
+  input[type=date],select,input[type=text],input[type=search]{
+    padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;
+    font-size:13.5px;color:var(--text);font-family:inherit;outline:none;width:100%}
+  input:focus,select:focus{border-color:#c7d2fe;box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+
+  /* ---------- KPI cards ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .kpi{padding:15px 16px;border-radius:var(--radius);background:#fff;border:1px solid var(--border);box-shadow:var(--shadow)}
+  .kpi .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .kpi .label{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .kpi .value{font-size:23px;font-weight:800;margin-top:11px;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+  .kpi .sub{font-size:11.5px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:6px}
+  .ico{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none;font-size:15px}
+  .ico.slate{background:#f1f5f9}.ico.green{background:#dcfce7}.ico.blue{background:#dbeafe}
+  .ico.amber{background:#fef3c7}.ico.red{background:#fee2e2}.ico.orange{background:#ffedd5}
+  .ico.purple{background:#ede9fe}.ico.pink{background:#fce7f3}.ico.teal{background:#ccfbf1}
+  .trend{font-weight:700;font-size:11.5px}
+  .up{color:var(--green)}.down{color:var(--red)}
+  .kpi.tint-green{background:#f6fdf9}.kpi.tint-blue{background:#f5f9ff}
+  .kpi.tint-amber{background:#fffbf2}.kpi.tint-red{background:#fff6f6}
+
+  /* ---------- Charts ---------- */
+  .grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .chart-box{padding:14px 12px 6px}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .g-axis{stroke:#eef1f6;stroke-width:1}
+  .g-lbl{font-size:10.5px;fill:#94a3b8;font-weight:600}
+  .g-val{font-size:11px;fill:#475569;font-weight:700}
+  .legend{display:flex;flex-wrap:wrap;gap:10px 16px;padding:10px 20px 16px}
+  .legend div{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted)}
+  .dot{width:9px;height:9px;border-radius:3px;flex:none}
+  .bar-row{display:grid;grid-template-columns:1fr;gap:11px;padding:16px 20px 20px}
+  .bar-item .l{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:6px;gap:12px}
+  .bar-item .l>span:first-child{display:flex;align-items:center;min-width:0}
+  .bar-item .l b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar-item .l>span:last-child{white-space:nowrap;flex:none;font-size:11.5px;font-variant-numeric:tabular-nums}
+  .bar-track{height:9px;border-radius:999px;background:#f1f5f9;overflow:hidden}
+  .bar-fill{height:100%;border-radius:999px;transition:width .5s ease}
+  .rank{width:20px;height:20px;border-radius:6px;background:#f1f5f9;color:var(--muted);
+    display:inline-grid;place-items:center;font-size:11px;font-weight:800;margin-right:8px}
+  .rank.top{background:var(--dark);color:#fff}
+
+  /* ---------- Tables ---------- */
+  .toolbar{display:grid;grid-template-columns:minmax(0,1fr) 170px 170px;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border)}
+  .search{position:relative}
+  .search input{padding-left:36px}
+  .search span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px}
+  .tscroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;min-width:720px}
+  th{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:700;
+     text-align:left;padding:12px 14px;background:#fcfcfe;white-space:nowrap}
+  th.sortable{cursor:pointer;user-select:none}
+  th.sortable:hover{color:var(--text)}
+  th .arrow{opacity:.35;margin-left:3px}
+  th.sorted .arrow{opacity:1;color:var(--text)}
+  td{padding:13px 14px;border-top:1px solid var(--border);vertical-align:middle;font-size:13.5px}
+  tbody tr:hover{background:#fafbff}
+  tbody tr{cursor:pointer}
+  th.num,td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .strong{font-weight:600}
+  .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--muted)}
+  .green-t{color:var(--green);font-weight:600}
+  .red-t{color:var(--red);font-weight:600}
+  .amber-t{color:var(--amber);font-weight:600}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+
+  .tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
+    font-size:11.5px;font-weight:700;white-space:nowrap}
+  .t-green{background:#dcfce7;color:#166534}
+  .t-amber{background:#fef3c7;color:#92400e}
+  .t-red{background:#fee2e2;color:#991b1b}
+  .t-blue{background:#dbeafe;color:#1e40af}
+  .t-slate{background:#f1f5f9;color:#475569}
+  .t-purple{background:#ede9fe;color:#5b21b6}
+  .row-low{background:#fffaf3}
+  .row-low:hover{background:#fff5e8}
+
+  .thumb{width:34px;height:34px;border-radius:9px;background:#f1f5f9;display:grid;place-items:center;font-size:15px;flex:none}
+  .cellflex{display:flex;align-items:center;gap:11px;min-width:0}
+  .cellflex b{font-weight:600;display:block;line-height:1.3}
+  .cellflex small{color:var(--muted);font-size:11.5px}
+
+  /* ---------- Delivery panel ---------- */
+  .deliv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:18px 20px}
+  .deliv .d{border:1px solid var(--border);border-radius:12px;padding:14px}
+  .deliv .d .v{font-size:22px;font-weight:800;margin-top:8px}
+  .gauge{display:flex;align-items:center;gap:18px;padding:18px 20px;border-top:1px solid var(--border)}
+  .gauge .txt b{font-size:26px;font-weight:800;display:block;letter-spacing:-.6px}
+
+  /* ---------- Alerts ---------- */
+  .alerts{display:flex;flex-direction:column;gap:10px;padding:16px 20px}
+  .alert{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border-radius:12px;border:1px solid;background:#fff}
+  .alert b{display:block;font-size:13.5px;margin-bottom:3px}
+  .alert p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.45}
+  .alert .a-ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;font-size:14px}
+  .a-red{border-color:#fecaca;background:#fff7f7}
+  .a-amber{border-color:#fde68a;background:#fffbf0}
+  .a-blue{border-color:#bfdbfe;background:#f6faff}
+  .a-purple{border-color:#ddd6fe;background:#faf8ff}
+  .alert .go{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--blue);cursor:pointer;white-space:nowrap;
+    background:none;border:0;padding:4px}
+
+  /* ---------- Drawer (filtros avançados) ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.42);opacity:0;pointer-events:none;transition:.2s;z-index:50}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:#fff;z-index:60;
+    transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;
+    box-shadow:-8px 0 30px rgba(15,23,42,.12)}
+  .drawer.show{transform:translateX(0)}
+  .drawer header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .drawer header h3{margin:0;font-size:16px;font-weight:700}
+  .drawer .body{padding:18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;flex:1}
+  .drawer footer{padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px}
+  .drawer footer .btn{flex:1;justify-content:center}
+  .field label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--muted);margin-bottom:6px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .iconbtn{border:0;background:#f1f5f9;width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:15px}
+
+  /* ---------- Modal detalhes ---------- */
+  .modal{position:fixed;z-index:60;top:50%;left:50%;transform:translate(-50%,-46%) scale(.98);opacity:0;
+    pointer-events:none;transition:.2s;width:560px;max-width:94vw;background:#fff;border-radius:16px;
+    box-shadow:0 24px 60px rgba(15,23,42,.24);overflow:hidden}
+  .modal.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .modal header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .modal header h3{margin:0;font-size:16px;font-weight:700}
+  .modal .body{padding:18px 20px;display:flex;flex-direction:column;gap:2px;max-height:60vh;overflow:auto}
+  .kv{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px dashed var(--border);font-size:13.5px}
+  .kv:last-child{border-bottom:0}
+  .kv span{color:var(--muted)}
+  .modal footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+
+  /* ---------- Toast ---------- */
+  .toasts{position:fixed;right:20px;bottom:20px;z-index:80;display:flex;flex-direction:column;gap:10px}
+  .toast{background:var(--dark);color:#fff;padding:13px 16px;border-radius:12px;font-size:13.5px;
+    box-shadow:0 12px 30px rgba(15,23,42,.25);display:flex;align-items:center;gap:10px;
+    animation:slidein .25s ease}
+  @keyframes slidein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .footnote{text-align:center;color:#94a3b8;font-size:12px;padding:8px 0 4px}
+
+  /* ---------- Responsivo ---------- */
+  @media (max-width:1240px){
+    .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid-2{grid-template-columns:1fr}
+    .grid-3{grid-template-columns:1fr 1fr}
+    .deliv{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:1024px){
+    :root{--sidebar:0px}
+    .sidebar{transform:translateX(-100%);transition:transform .25s;width:264px}
+    .sidebar.show{transform:none}
+    .content{margin-left:0;padding:20px 18px 40px}
+    .menu-toggle{display:inline-flex !important}
+  }
+  @media (max-width:760px){
+    .grid-3{grid-template-columns:1fr}
+    .kpis{grid-template-columns:1fr}
+    .toolbar{grid-template-columns:1fr}
+    .deliv{grid-template-columns:1fr}
+  }
+  .menu-toggle{display:none}
+
+  /* ---------- Impressão ---------- */
+  @media print{
+    .sidebar,.actions,.periodbar,.toolbar,.overlay,.drawer,.toasts,.menu-toggle,.alert .go{display:none !important}
+    body{background:#fff}
+    .content{margin:0;padding:0}
+    .card{break-inside:avoid;box-shadow:none}
+    table{min-width:0}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR (simulação ERP) ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">🎉</div>
+      <div><b>Serve Festa</b><small>ERP de Locação</small></div>
+    </div>
+
+    <div class="nav-label">Operação</div>
+    <button class="nav-item"><span class="ni">🏠</span> Dashboard</button>
+    <button class="nav-item"><span class="ni">🧾</span> Pedidos <span class="badge">12</span></button>
+    <button class="nav-item"><span class="ni">📄</span> Orçamentos</button>
+    <button class="nav-item"><span class="ni">🚚</span> Entregas</button>
+    <button class="nav-item"><span class="ni">📅</span> Agenda</button>
+
+    <div class="nav-label">Cadastros</div>
+    <button class="nav-item"><span class="ni">📦</span> Estoque</button>
+    <button class="nav-item"><span class="ni">👥</span> Clientes</button>
+    <button class="nav-item"><span class="ni">🏷️</span> Categorias</button>
+
+    <div class="nav-label">Gestão</div>
+    <button class="nav-item"><span class="ni">💰</span> Financeiro</button>
+    <button class="nav-item active"><span class="ni">📊</span> Relatórios</button>
+    <button class="nav-item"><span class="ni">⚙️</span> Configurações</button>
+
+    <div class="sidebar-foot">
+      <div class="avatar">MR</div>
+      <div><b>Marcos Ribeiro</b><small>Administrador</small></div>
+    </div>
+  </aside>
+
+  <!-- ============ CONTEÚDO ============ -->
+  <main class="content">
+    <div class="wrap">
+
+      <!-- 1. CABEÇALHO -->
+      <header class="header">
+        <div>
+          <h1>
+            <button class="btn menu-toggle" id="menuToggle" title="Menu">☰</button>
+            📊 Relatórios
+          </h1>
+          <p>Análise completa do desempenho da empresa · <span id="periodLabel">Últimos 30 dias</span></p>
+        </div>
+        <div class="actions">
+          <button class="btn" id="btnFilters">⚙️ Filtros avançados <span class="tag t-slate" id="filterCount" style="display:none">0</span></button>
+          <button class="btn" id="btnPrint">🖨️ Imprimir relatório</button>
+          <button class="btn primary" id="btnExport">⬇️ Exportar relatório</button>
+        </div>
+      </header>
+
+      <!-- Filtro de período -->
+      <div class="card pad periodbar">
+        <div class="chips" id="periodChips">
+          <button class="chip" data-period="hoje">Hoje</button>
+          <button class="chip" data-period="7d">Últimos 7 dias</button>
+          <button class="chip active" data-period="30d">Últimos 30 dias</button>
+          <button class="chip" data-period="mes">Este mês</button>
+          <button class="chip" data-period="custom">Personalizado</button>
+        </div>
+        <div class="range" id="customRange">
+          <input type="date" id="dtIni" style="width:160px" />
+          <span>até</span>
+          <input type="date" id="dtFim" style="width:160px" />
+          <button class="btn" id="btnApplyRange">Aplicar</button>
+        </div>
+        <div class="muted" style="font-size:12.5px">Atualizado em <b id="updatedAt">—</b></div>
+      </div>
+
+      <!-- 2. INDICADORES -->
+      <div class="sec-title">💰 Financeiro</div>
+      <section class="kpis" id="kpiFin"></section>
+
+      <div class="sec-title">🧾 Pedidos</div>
+      <section class="kpis" id="kpiPed"></section>
+
+      <div class="sec-title">👥 Clientes &nbsp;·&nbsp; 📦 Estoque</div>
+      <section class="kpis" id="kpiCli"></section>
+      <section class="kpis" id="kpiEst"></section>
+
+      <!-- 3. GRÁFICOS -->
+      <div class="sec-title">📈 Indicadores visuais</div>
+
+      <section class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <h2>📈 Faturamento por mês</h2>
+            <span class="count" id="revSummary">—</span>
+          </div>
+          <div class="chart-box"><div id="chartRevenue"></div></div>
+          <div class="legend">
+            <div><i class="dot" style="background:#2563eb"></i> Faturado</div>
+            <div><i class="dot" style="background:#059669"></i> Recebido</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <h2>📊 Pedidos por período</h2>
+            <span class="count" id="ordSummary">—</span>
+          </div>
+          <div class="chart-box"><div id="chartOrders"></div></div>
+          <div class="legend"><div><i class="dot" style="background:#7c3aed"></i> Pedidos fechados no mês</div></div>
+        </div>
+      </section>
+
+      <section class="grid-3">
+        <div class="card">
+          <div class="card-title"><h2>🏆 Produtos mais alugados</h2></div>
+          <div class="bar-row" id="chartTopProducts"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><h2>💳 Formas de pagamento</h2></div>
+          <div class="chart-box" style="padding:8px 12px 0"><div id="chartPayments"></div></div>
+          <div class="legend" id="legendPayments"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><h2>🧩 Tipos de pedido</h2></div>
+          <div class="chart-box" style="padding:8px 12px 0"><div id="chartTypes"></div></div>
+          <div class="legend" id="legendTypes"></div>
+        </div>
+      </section>
+
+      <!-- 8. ALERTAS INTELIGENTES -->
+      <div class="sec-title">🔔 Alertas inteligentes</div>
+      <section class="card">
+        <div class="card-title">
+          <h2>⚠️ Pontos de atenção</h2>
+          <span class="count" id="alertCount">—</span>
+        </div>
+        <div class="alerts" id="alertList"></div>
+      </section>
+
+      <!-- 4. RELATÓRIO FINANCEIRO -->
+      <div class="sec-title">💵 Relatório financeiro detalhado</div>
+      <section class="card">
+        <div class="card-title">
+          <h2>🧾 Movimentações do período</h2>
+          <span class="count" id="finCount">—</span>
+        </div>
+        <div class="toolbar">
+          <div class="search"><span>🔍</span><input type="search" id="finSearch" placeholder="Pesquisar por cliente, pedido ou tipo..." /></div>
+          <select id="finStatus">
+            <option value="">Todos os status</option>
+            <option value="Pago">Pago</option>
+            <option value="Parcial">Parcial</option>
+            <option value="Pendente">Pendente</option>
+            <option value="Atrasado">Atrasado</option>
+          </select>
+          <select id="finType">
+            <option value="">Todos os tipos</option>
+            <option value="Aluguel">Aluguel</option>
+            <option value="Venda">Venda</option>
+            <option value="Misto">Misto</option>
+          </select>
+        </div>
+        <div class="tscroll">
+          <table id="finTable">
+            <thead>
+              <tr>
+                <th class="sortable" data-k="date">Data <span class="arrow">↕</span></th>
+                <th class="sortable" data-k="client">Cliente <span class="arrow">↕</span></th>
+                <th class="sortable" data-k="type">Tipo <span class="arrow">↕</span></th>
+                <th class="sortable num" data-k="total">Valor total <span class="arrow">↕</span></th>
+                <th class="sortable num" data-k="paid">Pago <span class="arrow">↕</span></th>
+                <th class="sortable num" data-k="due">Pendente <span class="arrow">↕</span></th>
+                <th class="sortable" data-k="status">Status <span class="arrow">↕</span></th>
+              </tr>
+            </thead>
+            <tbody id="finBody"></tbody>
+          </table>
+        </div>
+        <div class="pad" style="display:flex;justify-content:space-between;border-top:1px solid var(--border);font-size:13px">
+          <span class="muted">Totais filtrados</span>
+          <span id="finTotals" class="strong">—</span>
+        </div>
+      </section>
+
+      <!-- 5. RELATÓRIO DE PRODUTOS -->
+      <div class="sec-title">📦 Relatório de produtos</div>
+      <section class="card">
+        <div class="card-title">
+          <h2>🎪 Desempenho do catálogo</h2>
+          <span class="count" id="prodCount">—</span>
+        </div>
+        <div class="toolbar">
+          <div class="search"><span>🔍</span><input type="search" id="prodSearch" placeholder="Pesquisar produto..." /></div>
+          <select id="prodCat"><option value="">Todas as categorias</option></select>
+          <select id="prodFlag">
+            <option value="">Todos os produtos</option>
+            <option value="low">Somente estoque baixo</option>
+            <option value="top">Somente mais utilizados</option>
+          </select>
+        </div>
+        <div class="tscroll">
+          <table id="prodTable">
+            <thead>
+              <tr>
+                <th class="sortable" data-k="name">Produto <span class="arrow">↕</span></th>
+                <th class="sortable" data-k="cat">Categoria <span class="arrow">↕</span></th>
+                <th class="sortable num" data-k="total">Qtd. total <span class="arrow">↕</span></th>
+                <th class="sortable num" data-k="available">Disponível <span class="arrow">↕</span></th>
+                <th class="sortable num" data-k="rented">Alugada <span class="arrow">↕</span></th>
+                <th class="sortable num" data-k="revenue">Valor gerado <span class="arrow">↕</span></th>
+              </tr>
+            </thead>
+            <tbody id="prodBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 6. RELATÓRIO DE CLIENTES -->
+      <div class="sec-title">👥 Relatório de clientes</div>
+      <section class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <h2>🥇 Ranking de clientes</h2>
+            <span class="count" id="cliCount">—</span>
+          </div>
+          <div class="toolbar" style="grid-template-columns:minmax(0,1fr) 190px">
+            <div class="search"><span>🔍</span><input type="search" id="cliSearch" placeholder="Pesquisar cliente..." /></div>
+            <select id="cliSort">
+              <option value="spent">Ordenar por valor gasto</option>
+              <option value="orders">Ordenar por nº de pedidos</option>
+              <option value="last">Ordenar por último pedido</option>
+            </select>
+          </div>
+          <div class="tscroll">
+            <table id="cliTable">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th class="num">Pedidos</th>
+                  <th class="num">Valor gasto</th>
+                  <th>Último pedido</th>
+                </tr>
+              </thead>
+              <tbody id="cliBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><h2>🔥 Clientes que mais alugam</h2><span class="count">Top 6 do período</span></div>
+          <div class="bar-row" id="chartTopClients"></div>
+        </div>
+      </section>
+
+      <!-- 7. RELATÓRIO DE ENTREGAS -->
+      <div class="sec-title">🚚 Relatório de entregas</div>
+      <section class="card">
+        <div class="card-title"><h2>📍 Logística do período</h2><span class="count" id="delivCount">—</span></div>
+        <div class="deliv" id="delivGrid"></div>
+        <div class="gauge">
+          <div id="gaugeChart"></div>
+          <div class="txt">
+            <b id="gaugeValue">—</b>
+            <span class="muted">Taxa de conclusão das entregas e retiradas programadas no período.</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="footnote">Serve Festa ERP · Módulo de Relatórios · Dados demonstrativos</div>
+    </div>
+  </main>
+</div>
+
+<!-- 9. FILTROS AVANÇADOS -->
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <header>
+    <h3>⚙️ Filtros avançados</h3>
+    <button class="iconbtn" id="drawerClose">✕</button>
+  </header>
+  <div class="body">
+    <div class="two">
+      <div class="field"><label>Data inicial</label><input type="date" id="fDtIni" /></div>
+      <div class="field"><label>Data final</label><input type="date" id="fDtFim" /></div>
+    </div>
+    <div class="field"><label>Cliente</label><select id="fClient"><option value="">Todos os clientes</option></select></div>
+    <div class="field"><label>Produto</label><select id="fProduct"><option value="">Todos os produtos</option></select></div>
+    <div class="field"><label>Tipo de pedido</label>
+      <select id="fType"><option value="">Todos</option><option>Aluguel</option><option>Venda</option><option>Misto</option></select>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="fStatus"><option value="">Todos</option><option>Pago</option><option>Parcial</option><option>Pendente</option><option>Atrasado</option></select>
+    </div>
+    <div class="field"><label>Forma de pagamento</label>
+      <select id="fPayment"><option value="">Todas</option><option>Pix</option><option>Dinheiro</option><option>Cartão</option><option>Parcelado</option></select>
+    </div>
+  </div>
+  <footer>
+    <button class="btn" id="btnClearFilters">Limpar</button>
+    <button class="btn primary" id="btnApplyFilters">Aplicar filtros</button>
+  </footer>
+</aside>
+
+<!-- MODAL DETALHES -->
+<div class="modal" id="modal">
+  <header><h3 id="modalTitle">Detalhes</h3><button class="iconbtn" id="modalClose">✕</button></header>
+  <div class="body" id="modalBody"></div>
+  <footer>
+    <button class="btn" id="modalPrint">🖨️ Imprimir</button>
+    <button class="btn primary" id="modalOk">Fechar</button>
+  </footer>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+/* =========================================================================
+   SERVE FESTA · MÓDULO DE RELATÓRIOS
+   Estrutura:
+     1. MockAPI      -> camada de dados (trocar por fetch() da API real)
+     2. Utils        -> formatação e helpers
+     3. Charts       -> renderizadores SVG puros
+     4. State        -> filtros e período ativos
+     5. Render*      -> renderização de cada bloco da tela
+     6. Eventos      -> ligações da UI
+   ========================================================================= */
+
+/* ----------------------------------------------------------------------
+   1. CAMADA DE DADOS (MOCK)
+   Para integrar com a API real, basta substituir o corpo de cada método
+   por: return fetch(`/api/relatorios/...`).then(r => r.json());
+   A assinatura das funções (async + shape do retorno) já está pronta.
+---------------------------------------------------------------------- */
+const MockDB = {
+  months: ['Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez','Jan'],
+  revenue:  [42800, 51200, 47600, 63900, 58400, 71250, 66800, 79400, 84100, 96300, 128500, 71900],
+  received: [41100, 49800, 45200, 60100, 55900, 68300, 62700, 74800, 79600, 88200, 112400, 58300],
+  orders:   [38, 46, 41, 55, 51, 62, 58, 69, 73, 84, 108, 61],
+
+  payments: [
+    { label:'Pix',       value: 186400, color:'#059669' },
+    { label:'Cartão',    value: 128900, color:'#2563eb' },
+    { label:'Parcelado', value:  94300, color:'#7c3aed' },
+    { label:'Dinheiro',  value:  52700, color:'#d97706' },
+  ],
+
+  orderTypes: [
+    { label:'Aluguel', value: 412, color:'#2563eb' },
+    { label:'Misto',   value: 138, color:'#7c3aed' },
+    { label:'Venda',   value:  96, color:'#059669' },
+  ],
+
+  products: [
+    { id:'P-001', icon:'🪑', name:'Cadeira Tiffany Branca',      cat:'Mobiliário',   total:400, rented:286, revenue: 48720, uses:186 },
+    { id:'P-002', icon:'🪑', name:'Cadeira Plástica Branca',     cat:'Mobiliário',   total:600, rented:212, revenue: 21400, uses:158 },
+    { id:'P-003', icon:'🍽️', name:'Mesa Redonda 1,50m',          cat:'Mobiliário',   total: 90, rented: 74, revenue: 33150, uses:142 },
+    { id:'P-004', icon:'⛺', name:'Tenda Piramidal 5x5',          cat:'Estruturas',   total: 24, rented: 21, revenue: 62800, uses: 88 },
+    { id:'P-005', icon:'🎪', name:'Tenda Chapéu de Bruxa 8x8',    cat:'Estruturas',   total:  8, rented:  7, revenue: 41200, uses: 46 },
+    { id:'P-006', icon:'🧺', name:'Toalha Redonda Cetim',         cat:'Enxoval',      total:180, rented:126, revenue: 15840, uses:131 },
+    { id:'P-007', icon:'🎈', name:'Kit Balões Metalizados',       cat:'Decoração',    total:120, rented: 34, revenue:  8920, uses: 62 },
+    { id:'P-008', icon:'💡', name:'Iluminação LED Ambiente',      cat:'Iluminação',   total: 60, rented: 52, revenue: 27650, uses: 97 },
+    { id:'P-009', icon:'🔊', name:'Caixa de Som Ativa 15"',       cat:'Som e Vídeo',  total: 16, rented: 14, revenue: 31900, uses: 71 },
+    { id:'P-010', icon:'🎤', name:'Kit Microfone Sem Fio',        cat:'Som e Vídeo',  total: 12, rented: 10, revenue: 12400, uses: 53 },
+    { id:'P-011', icon:'🍾', name:'Taça de Vidro Champagne',      cat:'Utensílios',   total:480, rented:318, revenue: 14200, uses:124 },
+    { id:'P-012', icon:'🍰', name:'Mesa Provençal para Bolo',     cat:'Mobiliário',   total: 14, rented: 12, revenue: 18900, uses: 68 },
+    { id:'P-013', icon:'🧊', name:'Cooler / Refrigerador 300L',   cat:'Utensílios',   total:  6, rented:  5, revenue:  7300, uses: 29 },
+    { id:'P-014', icon:'🌸', name:'Arranjo Floral Provençal',     cat:'Decoração',    total: 40, rented: 33, revenue: 16750, uses: 74 },
+    { id:'P-015', icon:'🪟', name:'Painel Redondo Decorativo',    cat:'Decoração',    total: 10, rented:  9, revenue: 21300, uses: 59 },
+    { id:'P-016', icon:'🔥', name:'Churrasqueira Industrial',     cat:'Utensílios',   total:  5, rented:  4, revenue:  6100, uses: 22 },
+  ],
+
+  clients: [
+    { id:'C-01', name:'Buffet Encanto Festas',   doc:'12.345.678/0001-90', orders: 42, spent: 148900, last:'2026-07-28', type:'PJ' },
+    { id:'C-02', name:'Espaço Villa Real',       doc:'23.456.789/0001-11', orders: 35, spent: 121350, last:'2026-07-26', type:'PJ' },
+    { id:'C-03', name:'Mariana Albuquerque',     doc:'123.456.789-00',     orders: 18, spent:  46800, last:'2026-07-29', type:'PF' },
+    { id:'C-04', name:'Chácara Recanto Azul',    doc:'34.567.890/0001-22', orders: 27, spent:  93400, last:'2026-07-21', type:'PJ' },
+    { id:'C-05', name:'Ricardo Menezes',         doc:'234.567.890-11',     orders: 12, spent:  31250, last:'2026-07-18', type:'PF' },
+    { id:'C-06', name:'Colégio Novo Saber',      doc:'45.678.901/0001-33', orders: 15, spent:  58200, last:'2026-07-15', type:'PJ' },
+    { id:'C-07', name:'Juliana Prado Eventos',   doc:'56.789.012/0001-44', orders: 22, spent:  74600, last:'2026-07-27', type:'PJ' },
+    { id:'C-08', name:'Fernando Castro',         doc:'345.678.901-22',     orders:  8, spent:  19700, last:'2026-07-09', type:'PF' },
+    { id:'C-09', name:'Associação Bairro Sul',   doc:'67.890.123/0001-55', orders: 10, spent:  26400, last:'2026-07-05', type:'PJ' },
+    { id:'C-10', name:'Patrícia Fontes',         doc:'456.789.012-33',     orders:  6, spent:  14200, last:'2026-06-30', type:'PF' },
+  ],
+
+  finance: [
+    { id:'PED-2841', date:'2026-07-29', client:'Mariana Albuquerque',   type:'Aluguel', total: 4850,  paid: 4850,  payment:'Pix',       items:'Cadeiras Tiffany, Mesas Redondas, Toalhas' },
+    { id:'PED-2840', date:'2026-07-28', client:'Buffet Encanto Festas', type:'Misto',   total: 12400, paid: 6200,  payment:'Parcelado', items:'Tenda 8x8, Iluminação LED, Taças' },
+    { id:'PED-2839', date:'2026-07-27', client:'Juliana Prado Eventos', type:'Aluguel', total: 8300,  paid: 8300,  payment:'Cartão',    items:'Painel Redondo, Arranjos, Mesa Provençal' },
+    { id:'PED-2838', date:'2026-07-26', client:'Espaço Villa Real',     type:'Aluguel', total: 15600, paid: 9000,  payment:'Pix',       items:'Tendas Piramidais, Cadeiras Plásticas' },
+    { id:'PED-2837', date:'2026-07-24', client:'Chácara Recanto Azul',  type:'Misto',   total: 9750,  paid: 0,     payment:'Parcelado', items:'Som, Microfones, Iluminação' },
+    { id:'PED-2836', date:'2026-07-23', client:'Ricardo Menezes',       type:'Venda',   total: 2380,  paid: 2380,  payment:'Dinheiro',  items:'Kit Balões, Arranjos Florais' },
+    { id:'PED-2835', date:'2026-07-21', client:'Colégio Novo Saber',    type:'Aluguel', total: 11200, paid: 5600,  payment:'Cartão',    items:'Tendas, Cadeiras, Som' },
+    { id:'PED-2834', date:'2026-07-19', client:'Fernando Castro',       type:'Aluguel', total: 3100,  paid: 0,     payment:'Pix',       items:'Mesas, Toalhas, Taças' },
+    { id:'PED-2833', date:'2026-07-18', client:'Buffet Encanto Festas', type:'Aluguel', total: 18900, paid: 18900, payment:'Pix',       items:'Pacote completo 300 convidados' },
+    { id:'PED-2832', date:'2026-07-16', client:'Associação Bairro Sul', type:'Misto',   total: 5400,  paid: 2700,  payment:'Dinheiro',  items:'Tenda 5x5, Cadeiras, Churrasqueira' },
+    { id:'PED-2831', date:'2026-07-14', client:'Espaço Villa Real',     type:'Aluguel', total: 13750, paid: 13750, payment:'Cartão',    items:'Mobiliário completo + Iluminação' },
+    { id:'PED-2830', date:'2026-07-12', client:'Patrícia Fontes',       type:'Venda',   total: 1890,  paid: 1890,  payment:'Pix',       items:'Kit decoração infantil' },
+    { id:'PED-2829', date:'2026-07-10', client:'Juliana Prado Eventos', type:'Misto',   total: 7650,  paid: 3800,  payment:'Parcelado', items:'Painéis, Arranjos, Taças' },
+    { id:'PED-2828', date:'2026-07-08', client:'Chácara Recanto Azul',  type:'Aluguel', total: 16200, paid: 16200, payment:'Pix',       items:'Tendas + Mobiliário + Som' },
+    { id:'PED-2827', date:'2026-07-05', client:'Mariana Albuquerque',   type:'Aluguel', total: 4200,  paid: 2100,  payment:'Cartão',    items:'Mesa Provençal, Cadeiras Tiffany' },
+    { id:'PED-2826', date:'2026-07-03', client:'Colégio Novo Saber',    type:'Aluguel', total: 9900,  paid: 0,     payment:'Parcelado', items:'Tendas + Som para formatura' },
+    { id:'PED-2825', date:'2026-07-01', client:'Ricardo Menezes',       type:'Aluguel', total: 5300,  paid: 5300,  payment:'Dinheiro',  items:'Cadeiras, Mesas, Toalhas' },
+    { id:'PED-2824', date:'2026-06-28', client:'Buffet Encanto Festas', type:'Aluguel', total: 21400, paid: 21400, payment:'Pix',       items:'Casamento 400 convidados' },
+  ],
+
+  deliveries: { done: 142, pending: 23, pickupPending: 17, late: 6, scheduled: 188 },
+
+  summary: {
+    revenue: 462300, received: 381900, pending: 80400, avgTicket: 8942,
+    orders: 646, inProgress: 38, finished: 592, quotes: 87,
+    clients: 284, newClients: 26, recurring: 143,
+    productsTotal: 2065, productsRented: 1183, productsAvailable: 882, lowStock: 5,
+  },
+};
+
+/** Camada de acesso — trocar por chamadas HTTP mantendo o mesmo retorno. */
+const API = {
+  async getReport(filters) {
+    // return fetch('/api/relatorios?' + new URLSearchParams(filters)).then(r => r.json());
+    await new Promise(r => setTimeout(r, 60));       // latência simulada
+    return JSON.parse(JSON.stringify(MockDB));       // cópia imutável
+  },
+  async exportReport(format, filters) {
+    // return fetch('/api/relatorios/export', {method:'POST', body: JSON.stringify({format, filters})});
+    await new Promise(r => setTimeout(r, 900));
+    return { ok:true, file:`relatorio-servefesta-${format}.${format}` };
+  },
+};
+
+/* ----------------------------------------------------------------------
+   2. UTILITÁRIOS
+---------------------------------------------------------------------- */
+const BRL = new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits:0 });
+const BRL2 = new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' });
+const NUM = new Intl.NumberFormat('pt-BR');
+const money  = v => BRL.format(v || 0);
+const money2 = v => BRL2.format(v || 0);
+const num    = v => NUM.format(v || 0);
+const pct    = (a,b) => b ? Math.round((a/b)*100) : 0;
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtDate = iso => { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
+const daysAgo = iso => Math.round((Date.now() - new Date(iso+'T12:00:00')) / 86400000);
+const el = (tag, attrs={}) => {
+  const n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+};
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = msg;
+  $('#toasts').appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = '.3s'; }, 2600);
+  setTimeout(() => t.remove(), 3000);
+}
+
+/* ----------------------------------------------------------------------
+   3. GRÁFICOS (SVG puro, sem dependências)
+---------------------------------------------------------------------- */
+const Charts = {
+  /** Linha dupla com área — faturamento x recebido */
+  line(mount, labels, series) {
+    const W = 640, H = 250, P = { t:16, r:14, b:26, l:52 };
+    const iw = W - P.l - P.r, ih = H - P.t - P.b;
+    const max = Math.max(...series.flatMap(s => s.data)) * 1.12;
+    const x = i => P.l + (iw * i) / (labels.length - 1);
+    const y = v => P.t + ih - (v / max) * ih;
+
+    const svg = el('svg', { viewBox:`0 0 ${W} ${H}`, role:'img' });
+
+    // grid + eixo Y
+    for (let g = 0; g <= 4; g++) {
+      const gy = P.t + (ih * g) / 4;
+      svg.appendChild(el('line', { x1:P.l, x2:W-P.r, y1:gy, y2:gy, class:'g-axis' }));
+      const lbl = el('text', { x:P.l-10, y:gy+4, class:'g-lbl', 'text-anchor':'end' });
+      lbl.textContent = money(Math.round((max * (4-g)) / 4 / 1000) * 1000).replace('R$', '').trim();
+      svg.appendChild(lbl);
+    }
+    // eixo X
+    labels.forEach((l, i) => {
+      const t = el('text', { x:x(i), y:H-6, class:'g-lbl', 'text-anchor':'middle' });
+      t.textContent = l; svg.appendChild(t);
+    });
+
+    series.forEach((s, si) => {
+      const path = s.data.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+      if (si === 0) {
+        const gid = 'grad-line';
+        const defs = el('defs');
+        const lg = el('linearGradient', { id:gid, x1:0, y1:0, x2:0, y2:1 });
+        lg.appendChild(el('stop', { offset:'0%',   'stop-color':s.color, 'stop-opacity':'.22' }));
+        lg.appendChild(el('stop', { offset:'100%', 'stop-color':s.color, 'stop-opacity':'0' }));
+        defs.appendChild(lg); svg.appendChild(defs);
+        svg.appendChild(el('path', { d:`${path} L${x(s.data.length-1)},${P.t+ih} L${P.l},${P.t+ih} Z`, fill:`url(#${gid})` }));
+      }
+      svg.appendChild(el('path', {
+        d:path, fill:'none', stroke:s.color, 'stroke-width':2.6,
+        'stroke-linejoin':'round', 'stroke-linecap':'round',
+        'stroke-dasharray': s.dashed ? '5 4' : 'none'
+      }));
+      s.data.forEach((v, i) => {
+        const c = el('circle', { cx:x(i), cy:y(v), r:3.4, fill:'#fff', stroke:s.color, 'stroke-width':2.2 });
+        const ttl = el('title'); ttl.textContent = `${labels[i]} · ${s.name}: ${money2(v)}`;
+        c.appendChild(ttl); svg.appendChild(c);
+      });
+    });
+    mount.innerHTML = ''; mount.appendChild(svg);
+  },
+
+  /** Barras verticais — pedidos por período */
+  bars(mount, labels, data, color) {
+    const W = 520, H = 250, P = { t:22, r:10, b:26, l:40 };
+    const iw = W - P.l - P.r, ih = H - P.t - P.b;
+    const max = Math.max(...data) * 1.18;
+    const step = iw / data.length, bw = Math.min(28, step * 0.56);
+    const svg = el('svg', { viewBox:`0 0 ${W} ${H}` });
+
+    for (let g = 0; g <= 4; g++) {
+      const gy = P.t + (ih * g) / 4;
+      svg.appendChild(el('line', { x1:P.l, x2:W-P.r, y1:gy, y2:gy, class:'g-axis' }));
+      const lbl = el('text', { x:P.l-9, y:gy+4, class:'g-lbl', 'text-anchor':'end' });
+      lbl.textContent = Math.round((max * (4-g)) / 4); svg.appendChild(lbl);
+    }
+    data.forEach((v, i) => {
+      const h = (v / max) * ih;
+      const bx = P.l + step * i + (step - bw) / 2;
+      const by = P.t + ih - h;
+      const r = el('rect', { x:bx, y:by, width:bw, height:Math.max(h,2), rx:5, fill:color, opacity: i === data.length-1 ? 1 : .82 });
+      const ttl = el('title'); ttl.textContent = `${labels[i]}: ${v} pedidos`;
+      r.appendChild(ttl); svg.appendChild(r);
+      const t = el('text', { x:bx+bw/2, y:by-7, class:'g-val', 'text-anchor':'middle' });
+      t.textContent = v; svg.appendChild(t);
+      const xl = el('text', { x:bx+bw/2, y:H-6, class:'g-lbl', 'text-anchor':'middle' });
+      xl.textContent = labels[i]; svg.appendChild(xl);
+    });
+    mount.innerHTML = ''; mount.appendChild(svg);
+  },
+
+  /** Donut / pizza */
+  donut(mount, legendMount, data, unitFmt) {
+    const S = 220, R = 92, r = 56, C = S / 2;
+    const total = data.reduce((a, d) => a + d.value, 0);
+    const svg = el('svg', { viewBox:`0 0 ${S} ${S}`, style:'max-width:230px;margin:0 auto' });
+    let ang = -Math.PI / 2;
+
+    data.forEach(d => {
+      const slice = (d.value / total) * Math.PI * 2;
+      const end = ang + slice;
+      const big = slice > Math.PI ? 1 : 0;
+      const p1 = [C + R*Math.cos(ang),  C + R*Math.sin(ang)];
+      const p2 = [C + R*Math.cos(end),  C + R*Math.sin(end)];
+      const p3 = [C + r*Math.cos(end),  C + r*Math.sin(end)];
+      const p4 = [C + r*Math.cos(ang),  C + r*Math.sin(ang)];
+      const path = el('path', {
+        d:`M${p1} A${R},${R} 0 ${big} 1 ${p2} L${p3} A${r},${r} 0 ${big} 0 ${p4} Z`,
+        fill:d.color, stroke:'#fff', 'stroke-width':2
+      });
+      const ttl = el('title'); ttl.textContent = `${d.label}: ${unitFmt(d.value)} (${pct(d.value,total)}%)`;
+      path.appendChild(ttl); svg.appendChild(path);
+      ang = end;
+    });
+
+    const t1 = el('text', { x:C, y:C-2, 'text-anchor':'middle', style:'font-size:20px;font-weight:800;fill:#0f172a' });
+    t1.textContent = unitFmt(total);
+    const t2 = el('text', { x:C, y:C+16, 'text-anchor':'middle', class:'g-lbl' });
+    t2.textContent = 'TOTAL';
+    svg.appendChild(t1); svg.appendChild(t2);
+    mount.innerHTML = ''; mount.appendChild(svg);
+
+    legendMount.innerHTML = data.map(d => `
+      <div><i class="dot" style="background:${d.color}"></i>
+        ${esc(d.label)} · <b style="color:var(--text)">${pct(d.value,total)}%</b></div>`).join('');
+  },
+
+  /** Barras horizontais com ranking */
+  hbars(mount, items) {
+    const max = Math.max(...items.map(i => i.value));
+    mount.innerHTML = items.map((it, i) => `
+      <div class="bar-item">
+        <div class="l">
+          <span><i class="rank ${i === 0 ? 'top' : ''}">${i+1}</i><b>${esc(it.label)}</b></span>
+          <span class="muted">${esc(it.right)}</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(it.value/max*100).toFixed(1)}%;background:${it.color}"></div></div>
+      </div>`).join('');
+  },
+
+  /** Medidor circular de progresso */
+  gauge(mount, value) {
+    const S = 130, C = S/2, R = 52, SW = 13;
+    const circ = 2 * Math.PI * R;
+    const svg = el('svg', { viewBox:`0 0 ${S} ${S}`, style:`width:${S}px;flex:none` });
+    svg.appendChild(el('circle', { cx:C, cy:C, r:R, fill:'none', stroke:'#f1f5f9', 'stroke-width':SW }));
+    svg.appendChild(el('circle', {
+      cx:C, cy:C, r:R, fill:'none', stroke:'#059669', 'stroke-width':SW, 'stroke-linecap':'round',
+      'stroke-dasharray':`${(circ*value/100).toFixed(1)} ${circ}`, transform:`rotate(-90 ${C} ${C})`
+    }));
+    const t = el('text', { x:C, y:C+6, 'text-anchor':'middle', style:'font-size:22px;font-weight:800;fill:#0f172a' });
+    t.textContent = value + '%';
+    svg.appendChild(t);
+    mount.innerHTML = ''; mount.appendChild(svg);
+  },
+};
+
+/* ----------------------------------------------------------------------
+   4. ESTADO
+---------------------------------------------------------------------- */
+const PERIODS = { hoje:'Hoje', '7d':'Últimos 7 dias', '30d':'Últimos 30 dias', mes:'Este mês', custom:'Período personalizado' };
+/** Multiplicadores para simular a variação dos números por período. */
+const PERIOD_FACTOR = { hoje:0.035, '7d':0.24, '30d':1, mes:0.86, custom:0.62 };
+
+const State = {
+  period: '30d',
+  factor: 1,
+  data: null,
+  filters: { dtIni:'', dtFim:'', client:'', product:'', type:'', status:'', payment:'' },
+  fin:  { q:'', status:'', type:'', sort:'date', dir:'desc' },
+  prod: { q:'', cat:'', flag:'', sort:'revenue', dir:'desc' },
+  cli:  { q:'', sort:'spent' },
+};
+
+/* ----------------------------------------------------------------------
+   5. REGRAS DE NEGÓCIO / DERIVAÇÕES
+---------------------------------------------------------------------- */
+function scale(v, decimals = 0) {
+  const r = v * State.factor;
+  return decimals ? +r.toFixed(decimals) : Math.round(r);
+}
+function financeRows() {
+  const f = State.fin, adv = State.filters;
+  let rows = State.data.finance.map(o => {
+    const due = o.total - o.paid;
+    let status = 'Pago';
+    if (due > 0 && o.paid > 0) status = 'Parcial';
+    else if (due > 0) status = daysAgo(o.date) > 20 ? 'Atrasado' : 'Pendente';
+    return { ...o, due, status };
+  });
+  const q = f.q.trim().toLowerCase();
+  rows = rows.filter(r =>
+    (!q || (r.client + r.id + r.type + r.payment).toLowerCase().includes(q)) &&
+    (!f.status || r.status === f.status) &&
+    (!f.type   || r.type === f.type) &&
+    (!adv.client  || r.client === adv.client) &&
+    (!adv.type    || r.type === adv.type) &&
+    (!adv.status  || r.status === adv.status) &&
+    (!adv.payment || r.payment === adv.payment) &&
+    (!adv.dtIni   || r.date >= adv.dtIni) &&
+    (!adv.dtFim   || r.date <= adv.dtFim)
+  );
+  const dir = f.dir === 'asc' ? 1 : -1;
+  rows.sort((a, b) => {
+    const A = a[f.sort], B = b[f.sort];
+    return (typeof A === 'number' ? A - B : String(A).localeCompare(String(B), 'pt-BR')) * dir;
+  });
+  return rows;
+}
+function productRows() {
+  const p = State.prod, adv = State.filters;
+  const topIds = [...State.data.products].sort((a,b) => b.uses - a.uses).slice(0,5).map(x => x.id);
+  let rows = State.data.products.map(x => ({
+    ...x,
+    available: x.total - x.rented,
+    low: (x.total - x.rented) <= Math.max(2, Math.round(x.total * 0.08)),
+    top: topIds.includes(x.id),
+  }));
+  const q = p.q.trim().toLowerCase();
+  rows = rows.filter(r =>
+    (!q || (r.name + r.cat).toLowerCase().includes(q)) &&
+    (!p.cat  || r.cat === p.cat) &&
+    (!p.flag || (p.flag === 'low' ? r.low : r.top)) &&
+    (!adv.product || r.name === adv.product)
+  );
+  const dir = p.dir === 'asc' ? 1 : -1;
+  rows.sort((a, b) => {
+    const A = a[p.sort], B = b[p.sort];
+    return (typeof A === 'number' ? A - B : String(A).localeCompare(String(B), 'pt-BR')) * dir;
+  });
+  return rows;
+}
+function clientRows() {
+  const c = State.cli, q = c.q.trim().toLowerCase();
+  let rows = State.data.clients.filter(x =>
+    (!q || (x.name + x.doc).toLowerCase().includes(q)) &&
+    (!State.filters.client || x.name === State.filters.client)
+  );
+  rows.sort((a, b) => c.sort === 'last' ? b.last.localeCompare(a.last) : b[c.sort] - a[c.sort]);
+  return rows;
+}
+
+/* ----------------------------------------------------------------------
+   6. RENDERIZAÇÃO
+---------------------------------------------------------------------- */
+function kpiCard(k) {
+  return `
+  <article class="kpi ${k.tint ? 'tint-' + k.tint : ''}">
+    <div class="top">
+      <div class="label">${esc(k.label)}</div>
+      <div class="ico ${k.color}">${k.icon}</div>
+    </div>
+    <div class="value">${k.value}</div>
+    <div class="sub">${k.trend !== undefined
+      ? `<span class="trend ${k.trend >= 0 ? 'up' : 'down'}">${k.trend >= 0 ? '▲' : '▼'} ${Math.abs(k.trend)}%</span>` : ''}
+      <span>${esc(k.sub)}</span></div>
+  </article>`;
+}
+
+function renderKPIs() {
+  const s = State.data.summary;
+  $('#kpiFin').innerHTML = [
+    { label:'Faturamento total', icon:'💵', color:'green', tint:'green', value:money(scale(s.revenue)),   sub:'vs. período anterior', trend:14.2 },
+    { label:'Valor recebido',    icon:'✅', color:'blue',  value:money(scale(s.received)),  sub:`${pct(s.received,s.revenue)}% do faturado`, trend:9.6 },
+    { label:'Valores pendentes', icon:'⏳', color:'amber', tint:'amber', value:money(scale(s.pending)),   sub:'a receber de 24 pedidos', trend:-4.1 },
+    { label:'Ticket médio',      icon:'🎯', color:'purple',value:money(s.avgTicket),        sub:'média por pedido fechado', trend:6.8 },
+  ].map(kpiCard).join('');
+
+  $('#kpiPed').innerHTML = [
+    { label:'Total de pedidos',    icon:'🧾', color:'slate', value:num(scale(s.orders)),      sub:'no período selecionado', trend:11.5 },
+    { label:'Em andamento',        icon:'🔄', color:'blue',  tint:'blue', value:num(scale(s.inProgress)),  sub:'aguardando entrega ou retorno' },
+    { label:'Finalizados',         icon:'🏁', color:'green', value:num(scale(s.finished)),    sub:`${pct(s.finished,s.orders)}% de conclusão`, trend:8.3 },
+    { label:'Orçamentos gerados',  icon:'📄', color:'orange',value:num(scale(s.quotes)),      sub:'32% convertidos em pedido', trend:-2.4 },
+  ].map(kpiCard).join('');
+
+  $('#kpiCli').innerHTML = [
+    { label:'Total de clientes',   icon:'👥', color:'slate', value:num(s.clients),            sub:'base cadastrada' },
+    { label:'Novos no período',    icon:'✨', color:'purple',value:num(scale(s.newClients)),  sub:'primeiro pedido registrado', trend:18.9 },
+    { label:'Clientes recorrentes',icon:'🔁', color:'green', tint:'green', value:num(s.recurring), sub:`${pct(s.recurring,s.clients)}% da base ativa`, trend:5.2 },
+    { label:'Inativos há 90 dias', icon:'😴', color:'amber', value:num(41),                   sub:'oportunidade de reativação' },
+  ].map(kpiCard).join('');
+
+  $('#kpiEst').innerHTML = [
+    { label:'Produtos em catálogo',   icon:'📦', color:'slate', value:num(s.productsTotal),     sub:`${State.data.products.length} itens distintos` },
+    { label:'Alugados atualmente',    icon:'🚚', color:'blue',  tint:'blue', value:num(s.productsRented), sub:`${pct(s.productsRented,s.productsTotal)}% do estoque em uso` },
+    { label:'Disponíveis',            icon:'🟢', color:'green', value:num(s.productsAvailable), sub:'prontos para locação' },
+    { label:'Com estoque baixo',      icon:'⚠️', color:'red',   tint:'red', value:num(productRows().filter(p => p.low).length), sub:'abaixo do mínimo operacional' },
+  ].map(kpiCard).join('');
+}
+
+function renderCharts() {
+  const d = State.data;
+  const cut = State.period === 'hoje' ? 6 : State.period === '7d' ? 8 : 12;
+  const labels = d.months.slice(-cut);
+  const rev = d.revenue.slice(-cut), rec = d.received.slice(-cut), ord = d.orders.slice(-cut);
+
+  Charts.line($('#chartRevenue'), labels, [
+    { name:'Faturado', data:rev, color:'#2563eb' },
+    { name:'Recebido', data:rec, color:'#059669', dashed:true },
+  ]);
+  $('#revSummary').textContent = `Acumulado ${money(rev.reduce((a,b)=>a+b,0))}`;
+
+  Charts.bars($('#chartOrders'), labels, ord, '#7c3aed');
+  $('#ordSummary').textContent = `${num(ord.reduce((a,b)=>a+b,0))} pedidos`;
+
+  const tops = [...d.products].sort((a,b) => b.uses - a.uses).slice(0,7);
+  const colors = ['#2563eb','#059669','#7c3aed','#d97706','#db2777','#0891b2','#64748b'];
+  Charts.hbars($('#chartTopProducts'), tops.map((p,i) => ({
+    label:`${p.icon} ${p.name}`, value:p.uses, right:`${p.uses}x · ${money(p.revenue)}`, color:colors[i]
+  })));
+
+  Charts.donut($('#chartPayments'), $('#legendPayments'), d.payments, money);
+  Charts.donut($('#chartTypes'),    $('#legendTypes'),    d.orderTypes, num);
+
+  const topC = [...d.clients].sort((a,b) => b.orders - a.orders).slice(0,6);
+  Charts.hbars($('#chartTopClients'), topC.map((c,i) => ({
+    label:c.name, value:c.orders, right:`${c.orders}x · ${money(c.spent)}`, color:colors[i]
+  })));
+}
+
+function renderFinance() {
+  const rows = financeRows();
+  const tone = { Pago:'t-green', Parcial:'t-amber', Pendente:'t-blue', Atrasado:'t-red' };
+  $('#finBody').innerHTML = rows.length ? rows.map(r => `
+    <tr data-id="${r.id}">
+      <td><div class="strong">${fmtDate(r.date)}</div><div class="code">${r.id}</div></td>
+      <td class="strong">${esc(r.client)}</td>
+      <td><span class="tag ${r.type === 'Aluguel' ? 't-blue' : r.type === 'Venda' ? 't-green' : 't-purple'}">${r.type}</span></td>
+      <td class="num strong">${money2(r.total)}</td>
+      <td class="num green-t">${money2(r.paid)}</td>
+      <td class="num ${r.due > 0 ? 'red-t' : 'muted'}">${money2(r.due)}</td>
+      <td><span class="tag ${tone[r.status]}">${r.status}</span></td>
+    </tr>`).join('')
+    : `<tr><td colspan="7" class="empty">Nenhuma movimentação encontrada com os filtros atuais.</td></tr>`;
+
+  const t  = rows.reduce((a,r) => a + r.total, 0);
+  const p  = rows.reduce((a,r) => a + r.paid,  0);
+  $('#finCount').textContent  = `${rows.length} registro(s)`;
+  $('#finTotals').innerHTML   = `Total ${money2(t)} · <span class="green-t">Pago ${money2(p)}</span> · <span class="red-t">Pendente ${money2(t-p)}</span>`;
+}
+
+function renderProducts() {
+  const rows = productRows();
+  $('#prodBody').innerHTML = rows.length ? rows.map(r => `
+    <tr class="${r.low ? 'row-low' : ''}" data-id="${r.id}">
+      <td>
+        <div class="cellflex">
+          <div class="thumb">${r.icon}</div>
+          <div><b>${esc(r.name)} ${r.top ? '<span class="tag t-purple" style="margin-left:4px">🔥 Top</span>' : ''}</b>
+          <small class="code">${r.id} · ${r.uses} locações</small></div>
+        </div>
+      </td>
+      <td><span class="tag t-slate">${esc(r.cat)}</span></td>
+      <td class="num">${num(r.total)}</td>
+      <td class="num ${r.low ? 'amber-t' : ''}">${num(r.available)} ${r.low ? '⚠️' : ''}</td>
+      <td class="num strong">${num(r.rented)}</td>
+      <td class="num green-t">${money2(r.revenue)}</td>
+    </tr>`).join('')
+    : `<tr><td colspan="6" class="empty">Nenhum produto encontrado.</td></tr>`;
+  $('#prodCount').textContent = `${rows.length} produto(s) · ${rows.filter(r => r.low).length} com estoque baixo`;
+}
+
+function renderClients() {
+  const rows = clientRows();
+  $('#cliBody').innerHTML = rows.length ? rows.map((c, i) => `
+    <tr data-id="${c.id}">
+      <td>
+        <div class="cellflex">
+          <i class="rank ${i === 0 ? 'top' : ''}">${i+1}</i>
+          <div><b>${esc(c.name)}</b><small class="code">${c.doc} · ${c.type}</small></div>
+        </div>
+      </td>
+      <td class="num strong">${c.orders}</td>
+      <td class="num green-t">${money2(c.spent)}</td>
+      <td>${fmtDate(c.last)}<div class="code">há ${daysAgo(c.last)} dias</div></td>
+    </tr>`).join('')
+    : `<tr><td colspan="4" class="empty">Nenhum cliente encontrado.</td></tr>`;
+  $('#cliCount').textContent = `${rows.length} cliente(s)`;
+}
+
+function renderDeliveries() {
+  const d = State.data.deliveries;
+  const items = [
+    { label:'Entregas realizadas', v:scale(d.done),          icon:'✅', color:'green', tone:'green-t' },
+    { label:'Entregas pendentes',  v:scale(d.pending),       icon:'📦', color:'amber', tone:'amber-t' },
+    { label:'Retiradas pendentes', v:scale(d.pickupPending), icon:'↩️', color:'blue',  tone:'' },
+    { label:'Atrasos',             v:scale(d.late),          icon:'⏰', color:'red',   tone:'red-t' },
+  ];
+  $('#delivGrid').innerHTML = items.map(i => `
+    <div class="d">
+      <div class="top" style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div class="label" style="font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:700">${i.label}</div>
+        <div class="ico ${i.color}">${i.icon}</div>
+      </div>
+      <div class="v ${i.tone}">${num(i.v)}</div>
+    </div>`).join('');
+  const rate = pct(d.done, d.scheduled);
+  Charts.gauge($('#gaugeChart'), rate);
+  $('#gaugeValue').textContent = rate + '% de conclusão';
+  $('#delivCount').textContent = `${num(scale(d.scheduled))} operações programadas`;
+}
+
+function renderAlerts() {
+  const low = productRows().filter(p => p.low);
+  const overdue = financeRows().filter(r => r.status === 'Atrasado' || r.status === 'Pendente');
+  const overdueSum = overdue.reduce((a,r) => a + r.due, 0);
+  const alerts = [
+    { cls:'a-red', icon:'⚠️', ico:'red',
+      title:`${low.length} produto(s) com estoque baixo`,
+      text: low.slice(0,3).map(p => `${p.name} (${p.available} disp.)`).join(' · ') || 'Nenhum item crítico.',
+      action:'Ver estoque', target:'#prodTable', flag:['prodFlag','low'] },
+    { cls:'a-amber', icon:'💸', ico:'amber',
+      title:`${overdue.length} cliente(s) com pagamentos pendentes`,
+      text:`Total em aberto de ${money2(overdueSum)}. Priorize os pedidos com mais de 20 dias.`,
+      action:'Ver financeiro', target:'#finTable', flag:['finStatus','Pendente'] },
+    { cls:'a-blue', icon:'🚚', ico:'blue',
+      title:'7 pedidos com entrega nas próximas 48h',
+      text:'Confirme rota, equipe de montagem e conferência de itens antes do carregamento.',
+      action:'Ver entregas', target:'#delivGrid' },
+    { cls:'a-purple', icon:'↩️', ico:'purple',
+      title:`${State.data.deliveries.pickupPending} produtos aguardando devolução`,
+      text:'6 retiradas estão em atraso e bloqueiam a disponibilidade para novos pedidos.',
+      action:'Ver retiradas', target:'#delivGrid' },
+  ];
+  $('#alertCount').textContent = `${alerts.length} alertas ativos`;
+  $('#alertList').innerHTML = alerts.map((a, i) => `
+    <div class="alert ${a.cls}">
+      <div class="a-ico ${a.ico}">${a.icon}</div>
+      <div><b>${esc(a.title)}</b><p>${esc(a.text)}</p></div>
+      <button class="go" data-alert="${i}">${a.action} →</button>
+    </div>`).join('');
+  $$('#alertList .go').forEach(btn => btn.onclick = () => {
+    const a = alerts[+btn.dataset.alert];
+    if (a.flag) { const [id, val] = a.flag; $('#' + id).value = val; $('#' + id).dispatchEvent(new Event('change')); }
+    document.querySelector(a.target).scrollIntoView({ behavior:'smooth', block:'center' });
+  });
+}
+
+function renderAll() {
+  renderKPIs();
+  renderCharts();
+  renderAlerts();
+  renderFinance();
+  renderProducts();
+  renderClients();
+  renderDeliveries();
+  $('#updatedAt').textContent = new Date().toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
+}
+
+/* ----------------------------------------------------------------------
+   7. MODAL DE DETALHES
+---------------------------------------------------------------------- */
+function openModal(title, pairs) {
+  $('#modalTitle').textContent = title;
+  $('#modalBody').innerHTML = pairs.map(([k, v]) => `<div class="kv"><span>${esc(k)}</span><b>${v}</b></div>`).join('');
+  $('#modal').classList.add('show');
+  $('#overlay').classList.add('show');
+}
+function closeAllLayers() {
+  $('#modal').classList.remove('show');
+  $('#drawer').classList.remove('show');
+  $('#overlay').classList.remove('show');
+}
+
+/* ----------------------------------------------------------------------
+   8. EVENTOS
+---------------------------------------------------------------------- */
+function bindSorting(tableSel, stateKey, rerender) {
+  $$(`${tableSel} th.sortable`).forEach(th => {
+    th.onclick = () => {
+      const k = th.dataset.k, st = State[stateKey];
+      st.dir = st.sort === k ? (st.dir === 'asc' ? 'desc' : 'asc') : 'desc';
+      st.sort = k;
+      $$(`${tableSel} th`).forEach(x => { x.classList.remove('sorted'); const a = x.querySelector('.arrow'); if (a) a.textContent = '↕'; });
+      th.classList.add('sorted');
+      th.querySelector('.arrow').textContent = st.dir === 'asc' ? '↑' : '↓';
+      rerender();
+    };
+  });
+}
+
+function bind() {
+  /* Menu mobile */
+  $('#menuToggle').onclick = () => $('#sidebar').classList.toggle('show');
+
+  /* Período */
+  $$('#periodChips .chip').forEach(chip => chip.onclick = () => {
+    $$('#periodChips .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    State.period = chip.dataset.period;
+    State.factor = PERIOD_FACTOR[State.period];
+    $('#customRange').classList.toggle('show', State.period === 'custom');
+    $('#periodLabel').textContent = PERIODS[State.period];
+    renderAll();
+    toast(`📅 Período alterado: <b>${PERIODS[State.period]}</b>`);
+  });
+  $('#btnApplyRange').onclick = () => {
+    const a = $('#dtIni').value, b = $('#dtFim').value;
+    if (!a || !b) return toast('⚠️ Informe as duas datas.');
+    State.filters.dtIni = a; State.filters.dtFim = b;
+    $('#periodLabel').textContent = `${fmtDate(a)} a ${fmtDate(b)}`;
+    renderAll(); toast('✅ Período personalizado aplicado.');
+  };
+
+  /* Exportar / imprimir */
+  $('#btnExport').onclick = async e => {
+    const btn = e.currentTarget;
+    btn.disabled = true; btn.textContent = '⏳ Gerando...';
+    toast('⏳ Gerando relatório consolidado...');
+    const res = await API.exportReport('pdf', { period:State.period, ...State.filters });
+    btn.disabled = false; btn.innerHTML = '⬇️ Exportar relatório';
+    toast(`✅ Relatório gerado: <b>${res.file}</b>`);
+  };
+  $('#btnPrint').onclick = () => window.print();
+  $('#modalPrint').onclick = () => window.print();
+
+  /* Drawer de filtros */
+  $('#btnFilters').onclick = () => { $('#drawer').classList.add('show'); $('#overlay').classList.add('show'); };
+  $('#drawerClose').onclick = closeAllLayers;
+  $('#overlay').onclick = closeAllLayers;
+  $('#modalClose').onclick = closeAllLayers;
+  $('#modalOk').onclick = closeAllLayers;
+  document.addEventListener('keydown', e => e.key === 'Escape' && closeAllLayers());
+
+  $('#btnApplyFilters').onclick = () => {
+    State.filters = {
+      dtIni:$('#fDtIni').value, dtFim:$('#fDtFim').value,
+      client:$('#fClient').value, product:$('#fProduct').value,
+      type:$('#fType').value, status:$('#fStatus').value, payment:$('#fPayment').value,
+    };
+    const n = Object.values(State.filters).filter(Boolean).length;
+    const badge = $('#filterCount');
+    badge.style.display = n ? 'inline-flex' : 'none';
+    badge.textContent = n;
+    closeAllLayers(); renderAll();
+    toast(n ? `🔎 ${n} filtro(s) aplicado(s).` : '🔎 Filtros removidos.');
+  };
+  $('#btnClearFilters').onclick = () => {
+    ['fDtIni','fDtFim','fClient','fProduct','fType','fStatus','fPayment'].forEach(id => $('#' + id).value = '');
+    State.filters = { dtIni:'', dtFim:'', client:'', product:'', type:'', status:'', payment:'' };
+    $('#filterCount').style.display = 'none';
+    renderAll(); toast('🧹 Filtros limpos.');
+  };
+
+  /* Tabela financeira */
+  $('#finSearch').oninput  = e => { State.fin.q = e.target.value; renderFinance(); };
+  $('#finStatus').onchange = e => { State.fin.status = e.target.value; renderFinance(); };
+  $('#finType').onchange   = e => { State.fin.type = e.target.value; renderFinance(); };
+  bindSorting('#finTable', 'fin', renderFinance);
+  $('#finBody').onclick = e => {
+    const tr = e.target.closest('tr[data-id]'); if (!tr) return;
+    const r = financeRows().find(x => x.id === tr.dataset.id); if (!r) return;
+    openModal(`Pedido ${r.id}`, [
+      ['Data', fmtDate(r.date)], ['Cliente', esc(r.client)], ['Tipo', r.type],
+      ['Itens', esc(r.items)], ['Forma de pagamento', r.payment],
+      ['Valor total', money2(r.total)], ['Valor pago', `<span class="green-t">${money2(r.paid)}</span>`],
+      ['Valor pendente', `<span class="${r.due ? 'red-t' : 'muted'}">${money2(r.due)}</span>`],
+      ['Status', r.status],
+    ]);
+  };
+
+  /* Tabela de produtos */
+  $('#prodSearch').oninput = e => { State.prod.q = e.target.value; renderProducts(); };
+  $('#prodCat').onchange   = e => { State.prod.cat = e.target.value; renderProducts(); };
+  $('#prodFlag').onchange  = e => { State.prod.flag = e.target.value; renderProducts(); };
+  bindSorting('#prodTable', 'prod', renderProducts);
+  $('#prodBody').onclick = e => {
+    const tr = e.target.closest('tr[data-id]'); if (!tr) return;
+    const p = productRows().find(x => x.id === tr.dataset.id); if (!p) return;
+    openModal(`${p.icon} ${p.name}`, [
+      ['Código', p.id], ['Categoria', esc(p.cat)],
+      ['Quantidade total', num(p.total)], ['Disponível', num(p.available)], ['Alugada', num(p.rented)],
+      ['Taxa de utilização', pct(p.rented, p.total) + '%'],
+      ['Locações no período', num(p.uses)], ['Valor gerado', `<span class="green-t">${money2(p.revenue)}</span>`],
+      ['Situação', p.low ? '<span class="amber-t">Estoque baixo</span>' : 'Normal'],
+    ]);
+  };
+
+  /* Clientes */
+  $('#cliSearch').oninput = e => { State.cli.q = e.target.value; renderClients(); };
+  $('#cliSort').onchange  = e => { State.cli.sort = e.target.value; renderClients(); };
+  $('#cliBody').onclick = e => {
+    const tr = e.target.closest('tr[data-id]'); if (!tr) return;
+    const c = State.data.clients.find(x => x.id === tr.dataset.id); if (!c) return;
+    openModal(c.name, [
+      ['Documento', c.doc], ['Tipo', c.type === 'PJ' ? 'Pessoa jurídica' : 'Pessoa física'],
+      ['Pedidos no período', num(c.orders)], ['Valor gasto', `<span class="green-t">${money2(c.spent)}</span>`],
+      ['Ticket médio', money2(c.spent / c.orders)],
+      ['Último pedido', `${fmtDate(c.last)} (há ${daysAgo(c.last)} dias)`],
+    ]);
+  };
+
+  /* Navegação lateral simulada */
+  $$('.nav-item').forEach(b => b.onclick = () => {
+    if (b.classList.contains('active')) return;
+    toast(`🔗 Módulo <b>${b.textContent.trim()}</b> — navegação simulada.`);
+  });
+}
+
+/* ----------------------------------------------------------------------
+   9. BOOTSTRAP
+---------------------------------------------------------------------- */
+function fillSelects() {
+  const cats = [...new Set(State.data.products.map(p => p.cat))].sort();
+  $('#prodCat').innerHTML += cats.map(c => `<option>${esc(c)}</option>`).join('');
+  $('#fClient').innerHTML += State.data.clients.map(c => `<option>${esc(c.name)}</option>`).join('');
+  $('#fProduct').innerHTML += State.data.products.map(p => `<option>${esc(p.name)}</option>`).join('');
+}
+
+(async function init() {
+  State.data = await API.getReport({ period:State.period });
+  State.factor = PERIOD_FACTOR[State.period];
+  fillSelects();
+  bind();
+  renderAll();
+  setTimeout(() => toast('📊 Relatórios carregados com dados demonstrativos.'), 400);
+  // Redesenha os gráficos SVG ao redimensionar (mantém proporção fluida)
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(renderCharts, 200); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+
+
+
+
+C:\Users\leona\Desktop\estagio\Fest\database\backup>"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe" -u root -p fest > fest_backup_2026-08-03.sql

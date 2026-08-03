@@ -2,166 +2,1218 @@
 <link rel="stylesheet" href="/css/pages/produtos.css">
 
 {{#if error_msg}}
-  <div style="color: red; margin-bottom: 10px;">{{error_msg}}</div>
-{{/if}}
-{{#if success_msg}}
-  <div style="color: green; margin-bottom: 10px;">{{success_msg}}</div>
-{{/if}}
-
-<div class="container">
-  <header>
-    <h1>Cadastro de Produtos</h1>
-    <p class="subtitle">Gerencie o inventário de produtos para venda e aluguel.</p>
-  </header>
-
-  <!-- FORM -->
-  <div class="card">
-    <form action="{{#if produto}}/produtos/editar/{{produto.id}}{{else}}/produtos/criar{{/if}}" method="POST">
-      <div class="form-grid">
-        <div>
-          <label>Nome do Produto</label>
-          <input name="nome" placeholder="Ex: Mesa redonda" value="{{produto.nome}}">
-        </div>
-
-        <div>
-          <label>Categoria</label>
-          <input
-            name="categoria"
-            list="categorias-list"
-            placeholder="Ex: Mesas, Cadeiras, Decoração..."
-            value="{{produto.categoria}}"
-          >
-          <datalist id="categorias-list">
-            {{#each categorias}}
-              <option value="{{this}}"></option>
-            {{/each}}
-          </datalist>
-        </div>
-
-        <div>
-          <label>Tipo</label>
-          <select name="tipo">
-            <option {{#if (eq produto.tipo "Venda")}}selected{{/if}}>Venda</option>
-            <option {{#if (eq produto.tipo "Aluguel")}}selected{{/if}}>Aluguel</option>
-            <option {{#if (eq produto.tipo "Ambos")}}selected{{/if}}>Ambos</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Estoque</label>
-          <input name="estoque" type="number" min="0" value="{{produto.estoque}}">
-        </div>
-
-        <div>
-          <label>Preço Venda (R$)</label>
-          <input name="precoVenda" type="number" min="0" step="0.01" value="{{produto.preco_venda}}">
-        </div>
-
-        <div>
-          <label>Preço Aluguel (R$)</label>
-          <input name="precoAluguel" type="number" min="0" step="0.01" value="{{produto.preco_aluguel}}">
-        </div>
-      </div>
-
-      <div class="btn-group">
-        <button class="btn btn-primary" type="submit">
-          {{#if produto}}Atualizar{{else}}Salvar{{/if}}
-        </button>
-        <a href="/produtos" class="btn btn-secondary">Cancelar</a>
-      </div>
-    </form>
-  </div>
-
-  <!-- FILTRO + TABELA -->
-  <div class="card">
-    <form method="GET" action="/produtos" class="filtro-bar">
-      <input
-        type="text"
-        name="busca"
-        placeholder="Buscar por nome..."
-        value="{{filtros.busca}}"
-      >
-      <select name="categoria">
-        <option value="">Todas as categorias</option>
-        {{#each categorias}}
-          <option value="{{this}}" {{#if (eq ../filtros.categoria this)}}selected{{/if}}>{{this}}</option>
-        {{/each}}
-      </select>
-      <button class="btn btn-primary" type="submit">Filtrar</button>
-      <a href="/produtos" class="btn btn-secondary">Limpar</a>
-    </form>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Categoria</th>
-          <th>Estoque</th>
-          <th>Venda (R$)</th>
-          <th>Aluguel (R$)</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each produtos}}
-          <tr>
-            <td>{{this.nome}}</td>
-            <td>{{this.categoria}}</td>
-            <td>{{this.estoque}}</td>
-            <td>{{moeda this.preco_venda}} R$</td>
-            <td>{{moeda this.preco_aluguel}} R$</td>
-            <td class="actions">
-              <a href="/produtos/editar/{{this.id}}" class="btn-edit">Editar</a>
-              <button onclick="deletarProduto({{this.id}})" class="btn-delete">Excluir</button>
-            </td>
-          </tr>
-        {{/each}}
-      </tbody>
-    </table>
-
-    {{#unless produtos.length}}
-      <div class="empty">Nenhum produto encontrado.</div>
-    {{/unless}}
-  </div>
+<div style="color:red; margin-bottom:10px;">
+    {{error_msg}}
 </div>
+{{/if}}
+
+{{#if success_msg}}
+<div style="color:green; margin-bottom:10px;">
+    {{success_msg}}
+</div>
+{{/if}}
+
+<div class="tabs">
+    <button class="tab active" data-tab="produtos">
+        📋 Produtos Cadastrados
+    </button>
+
+    <button class="tab" data-tab="cadastro">
+        📦 Cadastro de Produtos
+    </button>
+</div>
+
+<!-- =======================
+     ABA PRODUTOS
+======================= -->
+<div id="aba-produtos" class="tab-content">
+
+    <div class="wrap">
+
+        <!-- HEADER -->
+        <div class="card pad header">
+            <h1>📦 Controle de Estoque</h1>
+            <p>Gerencie produtos, estoque, movimentações e disponibilidade.</p>
+        </div>
+
+        <!-- ===========================
+             KPIs
+        ============================ -->
+
+        <div class="stats">
+
+            <div class="stat">
+                <div class="top">
+                    <div class="label">Total de produtos</div>
+                    <div class="ico slate">📦</div>
+                </div>
+
+                <div
+                    id="kpi-total-produtos"
+                    class="value"
+                >
+                    0
+                </div>
+            </div>
+
+            <div class="stat green">
+                <div class="top">
+                    <div class="label">Disponíveis</div>
+                    <div class="ico green">✅</div>
+                </div>
+
+                <div
+                    id="kpi-disponiveis"
+                    class="value"
+                >
+                    0
+                </div>
+            </div>
+
+            <div class="stat blue">
+                <div class="top">
+                    <div class="label">Reservados</div>
+                    <div class="ico blue">🧊</div>
+                </div>
+
+                <div
+                    id="kpi-reservados"
+                    class="value"
+                >
+                    0
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="top">
+                    <div class="label">Em manutenção</div>
+                    <div class="ico amber">🔧</div>
+                </div>
+
+                <div
+                    id="kpi-manutencao"
+                    class="value"
+                >
+                    0
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="top">
+                    <div class="label">Danificados</div>
+                    <div class="ico red">⛔</div>
+                </div>
+
+                <div
+                    id="kpi-danificados"
+                    class="value"
+                >
+                    0
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="top">
+                    <div class="label">Estoque baixo</div>
+                    <div class="ico orange">⚠️</div>
+                </div>
+
+                <div
+                    id="kpi-baixo-estoque"
+                    class="value"
+                >
+                    0
+                </div>
+            </div>
+
+            <div class="stat">
+
+                <div class="top">
+                    <div class="label">Valor do estoque</div>
+                    <div class="ico purple">💳</div>
+                </div>
+
+                <div
+                    id="kpi-valor-estoque"
+                    class="value"
+                    style="font-size:20px;"
+                >
+                    R$ 0,00
+                </div>
+
+                <div class="sub">
+                    Custo médio<br>× total
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===========================
+             FILTROS
+        ============================ -->
+
+        <div class="card pad">
+
+            <!-- Busca -->
+
+            <div class="search">
+
+                <span>🔍</span>
+
+                <input
+                    id="busca"
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Pesquisar por nome, código, categoria ou fornecedor..."
+                >
+
+            </div>
+
+            <!-- Chips -->
+
+            <div
+                class="chips"
+                id="chips"
+            >
+
+                <button
+                    type="button"
+                    class="chip active"
+                    data-status=""
+                >
+                    Todos
+                </button>
+
+                <button
+                    type="button"
+                    class="chip"
+                    data-status="DISPONIVEL"
+                >
+                    Disponíveis
+                </button>
+
+                <button
+                    type="button"
+                    class="chip"
+                    data-status="RESERVADO"
+                >
+                    Reservados
+                </button>
+
+                <button
+                    type="button"
+                    class="chip"
+                    data-status="BAIXO_ESTOQUE"
+                >
+                    Baixo Estoque
+                </button>
+
+                <button
+                    type="button"
+                    class="chip"
+                    data-status="MANUTENCAO"
+                >
+                    Em Manutenção
+                </button>
+
+                <button
+                    type="button"
+                    class="chip"
+                    data-status="DANIFICADO"
+                >
+                    Danificados
+                </button>
+
+                <button
+                    type="button"
+                    class="chip"
+                    data-status="INATIVO"
+                >
+                    Inativos
+                </button>
+
+            </div>
+
+            <!-- Selects -->
+
+            <div class="selects">
+
+                <select id="filtro-categoria">
+
+                    <option value="">
+                        Todas as categorias
+                    </option>
+
+                </select>
+
+                <select id="filtro-fornecedor">
+
+                    <option value="">
+                        Todos os fornecedores
+                    </option>
+
+                </select>
+
+                <select id="filtro-status">
+
+                    <option value="">
+                        Todos os status
+                    </option>
+
+                    <option value="DISPONIVEL">
+                        Disponível
+                    </option>
+
+                    <option value="RESERVADO">
+                        Reservado
+                    </option>
+
+                    <option value="BAIXO_ESTOQUE">
+                        Baixo Estoque
+                    </option>
+
+                    <option value="MANUTENCAO">
+                        Em manutenção
+                    </option>
+
+                    <option value="DANIFICADO">
+                        Danificado
+                    </option>
+
+                    <option value="INATIVO">
+                        Inativo
+                    </option>
+
+                </select>
+
+                <input
+                    id="filtro-minimo"
+                    type="number"
+                    min="0"
+                    placeholder="Quantidade mínima"
+                >
+
+                <select id="filtro-ordenacao">
+
+                    <option value="nome">
+                        Ordenar por Nome
+                    </option>
+
+                    <option value="codigo">
+                        Ordenar por Código
+                    </option>
+
+                    <option value="categoria">
+                        Ordenar por Categoria
+                    </option>
+
+                    <option value="estoque">
+                        Ordenar por Estoque
+                    </option>
+
+                    <option value="disponivel">
+                        Ordenar por Disponível
+                    </option>
+
+                    <option value="preco_venda">
+                        Ordenar por Valor de Venda
+                    </option>
+
+                    <option value="preco_aluguel">
+                        Ordenar por Valor de Locação
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <!-- PRODUTOS -->
+        <div class="card">
+
+            <div class="card-title">
+                <h2>Produtos Cadastrados</h2>
+
+                <div class="count">
+                    <span id="resultados">6</span> resultado(s)
+                </div>
+            </div>
+
+            <div class="scroll">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Imagem</th>
+                            <th>Código</th>
+                            <th>Produto</th>
+                            <th>Categoria</th>
+                            <th>Fornecedor</th>
+                            <th class="num">Qtd.</th>
+                            <th class="num">Disp.</th>
+                            <th class="num">Reserv.</th>
+                            <th class="num">Locação</th>
+                            <th class="num">Venda</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tbody"></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- HISTÓRICO -->
+        <div class="card">
+
+            <div class="card-title">
+                <h2>🕘 Histórico de Movimentação</h2>
+            </div>
+
+            <div class="scroll">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Produto</th>
+                            <th>Tipo</th>
+                            <th class="num">Quantidade</th>
+                            <th>Responsável</th>
+                            <th>Observação</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="hist"></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<div id="aba-cadastro" class="tab-content" style="display:none;">
+
+    <div class="container">
+
+        <header>
+            <h1>Cadastro de Produtos</h1>
+            <p class="subtitle">
+                Gerencie o inventário de produtos para venda e aluguel.
+            </p>
+        </header>
+
+        <!-- FORM -->
+        <div class="card">
+
+            <form action="{{#if produto}}/produtos/editar/{{produto.id}}{{else}}/produtos/criar{{/if}}" method="POST">
+
+                <div class="form-grid">
+
+                    <div>
+                        <label>Nome do Produto</label>
+                        <input
+                            name="nome"
+                            placeholder="Ex: Mesa redonda"
+                            value="{{produto.nome}}"
+                        >
+                    </div>
+
+                    <div>
+                        <label>Categoria</label>
+
+                        <input
+                            name="categoria"
+                            list="categorias-list"
+                            placeholder="Ex: Mesas, Cadeiras, Decoração..."
+                            value="{{produto.categoria}}"
+                        >
+
+                        <datalist id="categorias-list">
+                            {{#each categorias}}
+                                <option value="{{this}}"></option>
+                            {{/each}}
+                        </datalist>
+
+                    </div>
+
+                    <div>
+                        <label>Tipo</label>
+
+                        <select name="tipo">
+                            <option {{#if (eq produto.tipo "Venda")}}selected{{/if}}>Venda</option>
+                            <option {{#if (eq produto.tipo "Aluguel")}}selected{{/if}}>Aluguel</option>
+                            <option {{#if (eq produto.tipo "Ambos")}}selected{{/if}}>Ambos</option>
+                        </select>
+
+                    </div>
+
+                    <div>
+                        <label>Estoque</label>
+
+                        <input
+                            name="estoque"
+                            type="number"
+                            min="0"
+                            value="{{produto.estoque}}"
+                        >
+                    </div>
+
+                    <div>
+                        <label>Preço Venda (R$)</label>
+
+                        <input
+                            name="precoVenda"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value="{{produto.preco_venda}}"
+                        >
+                    </div>
+
+                    <div>
+                        <label>Preço Aluguel (R$)</label>
+
+                        <input
+                            name="precoAluguel"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value="{{produto.preco_aluguel}}"
+                        >
+                    </div>
+
+                </div>
+
+                <div class="btn-group">
+
+                    <button class="btn btn-primary" type="submit">
+                        {{#if produto}}
+                            Atualizar
+                        {{else}}
+                            Salvar
+                        {{/if}}
+                    </button>
+
+                    <a href="/produtos" class="btn btn-secondary">
+                        Cancelar
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- FILTRO + TABELA -->
+
+        <div class="card">
+
+            <form method="GET" action="/produtos" class="filtro-bar">
+
+                <input
+                    type="text"
+                    name="busca"
+                    placeholder="Buscar por nome..."
+                    value="{{filtros.busca}}"
+                >
+
+                <select name="categoria">
+
+                    <option value="">Todas as categorias</option>
+
+                    {{#each categorias}}
+                        <option
+                            value="{{this}}"
+                            {{#if (eq ../filtros.categoria this)}}selected{{/if}}
+                        >
+                            {{this}}
+                        </option>
+                    {{/each}}
+
+                </select>
+
+                <button class="btn btn-primary" type="submit">
+                    Filtrar
+                </button>
+
+                <a href="/produtos" class="btn btn-secondary">
+                    Limpar
+                </a>
+
+            </form>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Produto</th>
+                        <th>Categoria</th>
+                        <th>Estoque</th>
+                        <th>Venda (R$)</th>
+                        <th>Aluguel (R$)</th>
+                        <th></th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {{#each produtos}}
+
+                    <tr>
+
+                        <td>{{this.nome}}</td>
+                        <td>{{this.categoria}}</td>
+                        <td>{{this.estoque}}</td>
+                        <td>{{moeda this.preco_venda}} R$</td>
+                        <td>{{moeda this.preco_aluguel}} R$</td>
+
+                        <td class="actions">
+
+                            <a href="/produtos/editar/{{this.id}}" class="btn-edit">
+                                Editar
+                            </a>
+
+                            <button
+                                type="button"
+                                onclick="deletarProduto({{this.id}})"
+                                class="btn-delete"
+                            >
+                                Excluir
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    {{/each}}
+
+                </tbody>
+
+            </table>
+
+            {{#unless produtos.length}}
+
+                <div class="empty">
+                    Nenhum produto encontrado.
+                </div>
+
+            {{/unless}}
+
+        </div>
+
+    </div>
+
+</div>
+
+
 
 <script src="/js/produtos.js"></script>
 
 <script>
-  // routes/produtos.js
-router.get('/', async (req, res) => {
-  const { busca = '', categoria = '' } = req.query;
 
-  const params = [];
-  const where = [];
+const brl = v =>
+    "R$ " + Number(v || 0).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 
-  if (busca) {
-    params.push(`%${busca}%`);
-    where.push(`nome ILIKE $${params.length}`);
-  }
-  if (categoria) {
-    params.push(categoria);
-    where.push(`categoria = $${params.length}`);
-  }
 
-  const sql = `
-    SELECT * FROM produtos
-    ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
-    ORDER BY nome ASC
-  `;
-  const { rows: produtos } = await db.query(sql, params);
+// ==========================================
+// RENDER PRODUTOS
+// ==========================================
 
-  // lista de categorias distintas para o select e o datalist
-  const { rows: cats } = await db.query(
-    `SELECT DISTINCT categoria FROM produtos WHERE categoria IS NOT NULL AND categoria <> '' ORDER BY categoria`
-  );
-  const categorias = cats.map(c => c.categoria);
+function renderProdutos(lista) {
 
-  res.render('produtos', {
-    produtos,
-    categorias,
-    filtros: { busca, categoria },
-  });
+    const tbody = document.getElementById("tbody");
+
+
+    if (!lista.length) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="12" style="text-align:center">
+                    Nenhum produto encontrado.
+                </td>
+            </tr>
+        `;
+
+        document.getElementById("resultados").textContent = 0;
+
+        return;
+    }
+
+
+
+    tbody.innerHTML = lista.map(p => `
+
+        <tr>
+
+
+            <td>
+
+                <div class="thumb">
+
+                    ${
+                        p.imagem
+                        ?
+                        `<img src="${p.imagem}" alt="${p.nome}">`
+                        :
+                        "📦"
+                    }
+
+                </div>
+
+            </td>
+
+
+
+            <td class="code">
+
+                ${p.codigo || "-"}
+
+            </td>
+
+
+
+            <td>
+
+                <div class="pname">
+                    ${p.nome}
+                </div>
+
+
+                <div class="ploc">
+
+                    ${p.localizacao || "-"}
+
+                </div>
+
+
+            </td>
+
+
+
+            <td>
+
+                ${p.categoria || "-"}
+
+            </td>
+
+
+
+            <td>
+
+                ${p.fornecedor || "-"}
+
+            </td>
+
+
+
+            <td class="num">
+
+                ${p.estoque}
+
+            </td>
+
+
+
+            <td class="num green-t">
+
+                ${p.disponivel}
+
+            </td>
+
+
+
+            <td class="num blue-t">
+
+                ${p.reservado || 0}
+
+            </td>
+
+
+
+            <td class="num">
+
+                ${brl(p.preco_aluguel)}
+
+            </td>
+
+
+
+            <td class="num">
+
+                ${brl(p.preco_venda)}
+
+            </td>
+
+
+
+            <td>
+
+                <span class="badge ${p.classe}">
+
+                    ${p.status}
+
+                </span>
+
+            </td>
+
+
+
+            <td>
+
+                <div class="actions">
+
+
+                    <button 
+                        class="iconbtn"
+                        onclick="visualizarProduto(${p.id})">
+
+                        👁
+
+                    </button>
+
+
+
+                    <button 
+                        class="iconbtn"
+                        onclick="editarProduto(${p.id})">
+
+                        ✏️
+
+                    </button>
+
+
+
+                    <button 
+                        class="iconbtn"
+                        onclick="duplicarProduto(${p.id})">
+
+                        ⧉
+
+                    </button>
+
+
+
+                    <button 
+                        class="iconbtn"
+                        onclick="baixarEstoque(${p.id})">
+
+                        ⤓
+
+                    </button>
+
+
+
+                </div>
+
+            </td>
+
+
+        </tr>
+
+
+    `).join("");
+
+
+
+    document.getElementById("resultados").textContent = lista.length;
+
+}
+
+
+
+
+// ==========================================
+// CARREGAR PRODUTOS
+// ==========================================
+
+async function carregarProdutos(){
+
+    try{
+
+
+        const resposta = await fetch(
+            "/produtos/api"
+        );
+
+
+        const produtos = await resposta.json();
+
+
+
+        renderProdutos(produtos);
+
+
+
+    }catch(error){
+
+        console.error(
+            "Erro ao carregar produtos:",
+            error
+        );
+
+    }
+
+}
+
+
+
+
+
+// ==========================================
+// DASHBOARD
+// ==========================================
+
+async function carregarDashboard(){
+
+
+    try{
+
+
+        const resposta = await fetch(
+            "/produtos/api/dashboard"
+        );
+
+
+        const dados = await resposta.json();
+
+
+
+        document.getElementById(
+            "kpi-total-produtos"
+        ).textContent =
+            dados.total || 0;
+
+
+
+        document.getElementById(
+            "kpi-disponiveis"
+        ).textContent =
+            dados.disponiveis || 0;
+
+
+
+        document.getElementById(
+            "kpi-reservados"
+        ).textContent =
+            dados.reservados || 0;
+
+
+
+        document.getElementById(
+            "kpi-manutencao"
+        ).textContent =
+            dados.manutencao || 0;
+
+
+
+        document.getElementById(
+            "kpi-danificados"
+        ).textContent =
+            dados.danificados || 0;
+
+
+
+        document.getElementById(
+            "kpi-baixo-estoque"
+        ).textContent =
+            dados.baixo_estoque || 0;
+
+
+
+        document.getElementById(
+            "kpi-valor-estoque"
+        ).textContent =
+            brl(dados.valor_estoque);
+
+
+
+    }catch(error){
+
+        console.error(
+            "Erro dashboard:",
+            error
+        );
+
+    }
+
+
+}
+
+
+
+
+// ==========================================
+// BUSCA
+// ==========================================
+
+document
+.getElementById("busca")
+.addEventListener("input", async function(){
+
+
+    const busca = this.value;
+
+
+
+    const resposta = await fetch(
+
+        `/produtos/api?busca=${encodeURIComponent(busca)}`
+
+    );
+
+
+
+    const produtos = await resposta.json();
+
+
+
+    renderProdutos(produtos);
+
+
+
 });
+
+
+
+
+
+// ==========================================
+// FILTRO STATUS
+// ==========================================
+
+document
+.querySelectorAll("#chips .chip")
+.forEach(chip => {
+
+
+
+    chip.addEventListener(
+    "click",
+    async()=>{
+
+
+        document
+        .querySelectorAll("#chips .chip")
+        .forEach(c =>
+            c.classList.remove("active")
+        );
+
+
+
+        chip.classList.add("active");
+
+
+
+        const status =
+            chip.dataset.status;
+
+
+
+        const resposta = await fetch(
+
+            `/produtos/api?status=${status}`
+
+        );
+
+
+
+        const produtos =
+            await resposta.json();
+
+
+
+        renderProdutos(produtos);
+
+
+
+    });
+
+
+
+});
+
+
+
+
+
+// ==========================================
+// SAÍDA ESTOQUE
+// ==========================================
+
+async function baixarEstoque(id){
+
+
+    const quantidade =
+        prompt(
+            "Digite a quantidade para saída:"
+        );
+
+
+
+    if(!quantidade)
+        return;
+
+
+
+    await fetch(
+
+        `/produtos/${id}/saida`,
+
+        {
+
+            method:"POST",
+
+            headers:{
+
+                "Content-Type":
+                "application/json"
+
+            },
+
+
+            body:JSON.stringify({
+
+                quantidade
+
+            })
+
+        }
+
+    );
+
+
+
+    carregarProdutos();
+
+    carregarDashboard();
+
+
+}
+
+
+
+
+
+
+// ==========================================
+// ABAS
+// ==========================================
+
+
+const btnProdutos =
+document.querySelector(
+    '[data-tab="produtos"]'
+);
+
+
+
+const btnCadastro =
+document.querySelector(
+    '[data-tab="cadastro"]'
+);
+
+
+
+const abaProdutos =
+document.getElementById(
+    "aba-produtos"
+);
+
+
+
+const abaCadastro =
+document.getElementById(
+    "aba-cadastro"
+);
+
+
+
+
+btnProdutos.addEventListener(
+"click",
+()=>{
+
+
+    document
+    .querySelectorAll(".tab")
+    .forEach(t =>
+        t.classList.remove("active")
+    );
+
+
+
+    btnProdutos.classList.add("active");
+
+
+
+    abaProdutos.style.display="block";
+
+    abaCadastro.style.display="none";
+
+
+});
+
+
+
+
+
+btnCadastro.addEventListener(
+"click",
+()=>{
+
+
+    document
+    .querySelectorAll(".tab")
+    .forEach(t =>
+        t.classList.remove("active")
+    );
+
+
+
+    btnCadastro.classList.add("active");
+
+
+
+    abaProdutos.style.display="none";
+
+    abaCadastro.style.display="block";
+
+
+});
+
+
+
+
+
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+
+
+carregarProdutos();
+
+carregarDashboard();
+
 
 </script>
