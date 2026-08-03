@@ -113,6 +113,15 @@
   .field-row .l { font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
   .field-row .v { font-size:14px; font-weight:500; }
 
+  .finance-modal-overlay { position:fixed; inset:0; background:rgba(15,23,42,.55); display:none; align-items:center; justify-content:center; z-index:70; padding:20px; }
+  .finance-modal-overlay.open { display:flex; }
+  .finance-modal-card { width:min(480px, 100%); background:#fff; border-radius:14px; padding:20px; box-shadow:0 20px 45px -20px rgba(0,0,0,.3); }
+  .finance-modal-card h3 { margin:0 0 12px; }
+  .finance-modal-card .actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+  .finance-modal-card textarea { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; resize:vertical; }
+  .finance-modal-card .return-items table { margin-top:10px; }
+  .finance-modal-card .return-items input[type="number"] { width:90px; }
+
   h1 { font-size:24px; font-weight:700; margin:0; }
   h2 { font-size:18px; font-weight:600; margin:0 0 12px; }
   h3 { font-size:15px; font-weight:600; margin:0 0 10px; color:#334155; }
@@ -195,7 +204,7 @@
 
       <!-- PAGAMENTO -->
       <div>
-        <label>Pagamento⚠️</label>
+        <label>Pagamento</label>
         <select id="f-pay">
           <option value="">Todos</option>
           <option value="Pago Integralmente">Pago Integralmente</option>
@@ -265,6 +274,73 @@
 
 </div>
 
+<!-- MODAL FINANCEIRO -->
+<div class="finance-modal-overlay" id="finance-modal">
+  <div class="finance-modal-card">
+    <h3 id="finance-modal-title">Registrar pagamento</h3>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div>
+        <label>Valor</label>
+        <input id="finance-valor" type="number" min="0" step="0.01" placeholder="0,00" />
+      </div>
+      <div id="finance-method-group" style="display:none;">
+        <label>Forma de pagamento</label>
+        <select id="finance-forma-pagamento">
+          <option value="">Selecione</option>
+          <option value="PIX">PIX</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Cartão">Cartão</option>
+          <option value="Transferência">Transferência</option>
+          <option value="Boleto">Boleto</option>
+        </select>
+      </div>
+      <div>
+        <label>Descrição / Observação</label>
+        <textarea id="finance-descricao" rows="3" placeholder="Descreva o motivo"></textarea>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="finance-cancel-btn" type="button">Cancelar</button>
+      <button class="btn-primary btn" id="finance-confirm-btn" type="button">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="finance-modal-overlay" id="delivery-modal">
+  <div class="finance-modal-card">
+    <h3 id="delivery-modal-title">Confirmar entrega</h3>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div>
+        <label>Data e hora da entrega</label>
+        <input id="delivery-datetime" type="datetime-local" />
+      </div>
+      <div>
+        <label>Responsável pela entrega</label>
+        <input id="delivery-responsavel" placeholder="Nome do responsável" />
+      </div>
+      <div>
+        <label>Observação</label>
+        <textarea id="delivery-observacao" rows="3" placeholder="Informações adicionais da entrega"></textarea>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="delivery-cancel-btn" type="button">Cancelar</button>
+      <button class="btn-primary btn" id="delivery-confirm-btn" type="button">Confirmar entrega</button>
+    </div>
+  </div>
+</div>
+
+<div class="finance-modal-overlay" id="return-modal">
+  <div class="finance-modal-card" style="max-width:760px;">
+    <h3 id="return-modal-title">Registrar devolução</h3>
+    <div id="return-modal-body"></div>
+    <div class="actions">
+      <button class="btn" id="return-cancel-btn" type="button">Cancelar</button>
+      <button class="btn-primary btn" id="return-confirm-btn" type="button">Confirmar devolução</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
@@ -284,15 +360,13 @@
       <div class="tabs">
         <div class="tab active" data-tab="dados">📄 Dados</div>
         <div class="tab" data-tab="fin">💰 Financeiro</div>
-        <div class="tab" data-tab="log">🚚 Logística</div>
-        <div class="tab" data-tab="dev">🔄 Devolução</div>
+        <div class="tab" data-tab="log">🚚 Logística e Devolução</div>
         <div class="tab" data-tab="oco">⚠️ Ocorrências</div>
       </div>
 
       <div class="tab-panel active" id="tab-dados"><div id="m-dados"></div></div>
       <div class="tab-panel" id="tab-fin"><div id="m-fin"></div></div>
       <div class="tab-panel" id="tab-log"><div id="m-log"></div></div>
-      <div class="tab-panel" id="tab-dev"><div id="m-dev"></div></div>
       <div class="tab-panel" id="tab-oco"><div id="m-oco"></div></div>
 
     </div>

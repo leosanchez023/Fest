@@ -56,12 +56,64 @@ export async function adicionarPagamento(req, res) {
 export async function marcarEntregue(req, res) {
   try {
     const id = req.params.id;
-    const { motorista, veiculo, responsavel_entrega } = req.body;
-    await service.marcarEntregue(id, { motorista, veiculo, responsavel_entrega });
-    return res.json({ sucesso: true });
+
+    const {
+      data_entrega,
+      responsavel_entrega,
+      observacao_entrega,
+      usuario_id
+    } = req.body;
+
+    const resultado = await service.marcarEntregue(id, {
+      data_entrega,
+      responsavel_entrega,
+      observacao_entrega,
+      usuario_id
+    });
+
+    return res.json({
+      sucesso: true,
+      resultado
+    });
+
   } catch (err) {
-    console.error('Erro marcarEntregue:', err);
-    return res.status(500).json({ message: 'Erro ao marcar entregue' });
+    console.error("Erro marcarEntregue:", err);
+
+    return res.status(500).json({
+      message: err.message,
+      stack: err.stack
+    });
+  }
+}
+
+export async function registrarDevolucao(req, res) {
+  try {
+    const id = req.params.id;
+    const { itens, observacao, responsavel, usuario_id } = req.body;
+
+    await service.registrarDevolucao(id, {
+      itens,
+      observacao,
+      responsavel,
+      usuario_id
+    });
+
+    return res.json({ sucesso: true });
+
+  } catch (err) {
+    console.error("================================");
+    console.error("ERRO AO REGISTRAR DEVOLUÇÃO");
+    console.error("Mensagem:", err.message);
+    console.error("SQL:", err.sqlMessage);
+    console.error("Código:", err.code);
+    console.error(err);
+    console.error("================================");
+
+    return res.status(500).json({
+      message: err.message,
+      sql: err.sqlMessage,
+      code: err.code
+    });
   }
 }
 
@@ -79,12 +131,11 @@ export async function marcarRetirado(req, res) {
 
 export async function marcarConferencia(req, res) {
   try {
-    const id = req.params.id;
-    await service.marcarConferencia(id);
-    return res.json({ sucesso: true });
+    await service.marcarConferencia(req.params.id);
+    res.json({ sucesso: true });
   } catch (err) {
-    console.error('Erro marcarConferencia:', err);
-    return res.status(500).json({ message: 'Erro ao marcar conferência' });
+    console.error(err);
+    res.status(500).json({ message: "Erro ao marcar conferência" });
   }
 }
 

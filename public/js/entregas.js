@@ -85,6 +85,8 @@ const orderStatusBadge = (status) => {
 let orders = [];
 let activeKpiFilter = null;
 let currentOrderId = null;
+let currentReturnItems = [];
+let currentOrderContext = null;
 
 const getFilters = () => {
   const params = new URLSearchParams();
@@ -113,6 +115,7 @@ const normalizeOrder = (o) => {
     cpf: o.cpf || "-",
     valor_total: Number(o.valor_total || 0),
     valor_pago: Number(o.valor_pago || 0),
+    conferencia_finalizada: Number(o.conferencia_finalizada || 0) === 1,
     endereco_rua: o.endereco_rua || o.rua || "",
     endereco_numero: o.endereco_numero || o.numero || "",
     endereco_bairro: o.endereco_bairro || o.bairro || "",
@@ -121,6 +124,8 @@ const normalizeOrder = (o) => {
     endereco_cep: o.endereco_cep || o.cep || "",
     itens: Array.isArray(o.itens) ? o.itens : [],
     pagamentos: Array.isArray(o.pagamentos) ? o.pagamentos : [],
+    ocorrencias: Array.isArray(o.ocorrencias) ? o.ocorrencias : [],
+    devolucoes: Array.isArray(o.devolucoes) ? o.devolucoes : [],
   };
 };
 
@@ -250,71 +255,121 @@ const renderOrderHeader = (order) => {
 };
 
 const renderTimeline = (order) => {
-  const hasPayment = order.pagamentos?.length > 0;
-  const inPreparo = ["EM_PREPARO", "ENTREGUE", "RETIRADO", "CONFERENCIA", "PENDENTE", "FINALIZADO"].includes(order.status);
-  const isDelivered = ["ENTREGUE", "RETIRADO", "CONFERENCIA", "PENDENTE", "FINALIZADO"].includes(order.status);
-  const inConference = ["CONFERENCIA", "PENDENTE", "FINALIZADO"].includes(order.status);
-  const doneFinalizado = order.status === "FINALIZADO";
+  const itens = Array.isArray(order.itens) ? order.itens : [];
+  const pagamentos = Array.isArray(order.pagamentos) ? order.pagamentos : [];
+  const devolucoes = Array.isArray(order.devolucoes) ? order.devolucoes : [];
+
+  const createdDate = order.data_pedido || order.data_evento || null;
+  const firstPayment = pagamentos
+    .filter((payment) => Number(payment.valor || payment.valor_pago || 0) > 0)
+    .sort((a, b) => new Date(a.data_pagamento || 0) - new Date(b.data_pagamento || 0))[0] || null;
+
+  const deliveredStatuses = ["ENTREGUE", "RETIRADO", "CONFERENCIA", "PENDENTE", "FINALIZADO"];
+  const isDelivered = Boolean(order.data_entrega) || deliveredStatuses.includes(order.status);
+
+  const totalQty = itens.reduce((sum, item) => sum + Number(item.quantidade || 0), 0);
+  const returnedQty = itens.reduce((sum, item) => sum + Number(item.quantidade_devolvida || 0), 0);
+  const pendingReturnQty = Math.max(0, totalQty - returnedQty);
+  const allItemsReturned = totalQty === 0 || returnedQty >= totalQty;
+  const conferenceCompleted = Boolean(order.conferencia_finalizada);
+
+  const totalValue = Number(order.valor_total || 0);
+  const paidValue = Number(order.valor_pago || 0);
+  const paymentComplete = paidValue >= totalValue;
+  const finalStepCompleted = order.status === "FINALIZADO";
+
+  const pendingReasons = [];
+  if (!paymentComplete) {
+    pendingReasons.push(`Falta pagamento de ${formatMoney(Math.max(0, totalValue - paidValue))}`);
+  }
+  if (!allItemsReturned) {
+    pendingReasons.push(`${pendingReturnQty} item${pendingReturnQty === 1 ? "" : "s"} ainda ${pendingReturnQty === 1 ? "não foi" : "não foram"} devolvido${pendingReturnQty === 1 ? "" : "s"}`);
+  }
+  if (!conferenceCompleted) {
+    pendingReasons.push("Conferência dos itens pendente");
+  }
 
   const steps = [
     {
       title: "Pedido criado",
-      done: true,
-      meta: formatDateTime(order.data_pedido || order.data_pedido),
-      color: "success",
+      state: "done",
+      label: "Concluído",
+      icon: "✓",
+      meta: createdDate ? formatDateTime(createdDate) : "Data de criação não informada",
     },
     {
-      title: "Pagamento inicial",
-      done: hasPayment,
-      meta: hasPayment ? `${formatDateTime(order.pagamentos[0].data_pagamento)} • ${order.pagamentos[0].forma_pagamento}` : "Aguardando pagamento",
-      color: hasPayment ? "success" : "muted",
+      title: "Primeiro pagamento",
+      state: firstPayment ? "done" : "waiting",
+      label: firstPayment ? "Concluído" : "Aguardando",
+      icon: firstPayment ? "✓" : "●",
+      meta: firstPayment
+        ? `${formatDateTime(firstPayment.data_pagamento)} • ${formatMoney(firstPayment.valor || 0)}`
+        : "Ainda não há pagamento registrado",
     },
     {
-      title: "Em preparo",
-      done: inPreparo,
-      meta: inPreparo ? "Preparando entrega" : "Pendente",
-      color: inPreparo ? "warning" : "muted",
+      title: "Pedido entregue",
+      state: isDelivered ? "done" : "waiting",
+      label: isDelivered ? "Concluído" : "Aguardando",
+      icon: isDelivered ? "✓" : "●",
+      meta: isDelivered
+        ? `${order.responsavel_entrega || "Responsável não informado"} • ${formatDateTime(order.data_entrega || order.data_retirada || order.data_evento)}`
+        : "Entrega ainda não confirmada",
     },
     {
-      title: "Entrega",
-      done: isDelivered,
-      meta: order.data_entrega ? formatDateTime(order.data_entrega) : "Aguardando entrega",
-      color: isDelivered ? "info" : "muted",
-    },
-    {
-      title: "Retirada",
-      done: !!order.data_retirada,
-      meta: order.data_retirada ? formatDateTime(order.data_retirada) : "Aguardando retirada",
-      color: order.data_retirada ? "info" : "muted",
+      title: "Devolução",
+      state: allItemsReturned ? "done" : pendingReturnQty > 0 ? "pending" : "waiting",
+      label: allItemsReturned ? "Concluído" : pendingReturnQty > 0 ? "Pendência" : "Aguardando",
+      icon: allItemsReturned ? "✓" : pendingReturnQty > 0 ? "!" : "●",
+      meta: allItemsReturned
+        ? `${devolucoes[devolucoes.length - 1]?.responsavel || "Responsável não informado"} • ${formatDateTime(devolucoes[devolucoes.length - 1]?.data_devolucao || order.data_retirada)}`
+        : pendingReturnQty > 0
+          ? `${pendingReturnQty} item${pendingReturnQty === 1 ? "" : "s"} ainda pendente${pendingReturnQty === 1 ? "" : "s"}`
+          : "Aguardando devolução",
     },
     {
       title: "Conferência",
-      done: inConference,
-      meta: inConference ? "Em conferência ou finalizado" : "Pendente",
-      color: inConference ? "info" : "muted",
+      state: conferenceCompleted ? "done" : "waiting",
+      label: conferenceCompleted ? "Concluído" : "Aguardando",
+      icon: conferenceCompleted ? "✓" : "●",
+      meta: conferenceCompleted
+        ? "Conferência finalizada"
+        : "Aguardando finalização da conferência",
     },
     {
-      title: "Finalizado",
-      done: doneFinalizado,
-      meta: doneFinalizado ? "Concluído" : "Em aberto",
-      color: doneFinalizado ? "success" : "muted",
+      title: finalStepCompleted ? "Pedido finalizado" : "Pendências",
+      state: finalStepCompleted ? "done" : "pending",
+      label: finalStepCompleted ? "Concluído" : "Pendência",
+      icon: finalStepCompleted ? "✓" : "!",
+      meta: finalStepCompleted ? "Todos os critérios do aluguel foram concluídos" : pendingReasons.join(" • "),
     },
   ];
 
+  const getStepStyle = (state) => {
+    if (state === "done") return { border: "1px solid #bbf7d0", background: "#f0fdf4", dot: "#16a34a", text: "#166534" };
+    if (state === "pending") return { border: "1px solid #fde68a", background: "#fffbeb", dot: "#d97706", text: "#92400e" };
+    return { border: "1px solid #e5e7eb", background: "#f8fafc", dot: "#94a3b8", text: "#475569" };
+  };
+
   $("m-timeline").innerHTML = `
-    <div class="timeline-steps">
+    <div style="display:flex; flex-direction:column; gap:10px;">
       ${steps
-        .map(
-          (step, index) => `
-            <div class="timeline-step ${step.done ? "done" : "pending"}">
-              <div class="marker">${index + 1}</div>
-              <div class="step-body">
-                <div class="step-title">${step.title}</div>
-                <div class="step-meta ${step.color}">${step.meta}</div>
+        .map((step) => {
+          const style = getStepStyle(step.state);
+          return `
+            <div style="display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border-radius:12px; border:${style.border}; background:${style.background};">
+              <div style="width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; background:${style.dot}; flex-shrink:0;">
+                ${step.icon}
+              </div>
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;">
+                  <strong style="font-size:14px; color:${style.text};">${step.title}</strong>
+                  <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:${style.text};">${step.label}</span>
+                </div>
+                <div style="margin-top:4px; font-size:12px; color:#64748b; line-height:1.4;">${step.meta}</div>
               </div>
             </div>
-          `
-        )
+          `;
+        })
         .join("")}
     </div>
   `;
@@ -427,178 +482,204 @@ const renderOrderPanels = (order) => {
     </div>
   `;
 
-  const deliveryDate = order.data_entrega ? formatDate(order.data_entrega) : "-";
-  const pickupDate = order.data_retirada ? formatDate(order.data_retirada) : "-";
+  const deliveryDate = order.data_entrega ? formatDateTime(order.data_entrega_hora || order.data_entrega) : "-";
+  const pickupDate = order.data_retirada ? formatDateTime(order.data_retirada_hora || order.data_retirada) : "-";
+  const deliveredItems = (order.itens || []).reduce((sum, item) => sum + Number(item.quantidade_entregue || 0), 0);
+  const returnedItems = (order.itens || []).reduce((sum, item) => sum + Number(item.quantidade_devolvida || 0), 0);
+  const pendingItems = Math.max(0, deliveredItems - returnedItems);
 
-  $("m-log").innerHTML = `
-    <div class="data-grid" style="gap:16px;">
-      <div class="section-card">
-        <div class="section-title">Entrega</div>
-        <div class="field-row"><span class="l">Data</span><span class="v">${deliveryDate}</span></div>
-        <div class="field-row"><span class="l">Motorista</span><span class="v">${order.motorista || "-"}</span></div>
-        <div class="field-row"><span class="l">Veículo</span><span class="v">${order.veiculo || "-"}</span></div>
-        <div class="field-row"><span class="l">Responsável</span><span class="v">${order.responsavel_entrega || "-"}</span></div>
-      </div>
-      <div class="section-card">
-        <div class="section-title">Retirada</div>
-        <div class="field-row"><span class="l">Data</span><span class="v">${pickupDate}</span></div>
-        <div class="field-row"><span class="l">Responsável</span><span class="v">${order.responsavel_retirada || "-"}</span></div>
-        <div class="field-row"><span class="l">Observação</span><span class="v">${order.observacao_retirada || "-"}</span></div>
-      </div>
-    </div>
-  `;
+  const itemRows = (order.itens || [])
+    .map((item) => {
+      const enviada = Number(item.quantidade || 0);
+      const entregue = Number(item.quantidade_entregue || 0);
+      const devolvida = Number(item.quantidade_devolvida || 0);
+      const faltante = Math.max(0, entregue - devolvida);
+      const danificada = 0;
+      return `
+        <tr>
+          <td>${item.produto_nome || item.nome || "-"}</td>
+          <td>${enviada}</td>
+          <td>${entregue}</td>
+          <td>${devolvida}</td>
+          <td>${faltante}</td>
+          <td>${danificada}</td>
+        </tr>
+      `;
+    })
+    .join("") || `<tr><td colspan="6" style="text-align:center; color:#6b7280;">Nenhum item cadastrado</td></tr>`;
 
-  const logActions = document.createElement("div");
-  logActions.style.marginTop = "10px";
   const actionButtons = [];
-
   if (["CONFIRMADO", "EM_PREPARO"].includes(order.status)) {
-    actionButtons.push(`<button class="btn-primary btn" onclick="markEntregue(${order.id})">Marcar como Entregue</button>`);
+    actionButtons.push(`<button class="btn-primary btn" id="show-delivery-modal" type="button">Marcar como Entregue</button>`);
   }
-
   if (order.status === "ENTREGUE") {
-    actionButtons.push(`<button class="btn-primary btn" onclick="markRetirado(${order.id})">Marcar como Retirado</button>`);
+    actionButtons.push(`<button class="btn-primary btn" id="show-return-modal" type="button">Registrar Devolução</button>`);
   }
-
   if (["RETIRADO", "PENDENTE"].includes(order.status)) {
     actionButtons.push(`<button class="btn-primary btn" onclick="markConferencia(${order.id})">Iniciar Conferência</button>`);
   }
-
   if (["CONFERENCIA", "PENDENTE"].includes(order.status)) {
     actionButtons.push(`<button class="btn btn" onclick="finalizarConferencia(${order.id})">Finalizar Conferência</button>`);
   }
 
-  if (actionButtons.length) {
-    logActions.innerHTML = `
-      <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-        ${actionButtons.join("")}
+  $("m-log").innerHTML = `
+    <div style="display:grid; gap:16px;">
+      <div class="grid grid-2" style="gap:16px;">
+        <div class="section-card">
+          <div class="section-title">Entrega</div>
+          <div class="field-row"><span class="l">Data</span><span class="v">${deliveryDate}</span></div>
+          <div class="field-row"><span class="l">Responsável</span><span class="v">${order.responsavel_entrega || "-"}</span></div>
+          <div class="field-row"><span class="l">Observação</span><span class="v">${order.observacao_entrega || "-"}</span></div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">Retirada</div>
+          <div class="field-row"><span class="l">Data</span><span class="v">${pickupDate}</span></div>
+          <div class="field-row"><span class="l">Responsável</span><span class="v">${order.responsavel_retirada || "-"}</span></div>
+          <div class="field-row"><span class="l">Observação</span><span class="v">${order.observacao_retirada || "-"}</span></div>
+        </div>
       </div>
-    `;
-    $("m-log").appendChild(logActions);
-  }
 
-  // adicionar botão de registrar pagamento no financeiro
+      <div class="section-card">
+        <div class="section-title">Controle de itens</div>
+        <table class="table-bordered" style="width:100%; margin-top:12px;">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Enviada</th>
+              <th>Entregue</th>
+              <th>Devolvida</th>
+              <th>Faltante</th>
+              <th>Danificada</th>
+            </tr>
+          </thead>
+          <tbody>${itemRows}</tbody>
+        </table>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">Resumo da devolução</div>
+        <div class="grid grid-3" style="margin-top:10px; gap:12px;">
+          <div class="field-row"><span class="l">Quantidade entregue</span><span class="v">${deliveredItems}</span></div>
+          <div class="field-row"><span class="l">Quantidade devolvida</span><span class="v">${returnedItems}</span></div>
+          <div class="field-row"><span class="l">Quantidade pendente</span><span class="v">${pendingItems}</span></div>
+        </div>
+        ${actionButtons.length ? `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">${actionButtons.join("")}</div>` : ""}
+      </div>
+    </div>
+  `;
+
   const finActions = document.createElement("div");
   finActions.style.marginTop = "12px";
   finActions.innerHTML = `
-    <div style="display:flex; gap:8px;">
-      <button class="btn-primary btn" id="show-pay-form">Registrar Pagamento</button>
-      <button class="btn btn" id="gen-charge">Gerar Cobrança Extra</button>
-    </div>
-    <div id="m-pay-form" style="margin-top:12px; display:none;">
-      <div style="display:flex; gap:8px; max-width:520px;">
-        <input id="pay-valor" placeholder="Valor" />
-        <select id="pay-forma"><option value="PIX">PIX</option><option value="DINHEIRO">DINHEIRO</option><option value="CARTAO_DEBITO">CARTAO_DEBITO</option><option value="CARTAO_CREDITO">CARTAO_CREDITO</option></select>
-      </div>
-      <div style="margin-top:8px; display:flex; gap:8px;">
-        <input id="pay-obs" placeholder="Observação" style="flex:1;" />
-        <button class="btn-primary btn" id="submit-pay">Salvar</button>
-      </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn-primary btn" id="show-pay-form" type="button">Registrar Pagamento</button>
+      <button class="btn btn" id="gen-charge" type="button">Gerar Cobrança</button>
     </div>
   `;
   $("m-fin").appendChild(finActions);
 
-  $("show-pay-form").addEventListener("click", () => {
-    const f = $("m-pay-form");
-    f.style.display = f.style.display === "none" ? "block" : "none";
-  });
-
-  $("submit-pay").addEventListener("click", async () => {
-    const valor = parseFloat($("pay-valor").value.replace(',', '.')) || 0;
-    const forma_pagamento = $("pay-forma").value;
-    const observacao = $("pay-obs").value;
-    try {
-      const res = await fetch(`/entregas/pedidos/${order.id}/pagamentos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ valor, forma_pagamento, observacao })
-      });
-      if (!res.ok) throw new Error('Falha ao salvar pagamento');
-      alert('Pagamento registrado');
-      openOrderModal(order.id);
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao registrar pagamento');
+  setTimeout(() => {
+    const deliveryBtn = document.getElementById("show-delivery-modal");
+    if (deliveryBtn) {
+      deliveryBtn.addEventListener("click", () => openDeliveryModal(order));
     }
-  });
-
-  $("gen-charge").addEventListener("click", async () => {
-    const amount = prompt('Valor da cobrança extra (use ponto decimal):');
-    if (!amount) return;
-    const val = parseFloat(amount);
-    if (Number.isNaN(val)) return alert('Valor inválido');
-    try {
-      const res = await fetch(`/entregas/pedidos/${order.id}/ocorrencias`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipo: 'Cobranca Extra', descricao: 'Cobrança gerada pelo usuário', valor: val })
-      });
-      if (!res.ok) throw new Error('Falha ao gerar cobrança');
-      alert('Cobrança registrada como ocorrência');
-      openOrderModal(order.id);
-    } catch (err) {
-      console.error(err);
-      alert('Erro ao gerar cobrança');
+    const returnBtn = document.getElementById("show-return-modal");
+    if (returnBtn) {
+      returnBtn.addEventListener("click", () => openReturnModal(order));
     }
+  }, 0);
+
+  const openFinanceModal = (mode) => {
+    const modal = $("finance-modal");
+    const title = $("finance-modal-title");
+    const valor = $("finance-valor");
+    const descricao = $("finance-descricao");
+    const confirmBtn = $("finance-confirm-btn");
+    const formaPagamentoSelect = $("finance-forma-pagamento");
+    const methodGroup = $("finance-method-group");
+
+    title.textContent = mode === "payment" ? "Registrar pagamento" : "Gerar cobrança";
+    valor.value = "";
+    descricao.value = "";
+    formaPagamentoSelect.value = "";
+    methodGroup.style.display = mode === "payment" ? "block" : "none";
+    modal.dataset.mode = mode;
+    modal.classList.add("open");
+    valor.focus();
+
+    confirmBtn.onclick = async () => {
+      const value = Number(parseFloat(valor.value.replace(',', '.')) || 0);
+      const text = (descricao.value || "").trim();
+
+      if (!value || value <= 0) {
+        alert("Informe um valor válido.");
+        return;
+      }
+
+      if (!text) {
+        alert("Informe uma descrição ou observação.");
+        return;
+      }
+
+      try {
+        if (mode === "payment") {
+          const metodo = (formaPagamentoSelect.value || "").trim();
+          if (!metodo) {
+            alert("Selecione a forma de pagamento.");
+            return;
+          }
+
+          const res = await fetch(`/entregas/pedidos/${order.id}/pagamentos`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ valor: value, forma_pagamento: metodo, observacao: text })
+          });
+          if (!res.ok) throw new Error("Falha ao salvar pagamento");
+        } else {
+          const res = await fetch(`/entregas/pedidos/${order.id}/ocorrencias`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tipo: "COBRANCA", descricao: text, valor: value })
+          });
+          if (!res.ok) throw new Error("Falha ao gerar cobrança");
+        }
+
+        closeFinanceModal();
+        openOrderModal(order.id);
+      } catch (err) {
+        console.error(err);
+        alert(mode === "payment" ? "Erro ao registrar pagamento" : "Erro ao gerar cobrança");
+      }
+    };
+  };
+
+  const closeFinanceModal = () => {
+    $("finance-modal").classList.remove("open");
+  };
+
+  $("show-pay-form").addEventListener("click", () => openFinanceModal("payment"));
+  $("gen-charge").addEventListener("click", () => openFinanceModal("charge"));
+  $("finance-cancel-btn").addEventListener("click", closeFinanceModal);
+  $("finance-modal").addEventListener("click", (event) => {
+    if (event.target.id === "finance-modal") closeFinanceModal();
+  });
+  $("delivery-cancel-btn").addEventListener("click", closeDeliveryModal);
+  $("delivery-confirm-btn").addEventListener("click", markEntregue);
+  $("delivery-modal").addEventListener("click", (event) => {
+    if (event.target.id === "delivery-modal") closeDeliveryModal();
+  });
+  $("return-cancel-btn").addEventListener("click", closeReturnModal);
+  $("return-confirm-btn").addEventListener("click", submitReturn);
+  $("return-modal").addEventListener("click", (event) => {
+    if (event.target.id === "return-modal") closeReturnModal();
   });
 
-  const devolucaoRows = order.itens
-    .map((item) => {
-      const missing = Math.max(0, item.quantidade - (Number(item.quantidade_entregue) || 0));
-      const damaged = 0;
-      return `
-        <tr>
-          <td>${item.produto_nome || item.nome || "-"}</td>
-          <td>${item.quantidade}</td>
-          <td>${item.quantidade_entregue || 0}</td>
-          <td>${item.quantidade_devolvida || 0}</td>
-          <td>${missing}</td>
-          <td>${damaged}</td>
-        </tr>
-      `;
-    })
-    .join("") || `<tr><td colspan="6" style="text-align:center; color:#6b7280;">Nenhum item registrado</td></tr>`;
-
-  $("m-dev").innerHTML = `
-    <div class="section-card">
-      <div class="section-title">Conferência de itens</div>
-      <table class="table-bordered" style="width:100%; margin-top:12px;">
-        <thead>
-          <tr>
-            <th>Produto</th>
-            <th>Enviado</th>
-            <th>Entregue</th>
-            <th>Devolvido</th>
-            <th>Faltante</th>
-            <th>Danificado</th>
-          </tr>
-        </thead>
-        <tbody>${devolucaoRows}</tbody>
-      </table>
-    </div>
-  `;
-
-  // botões na aba Devolução
-  const devActions = document.createElement('div');
-  devActions.style.marginTop = '10px';
-  const devButtons = [];
-  if (order.status === 'ENTREGUE') {
-    devButtons.push(`<button class="btn-primary btn" onclick="markRetirado(${order.id})">Marcar como Retirado</button>`);
-  }
-  if (['RETIRADO', 'PENDENTE'].includes(order.status)) {
-    devButtons.push(`<button class="btn-primary btn" onclick="markConferencia(${order.id})">Iniciar Conferência</button>`);
-  }
-  if (['CONFERENCIA', 'PENDENTE'].includes(order.status)) {
-    devButtons.push(`<button class="btn btn" onclick="finalizarConferencia(${order.id})">Finalizar Conferência</button>`);
-  }
-  if (devButtons.length) {
-    devActions.innerHTML = `
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        ${devButtons.join('')}
-      </div>
-    `;
-    $("m-dev").appendChild(devActions);
-  }
+  setTimeout(() => {
+    const returnBtn = document.getElementById("show-return-modal");
+    if (returnBtn) {
+      returnBtn.addEventListener("click", () => openReturnModal(order));
+    }
+  }, 0);
 
   const occurrences = [];
   if (order.observacoes) occurrences.push({ date: order.data_pedido, type: "Observação", description: order.observacoes });
@@ -636,18 +717,134 @@ const renderOrderPanels = (order) => {
   $("oco-submit").addEventListener('click', () => submitOcorrencia(order.id));
 };
 
+const openDeliveryModal = (order) => {
+  currentOrderContext = order;
+  const modal = $("delivery-modal");
+  $("delivery-datetime").value = order.data_entrega_hora ? order.data_entrega_hora.slice(0, 16) : new Date().toISOString().slice(0, 16);
+  $("delivery-responsavel").value = order.responsavel_entrega || "";
+  $("delivery-observacao").value = order.observacao_entrega || "";
+  modal.classList.add("open");
+};
+
+const closeDeliveryModal = () => {
+  $("delivery-modal").classList.remove("open");
+};
+
+const openReturnModal = (order) => {
+  currentOrderContext = order;
+  currentReturnItems = (order.itens || []).map((item) => ({
+    produto_id: item.produto_id,
+    nome: item.produto_nome || item.nome || "Produto",
+    quantidade: Number(item.quantidade || 0),
+    quantidade_devolvida: Number(item.quantidade_devolvida || 0),
+    quantidade_pendente: Math.max(0, Number(item.quantidade || 0) - Number(item.quantidade_devolvida || 0)),
+  })).filter((item) => item.quantidade_pendente > 0);
+
+  const body = $("return-modal-body");
+  body.innerHTML = `
+    <div class="return-items">
+      <table style="width:100%;">
+        <thead><tr><th>Produto</th><th>Alugado</th><th>Devolvido</th><th>Pendente</th><th>Qtd. devolvida</th></tr></thead>
+        <tbody>
+          ${currentReturnItems.map((item, index) => `
+            <tr>
+              <td>${item.nome}</td>
+              <td>${item.quantidade}</td>
+              <td>${item.quantidade_devolvida}</td>
+              <td>${item.quantidade_pendente}</td>
+              <td><input type="number" min="0" max="${item.quantidade_pendente}" value="0" data-index="${index}" /></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+      <div style="margin-top:10px;">
+        <label>Responsável</label>
+        <input id="return-responsavel" placeholder="Nome do responsável" />
+      </div>
+      <div style="margin-top:10px;">
+        <label>Observação</label>
+        <textarea id="return-observacao" rows="3" placeholder="Informações da devolução"></textarea>
+      </div>
+    </div>
+  `;
+  $("return-modal").classList.add("open");
+};
+
+const closeReturnModal = () => {
+  $("return-modal").classList.remove("open");
+};
+
 // Ações de backend chamadas pela UI
-const markEntregue = async (id) => {
-  if (!confirm('Confirmar marcar como entregue?')) return;
+const markEntregue = async () => {
+  const order = currentOrderContext;
+  if (!order) return;
+  const datetime = $("delivery-datetime").value;
+  const responsavel = $("delivery-responsavel").value.trim();
+  const observacao = $("delivery-observacao").value.trim();
+
+  if (!datetime || !responsavel) {
+    alert("Informe a data/hora e o responsável da entrega.");
+    return;
+  }
+
   try {
-    const res = await fetch(`/entregas/pedidos/${id}/marcar-entregue`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({}) });
+    const res = await fetch(`/entregas/pedidos/${order.id}/marcar-entregue`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ data_entrega: datetime, responsavel_entrega: responsavel, observacao_entrega: observacao, usuario_id: 1 })
+    });
     if (!res.ok) throw new Error('Falha ao marcar entregue');
-    alert('Pedido marcado como entregue');
-    openOrderModal(id);
-    loadOrders();
+    closeDeliveryModal();
+    await openOrderModal(order.id);
+    await loadOrders();
   } catch (err) {
     console.error(err);
     alert('Erro ao marcar entregue');
+  }
+};
+
+const submitReturn = async () => {
+  const order = currentOrderContext;
+  if (!order) return;
+
+  const rows = Array.from(document.querySelectorAll("#return-modal-body input[type='number']"));
+  const itens = rows.map((input) => {
+    const index = Number(input.dataset.index || 0);
+    const item = currentReturnItems[index];
+    const qtd = Number(input.value || 0);
+    return {
+      produto_id: item.produto_id,
+      quantidade_devolvida: qtd,
+      observacao: "",
+    };
+  }).filter((item) => item.quantidade_devolvida > 0);
+
+  const responsavel = $("return-responsavel").value.trim();
+  const observacao = $("return-observacao").value.trim();
+
+  if (!itens.length) {
+    alert("Informe ao menos uma quantidade para devolução.");
+    return;
+  }
+
+  if (!responsavel) {
+    alert("Informe o responsável pela devolução.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/entregas/pedidos/${order.id}/devolucoes`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ itens, observacao, responsavel, usuario_id: 1 })
+    });
+    if (!res.ok) throw new Error('Falha ao registrar devolução');
+    closeReturnModal();
+    await openOrderModal(order.id);
+    await loadOrders();
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao registrar devolução');
   }
 };
 
@@ -717,6 +914,7 @@ window.markRetirado = markRetirado;
 window.markConferencia = markConferencia;
 window.finalizarConferencia = finalizarConferencia;
 window.submitOcorrencia = submitOcorrencia;
+window.submitReturn = submitReturn;
 
 const openOrderModal = async (id) => {
   currentOrderId = id;
