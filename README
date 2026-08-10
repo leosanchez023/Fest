@@ -1,317 +1,2578 @@
-# Fest - Sistema de Gestão de Locações para Eventos
+<div align="center">
 
-## Visão Geral
+# Fest
 
-O Fest é uma aplicação web desenvolvida para automatizar e centralizar o gerenciamento de locações de produtos para festas e eventos.
+### Sistema Web para Gerenciamento de Empresas de Locação de Artigos para Festas
 
-O sistema foi projetado para auxiliar empresas do setor na administração de clientes, produtos, estoque, pedidos, pagamentos e devoluções, proporcionando maior controle operacional, rastreabilidade das informações e redução de erros manuais.
+<p>
+O <strong>Fest</strong> é um sistema desenvolvido para centralizar e automatizar o gerenciamento de empresas que trabalham com locação de artigos para festas, oferecendo controle completo sobre clientes, produtos, pedidos, entregas, pagamentos, fornecedores e usuários.
+</p>
 
----
+<p>
 
-## Objetivos do Projeto
+![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-5.x-000000?logo=express&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6-F7DF1E?logo=javascript&logoColor=black)
+![Handlebars](https://img.shields.io/badge/Handlebars-4.x-FF6F00?logo=handlebarsdotjs&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-success)
 
-* Centralizar informações de clientes e pedidos.
-* Controlar o estoque de produtos disponíveis para locação.
-* Gerenciar pagamentos e devoluções.
-* Facilitar o acompanhamento das operações da empresa.
-* Garantir integridade e organização dos dados.
+</p>
 
----
-
-## Principais Funcionalidades
-
-### Gestão de Clientes
-
-* Cadastro de clientes.
-* Atualização de informações cadastrais.
-* Consulta e pesquisa de clientes.
-* Exclusão de registros.
-
-### Gestão de Endereços
-
-* Cadastro de múltiplos endereços.
-* Associação de endereços aos pedidos.
-* Reutilização de endereços existentes.
-
-### Gestão de Produtos
-
-* Cadastro de produtos para locação.
-* Controle de disponibilidade.
-* Controle de estoque.
-
-### Gestão de Pedidos
-
-* Criação de pedidos.
-* Associação de clientes.
-* Associação do endereço do evento.
-* Inclusão de múltiplos itens.
-* Controle do ciclo de vida da locação.
-
-### Gestão Financeira
-
-* Registro de pagamentos.
-* Controle de valores recebidos.
-* Consulta de histórico financeiro.
-
-### Gestão de Devoluções
-
-* Registro de devoluções.
-* Atualização automática do estoque.
-* Histórico completo das devoluções.
-
-### Gestão de Usuários
-
-* Autenticação de usuários.
-* Controle de sessão.
-* Restrição de acesso a áreas protegidas.
+</div>
 
 ---
 
-## Arquitetura da Aplicação
+# 📖 Sobre o Projeto
 
-O projeto segue o padrão MVC (Model-View-Controller), promovendo separação de responsabilidades, organização do código e facilidade de manutenção.
+O **Fest** nasceu com o objetivo de facilitar a gestão completa de empresas de locação de artigos para festas, substituindo controles manuais por um sistema web moderno, intuitivo e organizado.
 
-```text
-Cliente (Navegador)
-        │
-        ▼
-      Rotas
-        │
-        ▼
-   Controllers
-        │
-        ▼
-     Models
-        │
-        ▼
-      MySQL
+O sistema reúne em um único ambiente todas as informações necessárias para o funcionamento da empresa, permitindo acompanhar desde o cadastro de clientes até a conclusão de um pedido, passando pelo controle de estoque, entregas, conferências, pagamentos e financeiro.
+
+Além de agilizar processos internos, o projeto busca reduzir erros operacionais, melhorar a organização das informações e proporcionar uma experiência mais eficiente para os colaboradores da empresa.
+
+---
+
+# 🎯 Objetivos
+
+O principal objetivo do projeto é oferecer uma solução completa para o gerenciamento operacional da empresa.
+
+Entre os objetivos estão:
+
+- Automatizar processos administrativos.
+- Centralizar todas as informações do negócio.
+- Facilitar o cadastro e gerenciamento de clientes.
+- Controlar produtos disponíveis para locação e venda.
+- Gerenciar pedidos e orçamentos.
+- Controlar entregas, retiradas e conferências.
+- Organizar o financeiro da empresa.
+- Registrar fornecedores.
+- Permitir evolução contínua do sistema através de uma arquitetura organizada.
+
+---
+
+# ✨ Principais Funcionalidades
+
+| Módulo          | Descrição                                                                         |
+| --------------- | --------------------------------------------------------------------------------- |
+| 👥 Clientes     | Cadastro, edição, pesquisa e gerenciamento de clientes.                           |
+| 📦 Produtos     | Controle de estoque, cadastro de produtos, preços de aluguel e venda.             |
+| 📑 Pedidos      | Criação de pedidos, orçamento, descontos, frete, observações e resumo automático. |
+| 🚚 Entregas     | Controle de entregas, retiradas, conferência e ocorrências.                       |
+| 💰 Financeiro   | Controle de cobranças, pagamentos e histórico financeiro.                         |
+| 🏢 Fornecedores | Cadastro e gerenciamento de fornecedores.                                         |
+| 👤 Usuários     | Controle de acesso ao sistema.                                                    |
+
+---
+
+# 🖼️ Demonstração
+
+> **Em desenvolvimento**
+
+Em breve serão adicionadas capturas de tela demonstrando as principais funcionalidades do sistema.
+
+| Tela       | Prévia |
+| ---------- | ------ |
+| Dashboard  | 📷     |
+| Clientes   | 📷     |
+| Produtos   | 📷     |
+| Pedidos    | 📷     |
+| Entregas   | 📷     |
+| Financeiro | 📷     |
+
+---
+
+# 🚀 Diferenciais do Projeto
+
+O Fest foi desenvolvido pensando em escalabilidade, organização e facilidade de manutenção.
+
+Entre seus principais diferenciais destacam-se:
+
+- Arquitetura MVC.
+- Separação entre Controllers, Services e Models.
+- Interface moderna e intuitiva.
+- Código modularizado.
+- Banco de dados relacional utilizando MySQL.
+- Organização por módulos.
+- Estrutura preparada para crescimento.
+- Fácil manutenção.
+- Preparado para trabalho em equipe utilizando Git.
+
+---
+
+# 📌 Status do Projeto
+
+| Situação                    |
+| --------------------------- |
+| 🟢 Em desenvolvimento ativo |
+
+### Funcionalidades implementadas
+
+- ✅ Clientes
+- ✅ Produtos
+- ✅ Pedidos
+- ✅ Fornecedores
+- ✅ Entregas
+- ✅ Financeiro
+- ✅ Usuários
+
+### Próximas funcionalidades
+
+- ⏳ Dashboard avançado
+- ⏳ Relatórios
+- ⏳ Agenda
+- ⏳ Notificações
+- ⏳ API pública
+- ⏳ Aplicativo Mobile
+
+# 📚 Índice
+
+## 📖 Introdução
+
+* [Sobre o Projeto](#-sobre-o-projeto)
+* [Objetivos](#-objetivos)
+* [Principais Funcionalidades](#-principais-funcionalidades)
+* [Demonstração](#️-demonstração)
+* [Diferenciais do Projeto](#-diferenciais-do-projeto)
+* [Status do Projeto](#-status-do-projeto)
+
+---
+
+## 🏗 Arquitetura
+
+* [Arquitetura do Sistema](#-arquitetura-do-sistema)
+* [Arquitetura Geral](#arquitetura-geral)
+* [Responsabilidade de cada Camada](#responsabilidade-de-cada-camada)
+* [Fluxo da Aplicação](#-fluxo-da-aplicação)
+* [Estrutura do Projeto](#-estrutura-do-projeto)
+* [Organização das Pastas](#-organização-das-pastas)
+* [Tecnologias Utilizadas](#-tecnologias-utilizadas)
+* [Organização dos Módulos](#-organização-dos-módulos)
+* [Princípios Utilizados](#-princípios-utilizados)
+* [Escalabilidade](#-escalabilidade)
+
+---
+
+## ⚙️ Instalação
+
+* [Pré-requisitos](#️-pré-requisitos)
+* [Instalação](#-instalação)
+* [Clonando o Projeto](#-clonando-o-projeto)
+* [Instalando as Dependências](#-instalando-as-dependências)
+* [Configuração das Variáveis de Ambiente](#-configuração-das-variáveis-de-ambiente)
+* [Configuração do Banco de Dados](#️-configuração-do-banco-de-dados)
+* [Executando a Aplicação](#️-executando-a-aplicação)
+* [Estrutura Inicial Após a Instalação](#-estrutura-inicial-após-a-instalação)
+* [Fluxo de Inicialização](#-fluxo-de-inicialização)
+* [Verificando o Funcionamento](#-verificando-o-funcionamento)
+
+---
+
+## 🏗 Backend
+
+* [Arquitetura do Backend](#-arquitetura-do-backend)
+* [Organização do Backend](#-organização-do-backend)
+* [Arquitetura em Camadas](#-arquitetura-em-camadas)
+* [Fluxo de uma Requisição](#-fluxo-de-uma-requisição)
+* [Rotas](#-rotas-routes)
+* [Controllers](#-controllers)
+* [Services](#️-services)
+* [Models](#-models)
+* [Middlewares](#-middlewares)
+* [Autenticação](#-autenticação)
+* [Organização por Módulos](#-organização-por-módulos)
+* [Fluxo Completo de um Pedido](#-fluxo-completo-de-um-pedido)
+* [Vantagens da Arquitetura](#-vantagens-da-arquitetura)
+* [Boas Práticas Adotadas](#-boas-práticas-adotadas)
+
+---
+
+## 🖥 Frontend
+
+* [Frontend](#-frontend)
+* [Arquitetura do Frontend](#-arquitetura-do-frontend)
+* [Estrutura do Frontend](#-estrutura-do-frontend)
+* [Views](#-views)
+* [Layouts](#-layouts)
+* [Partials](#-partials)
+* [Pages](#-pages)
+* [Organização do CSS](#-organização-do-css)
+* [Organização do JavaScript](#-organização-do-javascript)
+* [Módulo de Clientes](#-módulo-de-clientes)
+* [Módulo de Produtos](#-módulo-de-produtos)
+* [Módulo de Pedidos](#-módulo-de-pedidos)
+* [Módulo de Entregas](#-módulo-de-entregas)
+* [Módulo Financeiro](#-módulo-financeiro)
+* [Módulo de Fornecedores](#-módulo-de-fornecedores)
+* [Módulo de Usuários](#-módulo-de-usuários)
+* [Fluxo da Interface](#-fluxo-da-interface)
+* [Responsividade](#-responsividade)
+* [Recursos da Interface](#-recursos-da-interface)
+* [Boas Práticas Utilizadas](#-boas-práticas-utilizadas)
+
+---
+
+## 🗄 Banco de Dados
+
+* [Banco de Dados](#-banco-de-dados)
+* [Objetivos da Modelagem](#-objetivos-da-modelagem)
+* [Arquitetura da Persistência](#-arquitetura-da-persistência)
+* [Modelo Conceitual](#-modelo-conceitual)
+* [Visão Geral das Entidades](#-visão-geral-das-entidades)
+* [Tabela de Clientes](#-tabela-de-clientes)
+* [Tabela de Endereços](#-tabela-de-endereços)
+* [Tabela de Produtos](#-tabela-de-produtos)
+* [Tabela de Pedidos](#-tabela-de-pedidos)
+* [Tabela de Itens do Pedido](#-tabela-de-itens-do-pedido)
+* [Tabela de Pagamentos](#-tabela-de-pagamentos)
+* [Tabela de Usuários](#-tabela-de-usuários)
+* [Tabela de Fornecedores](#-tabela-de-fornecedores)
+* [Relacionamentos](#-relacionamentos)
+* [Integridade Referencial](#-integridade-referencial)
+* [Fluxo de Persistência](#-fluxo-de-persistência)
+* [Índices e Desempenho](#-índices-e-desempenho)
+* [Segurança dos Dados](#-segurança-dos-dados)
+* [Backup e Recuperação](#-backup-e-recuperação)
+* [Evolução da Modelagem](#-evolução-da-modelagem)
+
+---
+
+## 👨‍💻 Desenvolvimento
+
+* [Fluxo de Desenvolvimento](#-fluxo-de-desenvolvimento)
+* [Objetivos do Fluxo de Desenvolvimento](#-objetivos-do-fluxo-de-desenvolvimento)
+* [Estratégia de Branches](#-estratégia-de-branches)
+* [Fluxo de Trabalho](#-fluxo-de-trabalho)
+* [Convenção de Commits](#-convenção-de-commits)
+* [Padrões de Código](#-padrões-de-código)
+* [Organização dos Arquivos](#-organização-dos-arquivos)
+* [Boas Práticas](#-boas-práticas)
+* [Testes](#-testes)
+* [Guia de Contribuição](#-guia-de-contribuição)
+* [Checklist para Pull Request](#-checklist-para-pull-request)
+* [Revisão de Código](#-revisão-de-código)
+* [Evolução Contínua](#-evolução-contínua)
+
+---
+
+## 🚀 Futuro do Projeto
+
+* [Roadmap](#-roadmap)
+* [Planejamento das Versões](#-planejamento-das-versões)
+* [Perguntas Frequentes](#-perguntas-frequentes-faq)
+* [Estatísticas do Projeto](#-estatísticas-do-projeto)
+* [Documentação](#-documentação)
+* [Licença](#-licença)
+* [Equipe](#-equipe)
+* [Agradecimentos](#-agradecimentos)
+* [Contato](#-contato)
+* [Apoie o Projeto](#-apoie-o-projeto)
+
+
+---
+
+ # 🏛 Arquitetura do Sistema
+
+O **Fest** foi desenvolvido utilizando a arquitetura **MVC (Model-View-Controller)**, proporcionando uma separação clara entre interface, regras de negócio e acesso aos dados.
+
+Essa arquitetura facilita a manutenção do código, melhora a organização do projeto e torna a inclusão de novas funcionalidades muito mais simples.
+
+## Arquitetura Geral
+
+```mermaid
+flowchart LR
+
+A[Usuário] --> B[Navegador]
+
+B --> C[Routes]
+C --> D[Controllers]
+D --> E[Services]
+E --> F[Models]
+F --> G[(MySQL)]
+
 ```
 
 ---
 
-## Tecnologias Utilizadas
+## Responsabilidade de cada camada
 
-### Back-end
-
-* Node.js
-* Express.js
-* MySQL2
-* Passport.js
-* Express Session
-* Connect Flash
-* Dotenv
-
-### Front-end
-
-* HTML5
-* CSS3
-* JavaScript
-* Handlebars
-
-### Banco de Dados
-
-* MySQL 8+
-
-### Ferramentas de Desenvolvimento
-
-* Git
-* GitHub
-* Visual Studio Code
-* Nodemon
+| Camada          | Responsabilidade                                       |
+| --------------- | ------------------------------------------------------ |
+| **Views**       | Interface apresentada ao usuário.                      |
+| **Routes**      | Define as rotas disponíveis no sistema.                |
+| **Controllers** | Recebe as requisições e coordena o fluxo da aplicação. |
+| **Services**    | Contém todas as regras de negócio.                     |
+| **Models**      | Comunicação direta com o banco de dados.               |
+| **Database**    | Armazena todas as informações do sistema.              |
 
 ---
 
-## Estrutura do Projeto
+# 🔄 Fluxo da Aplicação
+
+Sempre que uma ação é realizada pelo usuário, o sistema segue o fluxo abaixo.
+
+```mermaid
+flowchart TD
+
+A[Usuário]
+
+A --> B[Interface]
+B --> C[Rota]
+C --> D[Controller]
+D --> E[Service]
+E --> F[Model]
+F --> G[(Banco de Dados)]
+
+```
+
+---
+
+# 📂 Estrutura do Projeto
+
+A organização do projeto foi planejada para facilitar manutenção, escalabilidade e trabalho em equipe.
 
 ```text
-fest/
+Fest/
 │
-├── backups/
-├── config/
-├── controllers/
-├── database/
-├── middleware/
-├── models/
-├── public/
-│   ├── css/
-│   ├── js/
-│   ├── img/
-│   └── uploads/
-├── routes/
-├── views/
-├── .env
-├── .gitignore
 ├── app.js
 ├── package.json
-└── README.md
+├── package-lock.json
+├── .env.example
+├── .gitignore
+├── README.md
+│
+├── database/                            # Arquivos relacionados ao banco de dados.
+│   │
+|   ├── backups/                             # Cópias de segurança do projeto.
+|   │   │
+|   │   └── backups/                           # Backups completos do banco de dados.
+|   |
+│   ├── migrations/                      # Scripts para criação e alteração da estrutura do banco.
+│   ├── seed.sql                         # Dados iniciais para o sistema.
+│   ├── schema.sql                       # Estrutura completa do banco de dados.
+│   ├── procedures/                      # Procedures e funções SQL (quando utilizadas).
+│   └── backups/                         # Backups SQL armazenados junto ao banco.
+|
+├── public/                              # Arquivos públicos carregados diretamente pelo navegador.
+│   │
+│   ├── css/                             # Folhas de estilo responsáveis pela aparência do sistema.
+│   │   │
+│   │   ├── global.css                   # Estilos globais compartilhados por todas as páginas.
+│   │   ├── components/                  # Estilos de componentes reutilizáveis.
+│   │   ├── layouts/                     # Estilos da estrutura das páginas.
+│   │   └── pages/                       # Estilos específicos de cada tela do sistema.
+│   │
+│   ├── js/                              # Scripts responsáveis pelas funcionalidades da aplicação.
+│   │   │
+│   │   ├── pedidos/                     # Lógica da tela de pedidos.
+│   │   ├── clientes/                    # Funcionalidades do cadastro e consulta de clientes.
+│   │   ├── produtos/                    # Controle dos produtos cadastrados.
+│   │   ├── fornecedores/                # Gerenciamento dos fornecedores.
+│   │   ├── entregas/                    # Controle das entregas e retiradas.
+│   │   ├── financeiro/                  # Processamento de pagamentos e cobranças.
+│   │   └── utils/                       # Funções auxiliares reutilizadas em todo o sistema.
+│   │
+│   ├── img/                             # Imagens utilizadas pela interface da aplicação.
+│   │   │
+│   │   ├── logo/                        # Logos do sistema.
+│   │   ├── banners/                     # Banners e imagens ilustrativas.
+│   │   ├── backgrounds/                 # Planos de fundo das páginas.
+│   │   └── avatars/                     # Imagens de usuários e perfis.
+│   │
+│   ├── icons/                           # Ícones utilizados nos menus, botões e indicadores.
+│   │   │
+│   │   ├── menu/                        # Ícones do menu lateral.
+│   │   ├── actions/                     # Ícones de ações (editar, excluir, visualizar...).
+│   │   └── status/                      # Ícones de status e notificações.
+│   │
+│   └── uploads/                         # Arquivos enviados pelos usuários durante o uso do sistema.
+│       │
+│       ├── clientes/                    # Documentos e arquivos de clientes.
+│       ├── produtos/                    # Fotos dos produtos cadastrados.
+│       ├── comprovantes/                # Comprovantes de pagamento.
+│       └── temporarios/                 # Arquivos temporários utilizados pela aplicação.
+|
+├── src/                                        # Código-fonte principal da aplicação.
+│   │
+│   ├── config/                                # Configurações gerais da aplicação.
+│   │   │
+│   │   ├── database.js                        # Configuração da conexão com o banco de dados.
+│   │   ├── auth.js                            # Configuração da autenticação.
+│   │   ├── session.js                         # Configuração das sessões.
+│   │   ├── handlebars.js                      # Configuração do Express Handlebars.
+│   │   ├── passport.js                        # Estratégias de autenticação (quando utilizadas).
+│   │   └── index.js                           # Inicialização das configurações.
+│   │
+│   └── modules/                               # Módulos organizados por responsabilidade.
+│       │
+│       ├── clientes/
+│       │   │
+│       │   ├── clientes.controller.js         # Controlador do módulo de clientes.
+│       │   ├── clientes.service.js            # Regras de negócio dos clientes.
+│       │   ├── clientes.model.js              # Operações no banco de dados.
+│       │   └── clientes.routes.js             # Rotas do módulo.
+│       │
+│       ├── produtos/
+│       │   │
+│       │   ├── produtos.controller.js
+│       │   ├── produtos.service.js
+│       │   ├── produtos.model.js
+│       │   └── produtos.routes.js
+│       │
+│       └── pedidos/
+│          │
+│          ├── pedidos.controller.js          # Recebe as requisições HTTP.
+│          ├── pedidos.service.js             # Processa as regras de negócio.
+│          ├── pedidos.model.js               # Comunicação com o banco.
+│          └── pedidos.routes.js              # Rotas dos pedidos.
+│
+├── views/                               # Arquivos responsáveis pela interface renderizada pelo servidor.
+│   │
+│   ├── layouts/                         # Estrutura base compartilhada entre todas as páginas.
+│   │
+│   ├── partials/                        # Componentes reutilizáveis (header, sidebar, footer, modais...).
+│   │
+│   └── pages/                           # Páginas principais do sistema organizadas por módulo.
+│       │
+│       ├── dashboard/                   # Tela inicial com indicadores e KPIs.
+│       ├── pedidos/                     # Página de gerenciamento de pedidos.
+│       ├── clientes/                    # Cadastro e consulta de clientes.
+│       ├── produtos/                    # Gerenciamento de produtos.
+│       ├── fornecedores/                # Cadastro de fornecedores.
+│       ├── entregas/                    # Controle de entregas e devoluções.
+│       ├── relatorios/                  # Relatórios gerados pelo sistema.
+│       ├── usuarios/                    # Gerenciamento de usuários.
+│       └── auth/                        # Telas de login e autenticação.
+│
+│
+│
+└── docs/                                # Documentação técnica e funcional do projeto.
+    │
+    ├── README.md                        # Documentação principal do projeto.
+    ├── API.md                           # Documentação das rotas da API.
+    ├── DATABASE.md                      # Modelagem e estrutura do banco de dados.
+    ├── INSTALL.md                       # Guia de instalação e configuração.
+    ├── MANUAL.md                        # Manual de utilização do sistema.
+    └── CHANGELOG.md                     # Histórico de alterações e versões.
+
+
 ```
 
 ---
 
-## Modelo de Dados
+# 📖 Organização das Pastas
 
-Principais entidades do sistema:
-
-* Usuários
-* Clientes
-* Endereços
-* Produtos
-* Pedidos
-* Itens do Pedido
-* Pagamentos
-* Devoluções
-
-Relacionamentos principais:
-
-* Um cliente pode possuir vários pedidos.
-* Um endereço pode ser utilizado em vários pedidos.
-* Um pedido pode conter vários produtos.
-* Um pedido pode possuir pagamentos.
-* Um pedido pode gerar devoluções.
+| Pasta           | Finalidade                                                |
+| --------------- | --------------------------------------------------------- |
+| **config**      | Configurações gerais do sistema.                          |
+| **controllers** | Recebem as requisições HTTP.                              |
+| **middlewares** | Validações, autenticação e filtros.                       |
+| **models**      | Consultas ao banco de dados.                              |
+| **services**    | Regras de negócio da aplicação.                           |
+| **routes**      | Rotas disponíveis no sistema.                             |
+| **views**       | Páginas renderizadas pelo Handlebars.                     |
+| **public**      | Arquivos públicos como CSS, JavaScript, imagens e ícones. |
+| **database**    | Scripts SQL, backups e estrutura do banco.                |
+| **docs**        | Documentação técnica do projeto.                          |
 
 ---
 
-## Requisitos
+# 🛠 Tecnologias Utilizadas
 
-### Software
+## Backend
 
-* Node.js 22 ou superior
-* MySQL 8 ou superior
-* Git
-
-### Sistema Operacional
-
-* Windows 10/11
-* Linux
-* macOS
+| Tecnologia      | Descrição                                    |
+| --------------- | -------------------------------------------- |
+| Node.js         | Ambiente de execução JavaScript.             |
+| Express.js      | Framework para desenvolvimento da aplicação. |
+| Express Session | Gerenciamento de sessões.                    |
+| MySQL2          | Comunicação com o banco de dados.            |
+| bcrypt          | Criptografia de senhas.                      |
+| dotenv          | Gerenciamento das variáveis de ambiente.     |
 
 ---
 
-## Instalação
+## Frontend
 
-### Clonar o Repositório
+| Tecnologia     | Descrição                     |
+| -------------- | ----------------------------- |
+| HTML5          | Estrutura das páginas.        |
+| CSS3           | Estilização da interface.     |
+| JavaScript ES6 | Funcionalidades da aplicação. |
+| Handlebars     | Engine de templates.          |
+
+---
+
+## Banco de Dados
+
+| Tecnologia | Descrição                                         |
+| ---------- | ------------------------------------------------- |
+| MySQL      | Banco de dados relacional utilizado pelo sistema. |
+
+---
+
+## Ferramentas de Desenvolvimento
+
+| Ferramenta         | Finalidade                       |
+| ------------------ | -------------------------------- |
+| Git                | Controle de versão.              |
+| GitHub             | Hospedagem do repositório.       |
+| Visual Studio Code | Desenvolvimento da aplicação.    |
+| MySQL Workbench    | Administração do banco de dados. |
+
+---
+
+# 📦 Organização dos Módulos
+
+O sistema foi dividido em módulos independentes para facilitar manutenção e evolução.
+
+```mermaid
+mindmap
+  root((Fest))
+    Clientes
+    Produtos
+    Pedidos
+    Entregas
+    Financeiro
+    Fornecedores
+    Usuários
+    Relatórios
+```
+
+Cada módulo possui responsabilidades bem definidas, reduzindo acoplamento e facilitando futuras implementações.
+
+---
+
+# 🎯 Princípios Utilizados
+
+Durante o desenvolvimento do projeto foram adotados alguns princípios importantes:
+
+- Organização em módulos.
+- Separação entre regras de negócio e interface.
+- Reutilização de código.
+- Fácil manutenção.
+- Código legível.
+- Escalabilidade.
+- Estrutura preparada para novas funcionalidades.
+- Padrão MVC.
+- Banco de dados relacional.
+- Controle de versão utilizando Git.
+
+---
+
+# 💡 Escalabilidade
+
+O projeto foi estruturado para permitir futuras implementações sem necessidade de grandes alterações na arquitetura.
+
+Entre as funcionalidades planejadas estão:
+
+- API REST.
+- Aplicativo Mobile.
+- Dashboard Analítico.
+- Relatórios em PDF.
+- Integração com WhatsApp.
+- Sistema de notificações.
+- Controle avançado de permissões.
+- Integração com gateways de pagamento.
+- Emissão de documentos fiscais.
+
+---
+
+# ⚙️ Pré-requisitos
+
+Antes de executar o projeto, certifique-se de possuir as ferramentas abaixo instaladas em seu computador.
+
+| Ferramenta         | Versão Recomendada |
+| ------------------ | -----------------: |
+| Node.js            |   22.x ou superior |
+| npm                |   10.x ou superior |
+| MySQL Server       |                8.x |
+| Git                |      Última versão |
+| Visual Studio Code |        Recomendado |
+
+---
+
+## Verificando as instalações
+
+Abra um terminal e execute os seguintes comandos:
 
 ```bash
-git clone https://github.com/seu-usuario/fest.git
+node -v
 ```
-
-### Acessar o Projeto
 
 ```bash
-cd fest
+npm -v
 ```
 
-### Instalar Dependências
+```bash
+git --version
+```
+
+```bash
+mysql --version
+```
+
+Caso todos os comandos retornem suas respectivas versões, o ambiente está pronto para executar o projeto.
+
+---
+
+# 🚀 Instalação
+
+Existem duas formas de obter o projeto:
+
+- Clonando diretamente do GitHub;
+- Baixando o arquivo ZIP do repositório.
+
+A forma recomendada é utilizar o Git.
+
+---
+
+# 📥 Clonando o Projeto
+
+Clone o repositório para sua máquina:
+
+```bash
+git clone https://github.com/leosanchez023/Fest.git
+```
+
+Acesse a pasta criada:
+
+```bash
+cd Fest
+```
+
+---
+
+# 📦 Instalando as Dependências
+
+Após acessar a pasta do projeto, execute:
 
 ```bash
 npm install
 ```
 
-### Configurar Variáveis de Ambiente
+Esse comando instalará automaticamente todas as dependências definidas no arquivo **package.json**.
 
-Criar o arquivo `.env` na raiz do projeto:
+Entre elas:
+
+- Express
+- Express Handlebars
+- Express Session
+- MySQL2
+- Sequelize
+- bcrypt
+- dotenv
+- Passport
+- Passport Local
+
+Ao término da instalação será criada automaticamente a pasta:
+
+```text
+node_modules/
+```
+
+Essa pasta contém todas as bibliotecas utilizadas pela aplicação e não deve ser enviada ao GitHub.
+
+---
+
+# 🔐 Configuração das Variáveis de Ambiente
+
+O projeto utiliza um arquivo `.env` para armazenar informações sensíveis, como as credenciais de acesso ao banco de dados.
+
+Crie um arquivo chamado:
+
+```text
+.env
+```
+
+Na raiz do projeto.
+
+Exemplo:
 
 ```env
 DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=fest
 DB_USER=root
 DB_PASSWORD=sua_senha
-DB_NAME=fest
 
+SESSION_SECRET=uma_chave_super_segura
 PORT=3000
-
-SESSION_SECRET=sua_chave_secreta
 ```
 
-### Criar Banco de Dados
+## Descrição das variáveis
+
+| Variável       | Descrição                                   |
+| -------------- | ------------------------------------------- |
+| DB_HOST        | Endereço do servidor MySQL                  |
+| DB_PORT        | Porta utilizada pelo banco                  |
+| DB_NAME        | Nome do banco de dados                      |
+| DB_USER        | Usuário do banco                            |
+| DB_PASSWORD    | Senha do banco                              |
+| SESSION_SECRET | Chave utilizada para criptografia da sessão |
+| PORT           | Porta onde a aplicação será executada       |
+
+> **Importante:** Nunca publique o arquivo `.env` em repositórios públicos. Adicione-o ao arquivo `.gitignore` para evitar o envio de informações sensíveis.
+
+---
+
+# 🗄️ Configuração do Banco de Dados
+
+Após instalar o MySQL, crie um banco chamado:
 
 ```sql
 CREATE DATABASE fest;
 ```
 
-### Restaurar Backup
+Em seguida, importe a estrutura do banco utilizando o arquivo `schema.sql`.
+
+Exemplo pelo terminal:
 
 ```bash
-mysql -u root -p fest < backups/fest_backup.sql
+mysql -u root -p fest < database/schema.sql
 ```
 
-### Executar o Projeto
+Ou utilize uma ferramenta gráfica, como o **MySQL Workbench**, para executar o script manualmente.
+
+Após a importação, todas as tabelas necessárias para o funcionamento do sistema serão criadas.
+
+---
+
+# ▶️ Executando a Aplicação
+
+Com as dependências instaladas e o banco configurado, execute:
 
 ```bash
-npm start
+node app.js
 ```
 
-ou
+Se tudo estiver configurado corretamente, o terminal exibirá uma mensagem semelhante a:
 
-```bash
-nodemon app.js
+```text
+Banco de dados CONECTADO
+Servidor iniciado na porta 3000
+```
+
+A aplicação poderá ser acessada em:
+
+```text
+http://localhost:3000
 ```
 
 ---
 
-## Segurança
+# 📁 Estrutura Inicial Após a Instalação
 
-O sistema implementa:
+Depois da instalação, a estrutura principal do projeto será semelhante à seguinte:
 
-* Variáveis de ambiente protegidas.
-* Controle de autenticação.
-* Gerenciamento de sessão.
-* Proteção de rotas privadas.
-* Organização modular do código.
-
----
-
-## Boas Práticas Aplicadas
-
-* Arquitetura MVC.
-* Separação entre regras de negócio e interface.
-* Utilização de variáveis de ambiente.
-* Versionamento com Git.
-* Estrutura modular.
-* Código reutilizável e escalável.
+```text
+Fest/
+│
+├── node_modules/
+├── public/
+├── src/
+├── database/
+├── views/
+├── .env
+├── app.js
+├── package.json
+└── package-lock.json
+```
 
 ---
 
-## Roadmap
+# 🔄 Fluxo de Inicialização
 
-### Em Desenvolvimento
+Quando a aplicação é iniciada, o processo segue a sequência abaixo:
 
-* Dashboard administrativo.
-* Indicadores financeiros.
-* Relatórios gerenciais.
+```mermaid
+flowchart TD
 
-### Futuras Implementações
+A[Início da Aplicação]
 
-* Exportação para Excel.
-* Exportação para PDF.
-* Integração com WhatsApp.
-* API REST.
-* Controle de permissões por perfil.
-* Sistema de notificações.
-
----
-
-## Mudanças recentes (Clientes)
-
-Implementado filtro e paginação na tela de `Clientes` com lógica backend:
-
-- Listagem exibida em tabela em vez de cards.
-- Busca por nome, email ou CPF executada no servidor.
-- Paginação por `page` e `limit`, com navegação anterior/próxima.
-- A interface mantém o formulário atual de cadastro/edição.
-- Rota adicional `/clientes/data` disponível para retornar JSON paginado.
-
-Essa atualização reforça a lógica de busca no backend e mantém o CSS local da tela de clientes.
+A --> B[Leitura do arquivo .env]
+B --> C[Inicialização do Express]
+C --> D[Configuração das Sessões]
+D --> E[Conexão com o MySQL]
+E --> F[Registro das Rotas]
+F --> G[Inicialização do Servidor]
+G --> H[Aplicação disponível na porta configurada]
+```
 
 ---
 
-## Autor
+# 📌 Verificando o Funcionamento
 
-Leonardo Sanchez
+Após iniciar o servidor, recomenda-se verificar os seguintes pontos:
 
-Desenvolvedor em formação com foco em desenvolvimento web utilizando Node.js, JavaScript, MySQL e arquitetura MVC.
+- O navegador acessa corretamente `http://localhost:3000`.
+- A conexão com o banco de dados é estabelecida sem erros.
+- As páginas são carregadas normalmente.
+- Os arquivos CSS e JavaScript são encontrados corretamente.
+- É possível realizar login e navegar entre os módulos.
+- O cadastro de clientes e produtos funciona conforme esperado.
+- A criação de pedidos é concluída sem inconsistências.
+
+Essas verificações garantem que o ambiente foi configurado corretamente e que a aplicação está pronta para desenvolvimento ou utilização.
+
+# 🏗 Arquitetura do Backend
+
+O backend do **Fest** foi desenvolvido utilizando **Node.js** e **Express**, seguindo o padrão arquitetural **MVC (Model-View-Controller)** e complementado por uma camada de **Services**, responsável por concentrar toda a lógica de negócio da aplicação.
+
+Essa organização torna o sistema mais modular, facilita a manutenção e reduz o acoplamento entre os componentes.
 
 ---
 
-## Licença
+# 📂 Organização do Backend
 
-Este projeto foi desenvolvido para fins educacionais, acadêmicos e de aperfeiçoamento profissional.
+```text
+src/
+│
+├── modules/
+│   │
+│   ├── clientes/
+│   ├── produtos/
+│   ├── pedidos/
+│   ├── fornecedores/
+│   ├── entregas/
+│   ├── financeiro/
+│   └── usuarios/
+│
+├── config/
+├── database/
+├── middlewares/
+├── routes/
+├── services/
+└── utils/
+```
+
+Cada módulo possui responsabilidades específicas e pode evoluir de forma independente.
+
+---
+
+# 🧩 Arquitetura em Camadas
+
+```mermaid
+flowchart LR
+
+A[Cliente]
+
+A --> B[Routes]
+B --> C[Controller]
+C --> D[Service]
+D --> E[Model]
+E --> F[(MySQL)]
+```
+
+Cada camada possui uma única responsabilidade, reduzindo dependências e aumentando a organização do projeto.
+
+---
+
+# 📡 Fluxo de uma Requisição
+
+Sempre que um usuário realiza uma operação, como cadastrar um cliente ou criar um pedido, o sistema segue o fluxo abaixo.
+
+```mermaid
+sequenceDiagram
+
+participant U as Usuário
+participant R as Route
+participant C as Controller
+participant S as Service
+participant M as Model
+participant DB as MySQL
+
+U->>R: Requisição HTTP
+R->>C: Encaminha requisição
+C->>S: Validação inicial
+S->>M: Executa regra de negócio
+M->>DB: Consulta/Atualização
+DB-->>M: Resultado
+M-->>S: Dados
+S-->>C: Resposta
+C-->>U: HTML ou JSON
+```
+
+---
+
+# 🚦 Rotas (Routes)
+
+As rotas representam o ponto de entrada da aplicação.
+
+São responsáveis por receber as requisições HTTP e encaminhá-las para o controller correspondente.
+
+Exemplos de responsabilidades:
+
+- Definir URLs da aplicação.
+- Organizar endpoints por módulo.
+- Direcionar requisições GET, POST, PUT e DELETE.
+- Aplicar middlewares antes da execução do controller.
+
+Exemplo:
+
+```javascript
+router.get("/clientes", controller.listar);
+
+router.post("/clientes", controller.criar);
+
+router.put("/clientes/:id", controller.editar);
+
+router.delete("/clientes/:id", controller.remover);
+```
+
+---
+
+# 🎮 Controllers
+
+Os Controllers funcionam como intermediários entre as rotas e as regras de negócio.
+
+Suas principais responsabilidades são:
+
+- Receber a requisição.
+- Extrair parâmetros.
+- Validar informações básicas.
+- Chamar o Service adequado.
+- Retornar a resposta ao navegador.
+
+Os Controllers não devem conter regras complexas de negócio.
+
+```mermaid
+flowchart LR
+
+Request --> Controller
+
+Controller --> Service
+
+Service --> Controller
+
+Controller --> Response
+```
+
+---
+
+# ⚙️ Services
+
+Os Services representam o núcleo da aplicação.
+
+É nessa camada que ficam concentradas todas as regras de negócio do sistema.
+
+Exemplos:
+
+- Validação de pedidos.
+- Verificação de estoque.
+- Cálculo de descontos.
+- Cálculo de frete.
+- Cálculo do valor total.
+- Validação de datas.
+- Regras financeiras.
+- Processamento de pagamentos.
+
+Separar essas responsabilidades facilita testes, reutilização de código e manutenção.
+
+---
+
+# 🗃 Models
+
+Os Models são responsáveis pela comunicação com o banco de dados.
+
+Entre suas funções estão:
+
+- Inserção de registros.
+- Atualização de informações.
+- Exclusão de dados.
+- Consultas.
+- Relacionamentos entre tabelas.
+
+Toda interação com o MySQL ocorre por meio dessa camada.
+
+```mermaid
+flowchart LR
+
+Service --> Model
+
+Model --> Banco[(MySQL)]
+
+Banco --> Model
+
+Model --> Service
+```
+
+---
+
+# 🛡 Middlewares
+
+Os Middlewares executam ações antes que uma requisição chegue ao Controller.
+
+São utilizados para:
+
+- Autenticação.
+- Controle de sessão.
+- Validação de permissões.
+- Tratamento de erros.
+- Validação de formulários.
+- Registro de logs.
+
+Fluxo:
+
+```mermaid
+flowchart LR
+
+Request
+
+Request --> Middleware
+
+Middleware --> Controller
+
+Controller --> Response
+```
+
+---
+
+# 🔐 Autenticação
+
+O sistema utiliza autenticação baseada em sessões para controlar o acesso às funcionalidades.
+
+Fluxo simplificado:
+
+```mermaid
+flowchart TD
+
+Login
+
+Login --> VerificarUsuario
+
+VerificarUsuario --> Senha
+
+Senha --> Sessao
+
+Sessao --> Sistema
+```
+
+Após a autenticação:
+
+- O usuário inicia uma sessão.
+- As informações da sessão são armazenadas no servidor.
+- As rotas protegidas verificam a existência dessa sessão antes de permitir o acesso.
+
+---
+
+# 📦 Organização por Módulos
+
+Cada módulo possui responsabilidades específicas dentro da aplicação.
+
+| Módulo          | Responsabilidade                                              |
+| --------------- | ------------------------------------------------------------- |
+| 👥 Clientes     | Cadastro, consulta, edição e gerenciamento de clientes.       |
+| 📦 Produtos     | Controle de estoque, preços e disponibilidade.                |
+| 📑 Pedidos      | Criação, atualização, cálculo e gerenciamento dos pedidos.    |
+| 🚚 Entregas     | Controle de entregas, retiradas e conferências.               |
+| 💰 Financeiro   | Cobranças, pagamentos, movimentações financeiras e histórico. |
+| 🏢 Fornecedores | Cadastro e gerenciamento de fornecedores.                     |
+| 👤 Usuários     | Controle de acesso e autenticação.                            |
+
+---
+
+# 🔄 Fluxo Completo de um Pedido
+
+Um pedido percorre diversas etapas até sua conclusão.
+
+```mermaid
+flowchart TD
+
+Cliente
+
+Cliente --> Cadastro
+
+Cadastro --> Pedido
+
+Pedido --> Produtos
+
+Produtos --> Estoque
+
+Estoque --> Financeiro
+
+Financeiro --> Entrega
+
+Entrega --> Conferencia
+
+Conferencia --> Finalizado
+```
+
+Cada etapa possui validações específicas para garantir a integridade das informações e evitar inconsistências durante o processo.
+
+---
+
+# 📈 Vantagens da Arquitetura
+
+A estrutura adotada no **Fest** oferece diversos benefícios para o desenvolvimento e manutenção da aplicação.
+
+Entre eles:
+
+- Separação clara de responsabilidades.
+- Código organizado em módulos.
+- Facilidade para localizar funcionalidades.
+- Reutilização de componentes.
+- Maior facilidade para testes.
+- Redução do acoplamento entre camadas.
+- Escalabilidade para novos módulos.
+- Facilidade na correção de bugs.
+- Melhor colaboração entre desenvolvedores.
+- Estrutura preparada para evolução contínua do sistema.
+
+---
+
+# 🎯 Boas Práticas Adotadas
+
+Durante o desenvolvimento do backend foram seguidas diversas práticas recomendadas.
+
+- Utilização da arquitetura MVC.
+- Separação entre Controllers e Services.
+- Centralização das regras de negócio.
+- Código modular.
+- Organização por responsabilidades.
+- Padronização de nomenclatura.
+- Reutilização de funções.
+- Validações antes da persistência dos dados.
+- Isolamento da camada de acesso ao banco.
+- Estrutura preparada para futuras integrações com APIs e aplicações móveis.
+
+Com essa arquitetura, o **Fest** mantém uma base sólida para crescimento, permitindo a implementação de novos módulos e funcionalidades sem comprometer a organização e a qualidade do código.
+
+# 🖥 Frontend
+
+O frontend do **Fest** foi desenvolvido para oferecer uma interface intuitiva, organizada e de fácil utilização, permitindo que os usuários executem todas as operações do sistema de forma rápida e eficiente.
+
+A aplicação utiliza **Handlebars** para renderização das páginas no servidor, **JavaScript ES6** para a lógica da interface e **CSS3** para estilização.
+
+Essa combinação permite uma separação clara entre estrutura, comportamento e aparência da aplicação.
+
+---
+
+# 🎨 Arquitetura do Frontend
+
+```mermaid
+flowchart LR
+
+A[Usuário]
+
+A --> B[Handlebars]
+
+B --> C[HTML]
+
+C --> D[CSS]
+
+C --> E[JavaScript]
+
+D --> F[Navegador]
+
+E --> F
+```
+
+---
+
+# 📂 Estrutura do Frontend
+
+A organização dos arquivos foi planejada para facilitar manutenção, reutilização e evolução do sistema.
+
+```text
+public/
+│
+├── css/
+│   ├── global.css
+│   ├── bootstrap.css
+│   ├── components/
+│   ├── layouts/
+│   └── pages/
+│
+├── js/
+│   ├── pedidos/
+│   ├── clientes/
+│   ├── produtos/
+│   ├── fornecedores/
+│   ├── entregas/
+│   ├── financeiro/
+│   └── utils/
+│
+├── img/
+│
+├── icons/
+│
+└── uploads/
+```
+
+---
+
+# 📄 Views
+
+As páginas do sistema são renderizadas utilizando **Express Handlebars**.
+
+Essa abordagem permite reutilizar componentes comuns, evitando duplicação de código.
+
+Estrutura:
+
+```text
+views/
+│
+├── layouts/
+│
+├── partials/
+│
+└── pages/
+```
+
+---
+
+# 🏗 Layouts
+
+Os layouts representam a estrutura principal da aplicação.
+
+Eles concentram elementos compartilhados por todas as páginas, como:
+
+- Cabeçalho
+- Menu lateral
+- Rodapé
+- Inclusão de arquivos CSS
+- Inclusão de arquivos JavaScript
+- Estrutura HTML base
+
+Dessa forma, cada página precisa definir apenas o conteúdo específico da tela.
+
+---
+
+# 🧩 Partials
+
+Os **Partials** são componentes reutilizáveis do Handlebars.
+
+Exemplos:
+
+- Sidebar
+- Header
+- Footer
+- Modais
+- Menus
+- Alertas
+- Componentes de formulário
+
+Essa estratégia reduz repetição de código e facilita futuras alterações na interface.
+
+```mermaid
+flowchart TD
+
+Layout
+
+Layout --> Header
+
+Layout --> Sidebar
+
+Layout --> Conteudo
+
+Layout --> Footer
+```
+
+---
+
+# 📑 Pages
+
+A pasta **pages** reúne todas as telas do sistema.
+
+Cada módulo possui suas próprias páginas.
+
+Exemplo:
+
+```text
+pages/
+│
+├── dashboard/
+├── clientes/
+├── produtos/
+├── pedidos/
+├── fornecedores/
+├── entregas/
+├── financeiro/
+├── usuarios/
+└── auth/
+```
+
+Essa organização facilita a localização e manutenção dos arquivos.
+
+---
+
+# 🎨 Organização do CSS
+
+Os estilos da aplicação foram separados conforme sua responsabilidade.
+
+```text
+css/
+│
+├── global.css
+├── bootstrap.css
+├── layouts/
+├── components/
+└── pages/
+```
+
+### global.css
+
+Contém estilos compartilhados por todo o sistema.
+
+Exemplos:
+
+- Tipografia
+- Cores
+- Espaçamentos
+- Botões
+- Inputs
+- Tabelas
+- Classes utilitárias
+
+---
+
+### layouts/
+
+Define a aparência da estrutura principal da aplicação.
+
+Inclui estilos para:
+
+- Sidebar
+- Header
+- Footer
+- Containers
+- Navegação
+
+---
+
+### components/
+
+Contém estilos reutilizados em diversos módulos.
+
+Exemplos:
+
+- Cards
+- Botões
+- Modais
+- Alertas
+- Formulários
+- Badges
+- Tabelas
+
+---
+
+### pages/
+
+Cada tela possui seu próprio arquivo CSS.
+
+Isso evita conflitos entre módulos e facilita a manutenção.
+
+---
+
+# ⚡ Organização do JavaScript
+
+Toda a lógica da interface foi modularizada.
+
+```text
+js/
+│
+├── pedidos/
+├── clientes/
+├── produtos/
+├── fornecedores/
+├── entregas/
+├── financeiro/
+└── utils/
+```
+
+Cada módulo possui seus próprios arquivos JavaScript, reduzindo dependências entre funcionalidades.
+
+---
+
+# 📦 Módulo de Clientes
+
+Responsável pelo gerenciamento dos clientes cadastrados.
+
+Entre suas funcionalidades estão:
+
+- Cadastro
+- Pesquisa
+- Atualização
+- Exclusão
+- Seleção de cliente
+- Cadastro de endereços
+- Busca dinâmica
+- Preenchimento automático de informações
+
+---
+
+# 📦 Módulo de Produtos
+
+Responsável pelo gerenciamento do catálogo de produtos.
+
+Possui funcionalidades como:
+
+- Cadastro
+- Consulta
+- Atualização
+- Controle de estoque
+- Definição de preços
+- Produtos para venda
+- Produtos para locação
+
+---
+
+# 📑 Módulo de Pedidos
+
+É o principal módulo do sistema.
+
+Nele são realizadas operações como:
+
+- Seleção do cliente
+- Seleção do endereço
+- Adição de produtos
+- Controle de quantidade
+- Aplicação de descontos
+- Definição do frete
+- Observações
+- Cálculo automático dos totais
+- Resumo financeiro
+- Finalização do pedido
+
+```mermaid
+flowchart TD
+
+Cliente
+
+Cliente --> Endereco
+
+Endereco --> Produtos
+
+Produtos --> Frete
+
+Frete --> Desconto
+
+Desconto --> Total
+
+Total --> Salvar
+```
+
+---
+
+# 🚚 Módulo de Entregas
+
+Responsável pelo acompanhamento logístico dos pedidos.
+
+Permite:
+
+- Registrar entregas
+- Registrar retiradas
+- Conferência dos produtos
+- Controle de ocorrências
+- Histórico das movimentações
+
+---
+
+# 💰 Módulo Financeiro
+
+Centraliza todas as movimentações financeiras do sistema.
+
+Entre elas:
+
+- Pagamentos
+- Cobranças
+- Histórico
+- Parcelamentos
+- Controle financeiro
+- Situação dos pedidos
+
+---
+
+# 🏢 Módulo de Fornecedores
+
+Responsável pelo gerenciamento dos fornecedores cadastrados.
+
+Inclui:
+
+- Cadastro
+- Consulta
+- Atualização
+- Exclusão
+- Histórico de relacionamento
+
+---
+
+# 👤 Módulo de Usuários
+
+Controla o acesso ao sistema.
+
+Permite:
+
+- Login
+- Logout
+- Controle de sessão
+- Cadastro de usuários
+- Permissões
+- Controle de acesso
+
+---
+
+# 🔄 Fluxo da Interface
+
+A interação do usuário segue um fluxo simples e organizado.
+
+```mermaid
+flowchart TD
+
+Usuario
+
+Usuario --> Pagina
+
+Pagina --> JavaScript
+
+JavaScript --> Requisicao
+
+Requisicao --> Servidor
+
+Servidor --> HTML
+
+HTML --> Usuario
+```
+
+---
+
+# 📱 Responsividade
+
+O frontend foi estruturado para funcionar em diferentes resoluções de tela.
+
+Os principais objetivos da interface são:
+
+- Facilidade de navegação.
+- Organização visual.
+- Boa experiência do usuário.
+- Baixa curva de aprendizado.
+- Componentes reutilizáveis.
+- Interface limpa e objetiva.
+
+---
+
+# ✨ Recursos da Interface
+
+O sistema oferece diversos recursos para melhorar a usabilidade.
+
+Entre eles:
+
+- Formulários organizados.
+- Pesquisa dinâmica.
+- Máscaras de campos.
+- Validação em tempo real.
+- Modais reutilizáveis.
+- Mensagens de confirmação.
+- Mensagens de erro.
+- Atualizações automáticas da interface.
+- Cálculos automáticos durante o preenchimento dos pedidos.
+
+---
+
+# 🎯 Boas Práticas Utilizadas
+
+Durante o desenvolvimento do frontend foram adotadas diversas práticas para garantir qualidade e manutenção do código.
+
+- Modularização do JavaScript.
+- Separação entre estrutura, estilo e comportamento.
+- Reutilização de componentes.
+- Organização dos arquivos por responsabilidade.
+- Utilização de Handlebars para evitar repetição de código.
+- CSS organizado em módulos.
+- Código JavaScript em ES6.
+- Componentes reutilizáveis.
+- Interface preparada para futuras expansões.
+
+Com essa estrutura, o frontend do **Fest** torna-se mais organizado, escalável e fácil de manter, permitindo a evolução contínua da aplicação sem comprometer a experiência do usuário.
+
+# 🗄 Banco de Dados
+
+O **Fest** utiliza o **MySQL** como sistema gerenciador de banco de dados relacional.
+
+Toda a estrutura foi planejada para garantir consistência das informações, integridade dos relacionamentos e facilidade de expansão do sistema.
+
+O banco é responsável por armazenar todas as informações referentes aos clientes, produtos, pedidos, usuários, fornecedores, entregas e movimentações financeiras.
+
+---
+
+# 🎯 Objetivos da Modelagem
+
+A modelagem do banco foi desenvolvida seguindo alguns princípios fundamentais:
+
+- Evitar duplicidade de informações.
+- Garantir integridade referencial.
+- Facilitar consultas.
+- Permitir crescimento da aplicação.
+- Organizar os dados por responsabilidade.
+- Otimizar desempenho das operações.
+- Manter a consistência entre os módulos.
+
+---
+
+# 🏛 Arquitetura da Persistência
+
+```mermaid
+flowchart LR
+
+A[Frontend]
+
+A --> B[Controller]
+
+B --> C[Service]
+
+C --> D[Model]
+
+D --> E[(MySQL)]
+```
+
+Toda informação cadastrada no sistema percorre esse fluxo antes de ser armazenada no banco de dados.
+
+---
+
+# 📐 Modelo Conceitual
+
+O banco de dados do **Fest** foi estruturado em torno do módulo de **Pedidos**, que centraliza o relacionamento entre os demais módulos da aplicação.
+
+```mermaid
+erDiagram
+
+CLIENTE ||--o{ ENDERECO : possui
+
+CLIENTE ||--o{ PEDIDO : realiza
+
+PEDIDO ||--|{ PEDIDO_ITEM : contem
+
+PRODUTO ||--o{ PEDIDO_ITEM : participa
+
+PEDIDO ||--o{ PAGAMENTO : gera
+
+USUARIO ||--o{ PEDIDO : registra
+
+FORNECEDOR ||--o{ PRODUTO : fornece
+```
+
+---
+
+# 📊 Visão Geral das Entidades
+
+| Entidade        | Finalidade                                               |
+| --------------- | -------------------------------------------------------- |
+| Clientes        | Cadastro dos clientes da empresa.                        |
+| Endereços       | Armazenamento dos endereços vinculados aos clientes.     |
+| Produtos        | Cadastro dos produtos disponíveis para venda ou locação. |
+| Pedidos         | Registro das vendas e locações realizadas.               |
+| Itens do Pedido | Relação entre pedidos e produtos.                        |
+| Pagamentos      | Controle financeiro dos pedidos.                         |
+| Usuários        | Controle de acesso ao sistema.                           |
+| Fornecedores    | Cadastro dos fornecedores de produtos.                   |
+
+---
+
+# 👥 Tabela de Clientes
+
+A tabela de clientes armazena todas as informações cadastrais dos clientes atendidos pela empresa.
+
+Principais informações:
+
+- Nome completo.
+- CPF ou CNPJ.
+- Telefone.
+- E-mail.
+- Observações.
+- Data de cadastro.
+
+Relacionamentos:
+
+- Um cliente pode possuir vários endereços.
+- Um cliente pode realizar diversos pedidos.
+
+---
+
+# 📍 Tabela de Endereços
+
+Cada cliente pode cadastrar um ou mais endereços.
+
+Esses endereços podem ser utilizados em diferentes pedidos.
+
+Informações armazenadas:
+
+- CEP.
+- Logradouro.
+- Número.
+- Complemento.
+- Bairro.
+- Cidade.
+- Estado.
+- Referência.
+
+Relacionamento:
+
+- Muitos endereços pertencem a um único cliente.
+
+---
+
+# 📦 Tabela de Produtos
+
+A tabela de produtos representa o catálogo da empresa.
+
+Cada registro possui informações como:
+
+- Nome.
+- Categoria.
+- Tipo.
+- Valor para venda.
+- Valor para locação.
+- Quantidade em estoque.
+- Situação.
+
+Relacionamentos:
+
+- Um produto pode participar de diversos pedidos.
+
+---
+
+# 📑 Tabela de Pedidos
+
+A tabela de pedidos representa o principal registro operacional do sistema.
+
+Cada pedido reúne todas as informações necessárias para sua execução.
+
+Entre elas:
+
+- Cliente.
+- Endereço.
+- Datas.
+- Tipo do pedido.
+- Situação.
+- Frete.
+- Desconto.
+- Observações.
+- Valor total.
+
+Relacionamentos:
+
+- Um pedido possui vários itens.
+- Um pedido pode possuir diversos pagamentos.
+
+---
+
+# 📋 Tabela de Itens do Pedido
+
+Os produtos pertencentes a cada pedido são armazenados nessa tabela.
+
+Cada item registra:
+
+- Produto.
+- Quantidade.
+- Valor unitário.
+- Valor total.
+
+Essa estrutura evita redundância e facilita futuras alterações.
+
+---
+
+# 💰 Tabela de Pagamentos
+
+Controla toda movimentação financeira relacionada aos pedidos.
+
+Informações armazenadas:
+
+- Pedido.
+- Valor.
+- Forma de pagamento.
+- Situação.
+- Data do pagamento.
+
+Um mesmo pedido pode possuir diversos pagamentos.
+
+---
+
+# 👤 Tabela de Usuários
+
+Responsável pelo controle de acesso ao sistema.
+
+Cada usuário possui:
+
+- Nome.
+- E-mail.
+- Senha criptografada.
+- Perfil.
+- Situação.
+
+Os usuários podem registrar pedidos e executar operações administrativas.
+
+---
+
+# 🏢 Tabela de Fornecedores
+
+Armazena os fornecedores responsáveis pelos produtos cadastrados.
+
+Informações:
+
+- Nome.
+- Contato.
+- Telefone.
+- E-mail.
+- Endereço.
+
+Relacionamento:
+
+- Um fornecedor pode fornecer vários produtos.
+
+---
+
+# 🔄 Relacionamentos
+
+```mermaid
+flowchart TD
+
+Cliente
+
+Cliente --> Endereco
+
+Cliente --> Pedido
+
+Pedido --> Item
+
+Item --> Produto
+
+Pedido --> Pagamento
+
+Usuario --> Pedido
+
+Fornecedor --> Produto
+```
+
+---
+
+# 🔐 Integridade Referencial
+
+O banco utiliza **chaves primárias** e **chaves estrangeiras** para garantir consistência dos dados.
+
+Principais regras:
+
+- Não é possível cadastrar um endereço sem cliente.
+- Um item sempre pertence a um pedido.
+- Todo pagamento pertence a um pedido.
+- Produtos precisam existir antes de serem adicionados ao pedido.
+- Usuários devem existir para registrar operações.
+
+Essas restrições evitam registros órfãos e inconsistências no banco.
+
+---
+
+# ⚡ Fluxo de Persistência
+
+Quando um pedido é salvo, o sistema executa diversas operações de forma organizada.
+
+```mermaid
+sequenceDiagram
+
+participant U as Usuário
+participant P as Pedido
+participant I as Itens
+participant DB as Banco
+
+U->>P: Salvar pedido
+P->>DB: Inserir pedido
+P->>I: Processar itens
+I->>DB: Inserir itens
+P->>DB: Atualizar totais
+DB-->>U: Pedido salvo
+```
+
+---
+
+# 📈 Índices e Desempenho
+
+Para melhorar o desempenho das consultas, o banco pode utilizar índices em campos frequentemente pesquisados, como:
+
+- Nome do cliente.
+- CPF/CNPJ.
+- Código do produto.
+- Data do pedido.
+- Situação do pedido.
+- Usuário responsável.
+
+Esses índices reduzem o tempo de resposta em operações de busca e filtragem.
+
+---
+
+# 🔒 Segurança dos Dados
+
+O banco foi projetado para proteger informações sensíveis.
+
+Boas práticas adotadas:
+
+- Senhas armazenadas de forma criptografada.
+- Validação dos dados antes da gravação.
+- Utilização de chaves estrangeiras.
+- Controle de sessões dos usuários.
+- Separação entre regras de negócio e acesso ao banco.
+
+---
+
+# 💾 Backup e Recuperação
+
+É recomendável realizar backups periódicos do banco de dados para garantir a recuperação das informações em caso de falhas.
+
+Estratégias recomendadas:
+
+- Backup diário.
+- Backup antes de atualizações.
+- Armazenamento em local seguro.
+- Testes periódicos de restauração.
+
+---
+
+# 🚀 Evolução da Modelagem
+
+A estrutura do banco foi projetada para permitir a inclusão de novos módulos sem necessidade de grandes alterações.
+
+Entre as futuras expansões previstas estão:
+
+- Agenda de eventos.
+- Relatórios avançados.
+- Controle de contratos.
+- Emissão de notas fiscais.
+- Histórico completo de alterações.
+- Integração com gateways de pagamento.
+- API REST.
+- Aplicativo móvel.
+
+Essa abordagem garante que o banco de dados acompanhe o crescimento do **Fest**, mantendo desempenho, organização e integridade das informações ao longo da evolução do sistema.
+
+# 🌳 Fluxo de Desenvolvimento
+
+O desenvolvimento do **Fest** segue um conjunto de práticas que buscam manter o código organizado, facilitar a colaboração entre desenvolvedores e reduzir conflitos durante a evolução do sistema.
+
+A utilização do **Git** e do **GitHub** permite controlar todas as alterações realizadas no projeto, garantindo rastreabilidade, segurança e facilidade para reverter mudanças quando necessário.
+
+---
+
+# 🎯 Objetivos do Fluxo de Desenvolvimento
+
+O processo de desenvolvimento foi definido para atender aos seguintes objetivos:
+
+- Organização do código.
+- Controle de versões.
+- Trabalho colaborativo.
+- Facilidade de manutenção.
+- Histórico completo das alterações.
+- Padronização das contribuições.
+- Redução de conflitos entre desenvolvedores.
+- Evolução contínua da aplicação.
+
+---
+
+# 🌿 Estratégia de Branches
+
+O projeto utiliza uma estratégia simples de branches para facilitar o gerenciamento das alterações.
+
+```text id="g4b9xr"
+main
+│
+├── feature/clientes
+├── feature/produtos
+├── feature/pedidos
+├── feature/financeiro
+├── feature/fornecedores
+├── feature/usuarios
+│
+└── hotfix/correcao
+```
+
+### Branch principal
+
+A branch **main** contém apenas versões estáveis da aplicação.
+
+Nenhuma alteração deve ser realizada diretamente nela sem revisão.
+
+---
+
+### Branches de funcionalidades
+
+Cada nova funcionalidade deve ser desenvolvida em uma branch própria.
+
+Exemplos:
+
+```text id="q9k7fd"
+feature/clientes
+
+feature/produtos
+
+feature/pedidos
+
+feature/financeiro
+```
+
+Essa abordagem reduz conflitos e facilita revisões.
+
+---
+
+### Branches de correção
+
+Correções urgentes podem ser realizadas utilizando branches do tipo:
+
+```text id="x2z8nv"
+hotfix/login
+
+hotfix/pagamentos
+
+hotfix/estoque
+```
+
+Após os testes, essas alterações devem ser incorporadas à branch principal.
+
+---
+
+# 🔄 Fluxo de Trabalho
+
+```mermaid id="j8pm6v"
+gitGraph
+commit
+branch feature
+checkout feature
+commit
+commit
+checkout main
+merge feature
+commit
+```
+
+Fluxo resumido:
+
+1. Criar uma nova branch.
+2. Desenvolver a funcionalidade.
+3. Realizar testes.
+4. Fazer commit das alterações.
+5. Enviar para o GitHub.
+6. Criar um Pull Request.
+7. Revisar o código.
+8. Realizar o merge.
+
+---
+
+# 📥 Clonando o Projeto
+
+```bash id="mx1kzv"
+git clone https://github.com/leosanchez023/Fest.git
+```
+
+---
+
+# 🌱 Criando uma Nova Branch
+
+```bash id="8tb7mf"
+git checkout -b feature/nova-funcionalidade
+```
+
+---
+
+# 💾 Salvando Alterações
+
+Adicionar arquivos:
+
+```bash id="d4c8np"
+git add .
+```
+
+Criar um commit:
+
+```bash id="bn9q7s"
+git commit -m "Adiciona funcionalidade de cadastro de fornecedores"
+```
+
+Enviar para o GitHub:
+
+```bash id="6a2jlwm"
+git push origin feature/nova-funcionalidade
+```
+
+---
+
+# 📝 Convenção de Commits
+
+Para manter um histórico organizado, recomenda-se utilizar mensagens claras e objetivas.
+
+Exemplos:
+
+```text id="t8w4mf"
+feat: adiciona cadastro de clientes
+
+fix: corrige cálculo do frete
+
+style: melhora layout da tela de pedidos
+
+refactor: reorganiza módulo financeiro
+
+docs: atualiza README
+
+test: adiciona testes de autenticação
+
+chore: atualiza dependências
+```
+
+---
+
+# 📚 Padrões de Código
+
+Durante o desenvolvimento foram adotadas algumas convenções para manter o projeto consistente.
+
+### Organização
+
+- Um módulo para cada responsabilidade.
+- Código dividido por camadas.
+- Separação entre frontend e backend.
+- Componentes reutilizáveis.
+
+---
+
+### Nomenclatura
+
+Variáveis:
+
+```javascript id="g3w5lm"
+const clienteSelecionado;
+const pedidoAtual;
+const valorTotal;
+```
+
+Funções:
+
+```javascript id="x7r1qa"
+buscarCliente();
+
+calcularFrete();
+
+salvarPedido();
+
+validarFormulario();
+```
+
+Arquivos:
+
+```text id="s2v8kp"
+cliente.js
+
+pedido.js
+
+financeiro.js
+
+produto.js
+```
+
+---
+
+# 🧩 Organização dos Arquivos
+
+Cada arquivo deve possuir uma única responsabilidade.
+
+Exemplo:
+
+| Arquivo       | Responsabilidade                 |
+| ------------- | -------------------------------- |
+| cliente.js    | Lógica relacionada aos clientes. |
+| pedido.js     | Manipulação dos pedidos.         |
+| financeiro.js | Processamento financeiro.        |
+| utils.js      | Funções auxiliares reutilizadas. |
+| modal.js      | Controle das janelas modais.     |
+
+---
+
+# ✅ Boas Práticas
+
+Durante o desenvolvimento recomenda-se:
+
+- Utilizar nomes descritivos.
+- Evitar duplicação de código.
+- Criar funções pequenas.
+- Reutilizar componentes.
+- Documentar trechos complexos.
+- Manter o código organizado.
+- Remover códigos não utilizados.
+- Validar entradas antes do processamento.
+- Tratar erros adequadamente.
+
+---
+
+# 🧪 Testes
+
+Antes de enviar qualquer alteração, recomenda-se verificar:
+
+- Cadastro de clientes.
+- Cadastro de produtos.
+- Criação de pedidos.
+- Atualização de estoque.
+- Cálculos financeiros.
+- Login.
+- Logout.
+- Navegação entre páginas.
+- Integração com banco de dados.
+
+Essas verificações ajudam a garantir a estabilidade da aplicação.
+
+---
+
+# 🤝 Guia de Contribuição
+
+Contribuições são sempre bem-vindas.
+
+Caso deseje colaborar com o projeto, siga o fluxo abaixo.
+
+```mermaid id="r3h6yb"
+flowchart TD
+
+Fork
+
+Fork --> Clone
+
+Clone --> Branch
+
+Branch --> Desenvolvimento
+
+Desenvolvimento --> Commit
+
+Commit --> Push
+
+Push --> PullRequest
+
+PullRequest --> Revisao
+
+Revisao --> Merge
+```
+
+---
+
+## Como contribuir
+
+1. Faça um **Fork** do projeto.
+2. Clone o repositório.
+3. Crie uma nova branch.
+4. Desenvolva sua funcionalidade.
+5. Execute os testes.
+6. Faça os commits.
+7. Envie para seu repositório.
+8. Abra um Pull Request.
+
+---
+
+# 📋 Checklist para Pull Request
+
+Antes de abrir um Pull Request, confirme que:
+
+- Código compilando corretamente.
+- Funcionalidade testada.
+- Nenhum erro no console.
+- Sem arquivos temporários.
+- README atualizado (quando necessário).
+- Comentários desnecessários removidos.
+- Código organizado.
+
+---
+
+# 🔍 Revisão de Código
+
+Durante a revisão serão observados aspectos como:
+
+- Organização.
+- Legibilidade.
+- Reutilização.
+- Desempenho.
+- Segurança.
+- Padrões do projeto.
+- Compatibilidade.
+- Impacto em outros módulos.
+
+O objetivo da revisão é garantir a qualidade e a consistência do sistema.
+
+---
+
+# 🚀 Evolução Contínua
+
+O **Fest** foi desenvolvido para evoluir continuamente.
+
+As futuras implementações devem seguir os mesmos princípios adotados desde o início do projeto:
+
+- Arquitetura modular.
+- Separação de responsabilidades.
+- Código limpo.
+- Documentação atualizada.
+- Controle de versão.
+- Colaboração entre desenvolvedores.
+
+Seguindo essas práticas, o projeto permanece organizado, escalável e preparado para receber novas funcionalidades sem comprometer sua estabilidade.
+
+# 🛣 Roadmap
+
+O **Fest** foi projetado para evoluir continuamente, acompanhando as necessidades da empresa e permitindo a expansão do sistema de forma organizada.
+
+A seguir estão listadas as funcionalidades planejadas para as próximas versões.
+
+---
+
+## 📌 Versão 1.0
+
+### Funcionalidades Implementadas
+
+- ✅ Autenticação de usuários
+- ✅ Cadastro de clientes
+- ✅ Cadastro de endereços
+- ✅ Cadastro de produtos
+- ✅ Cadastro de fornecedores
+- ✅ Gerenciamento de pedidos
+- ✅ Controle financeiro
+- ✅ Controle de entregas
+- ✅ Interface Web
+- ✅ Banco de Dados MySQL
+
+---
+
+## 🚀 Próximas Funcionalidades
+
+### Dashboard
+
+- Indicadores financeiros
+- Produtos mais alugados
+- Produtos mais vendidos
+- Clientes mais ativos
+- Pedidos por período
+- Gráficos estatísticos
+
+---
+
+### Relatórios
+
+- Relatório de pedidos
+- Relatório financeiro
+- Produtos em estoque
+- Produtos indisponíveis
+- Clientes cadastrados
+- Fornecedores
+- Exportação em PDF
+- Exportação em Excel
+
+---
+
+### Agenda
+
+- Calendário de eventos
+- Agenda de entregas
+- Agenda de retiradas
+- Alertas automáticos
+- Lembretes
+
+---
+
+### Financeiro
+
+- Parcelamentos
+- Controle de inadimplência
+- Fluxo de caixa
+- Contas a pagar
+- Contas a receber
+
+---
+
+### Integrações
+
+- WhatsApp
+- E-mail
+- Gateway de pagamento
+- API REST
+- Aplicativo Mobile
+
+---
+
+### Administração
+
+- Controle de permissões
+- Auditoria
+- Histórico de alterações
+- Backup automático
+- Logs do sistema
+
+---
+
+# 📈 Planejamento das Versões
+
+| Versão | Situação                   |
+| ------ | -------------------------- |
+| 1.0    | ✅ Desenvolvimento inicial |
+| 1.1    | ⏳ Melhorias na interface  |
+| 1.2    | ⏳ Dashboard               |
+| 1.3    | ⏳ Relatórios              |
+| 1.4    | ⏳ API REST                |
+| 2.0    | ⏳ Aplicativo Mobile       |
+
+---
+
+# ❓ Perguntas Frequentes (FAQ)
+
+## O sistema funciona em rede?
+
+Sim. A aplicação pode ser executada em um servidor, permitindo o acesso por vários computadores da mesma rede, desde que estejam corretamente configurados.
+
+---
+
+## É possível utilizar outro banco de dados?
+
+O projeto foi desenvolvido utilizando **MySQL**, mas sua arquitetura permite adaptações para outros bancos relacionais com as devidas alterações na camada de acesso aos dados.
+
+---
+
+## O sistema possui autenticação?
+
+Sim. O acesso às funcionalidades é controlado por autenticação baseada em sessões de usuário.
+
+---
+
+## O sistema pode crescer futuramente?
+
+Sim. Toda a arquitetura foi planejada para permitir a adição de novos módulos sem comprometer a organização do código.
+
+---
+
+## Posso contribuir com o projeto?
+
+Sim. Toda contribuição é bem-vinda. Consulte a seção **Guia de Contribuição** para conhecer o fluxo recomendado.
+
+---
+
+# 📊 Estatísticas do Projeto
+
+## Arquitetura
+
+- Arquitetura MVC
+- Código modular
+- Organização por responsabilidades
+- Backend em Node.js
+- Frontend com Handlebars
+- Banco de dados relacional
+
+---
+
+## Tecnologias
+
+- Node.js
+- Express.js
+- Handlebars
+- JavaScript ES6
+- MySQL
+- Git
+- GitHub
+
+---
+
+## Organização
+
+- Controllers
+- Services
+- Models
+- Routes
+- Views
+- Middlewares
+- Public
+- Database
+
+---
+
+# 📚 Documentação
+
+A documentação do projeto está organizada para facilitar a compreensão da arquitetura e do funcionamento da aplicação.
+
+| Documento    | Finalidade                  |
+| ------------ | --------------------------- |
+| README.md    | Visão geral do projeto      |
+| INSTALL.md   | Guia de instalação          |
+| DATABASE.md  | Estrutura do banco de dados |
+| API.md       | Documentação das rotas      |
+| CHANGELOG.md | Histórico de versões        |
+| MANUAL.md    | Manual de utilização        |
+
+---
+
+# 📄 Licença
+
+Este projeto está licenciado sob a **Licença MIT**.
+
+Isso significa que qualquer pessoa pode utilizar, estudar, modificar e distribuir este software, desde que mantenha os créditos dos autores e a licença original.
+
+Para mais informações, consulte o arquivo:
+
+```text
+LICENSE
+```
+
+---
+
+# 👨‍💻 Equipe
+
+Projeto desenvolvido por:
+
+**Leonardo Sanchez**
+
+Desenvolvimento:
+
+- Arquitetura
+- Banco de Dados
+- Backend
+- Frontend
+- Documentação
+
+---
+
+# 🤝 Agradecimentos
+
+Agradecemos a todas as pessoas que contribuíram direta ou indiretamente para o desenvolvimento deste projeto.
+
+Em especial:
+
+- Comunidade Node.js
+- Comunidade Express
+- Comunidade MySQL
+- Comunidade JavaScript
+- Desenvolvedores Open Source
+
+---
+
+# 📬 Contato
+
+Caso tenha dúvidas, sugestões ou queira contribuir com o projeto, entre em contato através do GitHub.
+
+Contribuições, correções e melhorias são sempre bem-vindas.
+
+---
+
+# ⭐ Apoie o Projeto
+
+Se este projeto foi útil para você, considere apoiar seu desenvolvimento.
+
+Você pode contribuir de diversas formas:
+
+- ⭐ Favoritando o repositório
+- 🐛 Reportando problemas
+- 💡 Sugerindo melhorias
+- 🔧 Enviando Pull Requests
+- 📢 Compartilhando o projeto
+
+Sua colaboração ajuda a tornar o **Fest** cada vez melhor.
+
+---
+
+<div align="center">
+
+# 🎉 Obrigado por visitar o projeto Fest!
+
+### Sistema Web para Gerenciamento de Empresas de Locação de Artigos para Festas
+
+**Desenvolvido com dedicação para oferecer uma solução organizada, escalável e moderna para gestão de empresas de locação de artigos para festas.**
+
+---
+
+### ⭐ Se este projeto foi útil, deixe uma estrela no GitHub!
+
+**Boas contribuições e bom desenvolvimento! 🚀**
+
+</div>
