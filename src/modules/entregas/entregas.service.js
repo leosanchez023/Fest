@@ -49,6 +49,15 @@ export async function registrarDevolucao(id, dados) {
   return await model.registrarDevolucao(id, dados);
 }
 
+export async function registrarReembolso(id, dados) {
+  const valor = Number(dados.valor || 0);
+  if (valor <= 0) {
+    throw new Error("Valor do reembolso deve ser maior que zero.");
+  }
+
+  return await model.inserirReembolso(id, dados);
+}
+
 export async function marcarRetirado(id, dados) {
   return await model.marcarRetirado(id, dados);
 }

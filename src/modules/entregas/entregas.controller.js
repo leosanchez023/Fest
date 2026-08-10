@@ -31,6 +31,65 @@ export async function buscarPedido(req, res) {
   }
 }
 
+export async function relatorio(req, res) {
+  try {
+    const idsParam = req.query.ids || '';
+    const ids = idsParam.split(',').map((s) => Number(s)).filter(Boolean);
+    const results = [];
+    let pos = 1;
+    for (const id of ids) {
+      const pedido = await service.buscarPedido(id);
+      if (pedido) {
+        const telefone_contato =
+          pedido.telefone_contato?.trim() ||
+          pedido.telefone?.trim() ||
+          pedido.telefone_cliente?.trim() ||
+          pedido.cliente?.telefone?.trim() ||
+          "Não informado";
+        const formatMoney = (value) =>
+          typeof value === "number"
+            ? value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+            : value || "-";
+
+        const data_evento_formatada = pedido.data_evento
+          ? new Date(pedido.data_evento).toLocaleDateString("pt-BR")
+          : "Não informado";
+        const data_entrega_formatada = pedido.data_entrega
+          ? new Date(pedido.data_entrega).toLocaleDateString("pt-BR")
+          : "Não informado";
+        const data_retirada_formatada = pedido.data_retirada
+          ? new Date(pedido.data_retirada).toLocaleDateString("pt-BR")
+          : "Não informado";
+        const observacoes_entrega = pedido.observacao_entrega?.trim() || pedido.observacoes?.trim() || "-";
+
+        results.push({
+          pos,
+          pedido,
+          itens: pedido.itens || [],
+          telefone_contato,
+          data_evento_formatada,
+          data_entrega_formatada,
+          data_retirada_formatada,
+          observacoes_entrega,
+          valor_total_formatado: formatMoney(Number(pedido.valor_total || 0)),
+          valor_frete_formatado: formatMoney(Number(pedido.valor_frete || 0)),
+          valor_desconto_formatado: formatMoney(Number(pedido.valor_desconto || 0)),
+          valor_pago_formatado: formatMoney(Number(pedido.valor_pago || 0)),
+        });
+        pos++;
+      }
+    }
+    return res.render("pages/relatorio_entregas", {
+      layout: false,
+      pedidos: results,
+      data_rota: new Date().toISOString().slice(0, 10),
+    });
+  } catch (err) {
+    console.error("Erro relatorio:", err);
+    return res.status(500).send("Erro ao gerar relatório");
+  }
+}
+
 export async function kpis(req, res) {
   try {
     const data = await service.kpis();
@@ -114,6 +173,18 @@ export async function registrarDevolucao(req, res) {
       sql: err.sqlMessage,
       code: err.code
     });
+  }
+}
+
+export async function registrarReembolso(req, res) {
+  try {
+    const id = req.params.id;
+    const { valor, forma_pagamento, observacao, usuario_id } = req.body;
+    await service.registrarReembolso(id, { valor, forma_pagamento, observacao, usuario_id });
+    return res.json({ sucesso: true });
+  } catch (err) {
+    console.error('Erro registrarReembolso:', err);
+    return res.status(500).json({ message: err.message });
   }
 }
 

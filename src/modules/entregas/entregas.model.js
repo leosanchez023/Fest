@@ -1,6 +1,6 @@
 import db from "../../../database/connection.js";
 
-export async function buscarPedidos({ search, from, to, status, pay, delivery }) {
+export async function buscarPedidos({ search, from, to, status, pay, delivery, sort }) {
   const hoje = new Date().toISOString().split("T")[0];
 
   let sql = `
@@ -93,10 +93,14 @@ export async function buscarPedidos({ search, from, to, status, pay, delivery })
     having = `HAVING valor_pago >= p.valor_total AND p.valor_total > 0`;
   }
 
+  const orderClause = sort === 'event_asc'
+    ? `ORDER BY p.data_evento ASC, p.id ASC`
+    : `ORDER BY p.data_evento DESC, p.id DESC`;
+
   sql += `
     GROUP BY p.id
     ${having}
-    ORDER BY p.data_evento DESC, p.id DESC
+    ${orderClause}
   `;
 
   const [rows] = await db.query(sql, params);
@@ -366,19 +370,35 @@ export async function registrarDevolucao(pedidoId, dados) {
       const pedidoItem = pedidoItemRows[0];
       if (!pedidoItem) continue;
 
-      const novaDevolvida =
-        Number(pedidoItem.quantidade_devolvida || 0) + quantidade;
+      const existente = Number(pedidoItem.quantidade_devolvida || 0);
+      const disponivel = Math.max(0, Number(pedidoItem.quantidade || 0) - existente);
 
-      const pendente = Math.max(
-        0,
-        Number(pedidoItem.quantidade || 0) - novaDevolvida
-      );
+      // Não permitir devolver mais do que o disponível
+      const quantidadeParaAdicionar = Math.min(disponivel, quantidade);
+      if (quantidadeParaAdicionar <= 0) continue;
+
+      const novaDevolvida = existente + quantidadeParaAdicionar;
+
+      const pendente = Math.max(0, Number(pedidoItem.quantidade || 0) - novaDevolvida);
 
       await conn.query(
         `UPDATE pedido_itens
          SET quantidade_devolvida = ?
          WHERE pedido_id = ? AND produto_id = ?`,
         [novaDevolvida, pedidoId, produtoId]
+      );
+
+      // Atualizar estoque do produto (retornar unidades ao estoque)
+      await conn.query(
+        `UPDATE produtos SET estoque = estoque + ? WHERE id = ?`,
+        [quantidadeParaAdicionar, produtoId]
+      );
+
+      // Registrar movimentação de estoque do tipo RETORNO
+      await conn.query(
+        `INSERT INTO movimentacao_estoque (produto_id, pedido_id, tipo, quantidade, observacao)
+         VALUES (?, ?, 'RETORNO', ?, ?)`,
+        [produtoId, pedidoId, quantidadeParaAdicionar, item.observacao || null]
       );
 
       await conn.query(
@@ -388,7 +408,7 @@ export async function registrarDevolucao(pedidoId, dados) {
         [
           devolucaoId,
           produtoId,
-          quantidade,
+          quantidadeParaAdicionar,
           pendente,
           item.observacao || null
         ]
@@ -598,4 +618,28 @@ export async function kpis() {
     saldoDevedor: saldo.total,
     atrasados: atrasados.total
   };
+}
+
+export async function inserirReembolso(pedidoId, dados) {
+  const { valor, forma_pagamento, observacao, usuario_id } = dados;
+  const valorNum = Number(valor || 0);
+  // registra como pagamento negativo para identificar reembolso
+  const [result] = await db.query(
+    `INSERT INTO pagamentos (pedido_id, usuario_id, valor, forma_pagamento, observacao)
+     VALUES (?, ?, ?, ?, ?)`,
+    [pedidoId, usuario_id || null, -Math.abs(valorNum), forma_pagamento || null, observacao || null]
+  );
+
+  if (result.affectedRows) {
+    await db.query(
+      `INSERT INTO ocorrencias (pedido_id, usuario_id, tipo, descricao, valor, status, data_ocorrencia)
+       VALUES (?, ?, 'Reembolso', ?, ?, 'RESOLVIDO', NOW())`,
+      [pedidoId, usuario_id || null, `Reembolso de ${Number(valorNum).toFixed(2)}`, valorNum || 0]
+    );
+  }
+
+  // Atualiza status relacionado a pagamentos se necessário
+  await atualizarStatusAposPagamento(pedidoId);
+
+  return result;
 }

@@ -1,0 +1,131 @@
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Relatório de Entregas</title>
+  <style>
+    body { font-family: Arial, sans-serif; color:#0f172a; margin:12px; font-size:12px; line-height:1.2; }
+    h1 { text-align:center; font-size:18px; margin:0 0 8px 0; }
+    .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:11px; }
+    .route-info { margin-top:6px; }
+    .pedido { page-break-inside: avoid; break-inside: avoid; border:1px solid #ccc; padding:10px; margin-bottom:10px; border-radius:4px; }
+    .pedido h3 { margin:0 0 6px 0; font-size:14px; }
+    .pedido .meta-row { display:flex; flex-wrap:wrap; gap:10px; font-size:11px; margin:4px 0; }
+    .telefone { font-weight:700; color:#0b5394; font-size:13px; }
+    .produtos { margin-top:6px; }
+    .produtos table { width:100%; border-collapse:collapse; margin-top:4px; }
+    .produtos th, .produtos td { padding:4px 6px; border:1px solid #ddd; font-size:11px; }
+    .produtos th { background:#f5f5f5; }
+    .compact-block { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; font-size:11px; }
+    .compact-block span { display:inline-flex; gap:4px; }
+    .checkbox-area { margin-top:8px; font-size:11px; }
+    .checkbox-area div { margin-bottom:4px; }
+    .rota-resumo { margin-top:14px; border-top:1px solid #222; padding-top:10px; font-size:11px; }
+    .rota-resumo table { width:100%; border-collapse:collapse; margin-top:6px; }
+    .rota-resumo th, .rota-resumo td { padding:4px 6px; border:1px solid #ddd; }
+    .rota-resumo th { background:#f5f5f5; }
+    @media print {
+      body { margin:6mm; font-size:11px; }
+      .no-print { display:none; }
+      .header { margin-bottom:6px; }
+      .pedido { page-break-inside: avoid; break-inside: avoid; margin-bottom:8px; padding:8px; }
+      .produtos th, .produtos td, .rota-resumo th, .rota-resumo td { padding:3px 5px; font-size:10px; }
+      h1 { font-size:16px; }
+      .checkbox-area { margin-top:6px; }
+      .rota-resumo { margin-top:10px; padding-top:8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="display:flex; gap:8px; margin-bottom:12px;">
+    <button onclick="window.print()">🖨️ Imprimir</button>
+    <button onclick="window.close()">Fechar</button>
+  </div>
+
+  <h1>RELATÓRIO DE ENTREGAS</h1>
+  <div style="display:flex; gap:20px; justify-content:space-between; align-items:center;">
+    <div>
+      <div>Data da rota: <strong>{{data_rota}}</strong></div>
+      <div>Entregador: ______________________________</div>
+    </div>
+    <div style="text-align:right;">
+      <div>Quantidade de entregas: <strong>{{pedidos.length}}</strong></div>
+    </div>
+  </div>
+
+  {{#each pedidos}}
+  <div class="pedido">
+    <h3>PARADA {{this.pos}} — PEDIDO #{{this.pedido.id}}</h3>
+    <div><strong>Cliente:</strong> {{this.pedido.cliente}}</div>
+    <div><strong>Telefone para contato:</strong> <span class="telefone">{{this.telefone_contato}}</span></div>
+    <div class="compact-block">
+      <span><strong>Evento:</strong> {{this.data_evento_formatada}}</span>
+      <span><strong>Entrega:</strong> {{this.data_entrega_formatada}}</span>
+      <span><strong>Retirada:</strong> {{this.data_retirada_formatada}}</span>
+    </div>
+    <div class="compact-block">
+      <span><strong>Status:</strong> {{this.pedido.status}}</span>
+      <span><strong>Total:</strong> {{this.valor_total_formatado}}</span>
+      <span><strong>Pago:</strong> {{this.valor_pago_formatado}}</span>
+    </div>
+
+    <div class="compact-block">
+      <span><strong>Frete:</strong> {{this.valor_frete_formatado}}</span>
+      <span><strong>Desconto:</strong> {{this.valor_desconto_formatado}}</span>
+    </div>
+
+    <div style="margin-top:6px; font-size:11px;"><strong>ENDEREÇO:</strong></div>
+    <div>Rua: {{this.pedido.endereco_rua}}</div>
+    <div>Número: {{this.pedido.endereco_numero}}</div>
+    <div>Bairro: {{this.pedido.endereco_bairro}}</div>
+    <div>Cidade: {{this.pedido.endereco_cidade}} - {{this.pedido.endereco_estado}}</div>
+    <div>CEP: {{this.pedido.endereco_cep}}</div>
+
+    <div style="margin-top:6px; font-size:11px;"><strong>OBSERVAÇÕES:</strong></div>
+    <div>{{this.observacoes_entrega}}</div>
+
+    <div class="produtos">
+      <div><strong>PRODUTOS:</strong></div>
+      <table>
+        <thead><tr><th>Quantidade</th><th>Produto</th></tr></thead>
+        <tbody>
+          {{#each this.itens}}
+            <tr><td>{{this.quantidade}}</td><td>{{this.produto_nome}}</td></tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="checkbox-area">
+      <div>☐ ENTREGA REALIZADA</div>
+      <div>Horário: ______ : ______</div>
+      <div>Observação do entregador:</div>
+      <div style="min-height:40px; border:1px dashed #ccc; margin-top:6px; padding:6px"></div>
+    </div>
+  </div>
+  {{/each}}
+
+  <div class="rota-resumo">
+    <h3>CONTROLE DA ROTA</h3>
+    <table>
+      <thead><tr><th>Parada</th><th>Pedido</th><th>Cliente</th><th>Entregue</th></tr></thead>
+      <tbody>
+        {{#each pedidos}}
+          <tr><td>{{this.pos}}</td><td>#{{this.pedido.id}}</td><td>{{this.pedido.cliente}}</td><td>☐</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <div style="margin-top:12px;">Total de pedidos: ______</div>
+    <div>Entregas realizadas: ______</div>
+    <div>Entregas não realizadas: ______</div>
+    <div style="margin-top:12px;">Observações gerais da rota:</div>
+    <div style="min-height:60px; border:1px dashed #ccc; margin-top:6px; padding:6px"></div>
+
+    <div style="margin-top:18px;">Assinatura do entregador: ________________________</div>
+  </div>
+
+  <script>
+    // helper to number from 1
+  </script>
+</body>
+</html>

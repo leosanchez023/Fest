@@ -245,6 +245,19 @@
     </div>
   </div>
 
+  <div class="card" style="padding:18px; margin-bottom:20px;">
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <button class="btn" id="select-all">Selecionar todos</button>
+      <button class="btn" id="deselect-all">Desmarcar todos</button>
+      <button class="btn" id="invert-selection">Inverter seleção</button>
+      <div style="margin-left:8px; font-weight:600;">Pedidos selecionados: <span id="selected-count">0</span></div>
+      <div style="margin-left:auto; display:flex; gap:8px;">
+        <button class="btn" id="toggle-order">Inverter ordem</button>
+        <button class="btn-primary btn" id="generate-report">Gerar relatório de entrega</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TABELA -->
   <div class="card">
     <div style="padding:18px; display:flex; justify-content:space-between;">
@@ -255,17 +268,18 @@
     <div style="overflow-x:auto;">
       <table>
         <thead>
-          <tr>
-            <th>Pedido</th>
-            <th>Cliente</th>
-            <th>Evento</th>
-            <th>Entrega</th>
-            <th>Retirada</th>
-            <th>Total</th>
-            <th>Pago</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
+              <tr>
+                <th style="width:40px"></th>
+                <th>Pedido</th>
+                <th>Cliente</th>
+                <th>Evento <button id="toggle-event-order" class="btn-ghost" title="Alternar ordem por data do evento">↕</button></th>
+                <th>Entrega</th>
+                <th>Retirada</th>
+                <th>Total</th>
+                <th>Pago</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
         </thead>
         <tbody id="orders-tbody"></tbody>
       </table>

@@ -87,6 +87,8 @@ let activeKpiFilter = null;
 let currentOrderId = null;
 let currentReturnItems = [];
 let currentOrderContext = null;
+let eventOrder = 'desc'; // 'desc' = mais recentes primeiro, 'asc' = mais antigos primeiro
+let selectedOrders = new Set();
 
 const getFilters = () => {
   const params = new URLSearchParams();
@@ -103,6 +105,8 @@ const getFilters = () => {
   if (status) params.append("status", status);
   if (pay) params.append("pay", pay);
   if (delivery) params.append("delivery", delivery);
+  // ordenação por data do evento
+  params.append("sort", eventOrder === 'asc' ? 'event_asc' : 'event_desc');
 
   return params;
 };
@@ -154,29 +158,47 @@ const renderTable = () => {
   $("count-badge").textContent = `${filtered.length} pedidos`;
 
   tbody.innerHTML = filtered
-    .map(
-      (o) => `
+    .map((o) => {
+      const checked = selectedOrders.has(Number(o.id)) ? 'checked' : '';
+      const clienteTelefone = o.telefone ? `<div class="muted">${o.telefone}</div>` : '';
+      const totalPercent = Math.min(100, Math.round((o.valor_pago / Math.max(1, o.valor_total)) * 100));
+      return `
         <tr>
+          <td><input type="checkbox" class="select-order" data-id="${o.id}" ${checked} /></td>
           <td><strong>${o.id}</strong></td>
           <td>
             <div style="font-weight:600;">${o.cliente}</div>
-            <div class="muted">${o.telefone}</div>
+            ${clienteTelefone}
           </td>
           <td>${formatDate(o.data_evento)}</td>
           <td>${formatDate(o.data_entrega)}</td>
           <td>${formatDate(o.data_retirada)}</td>
           <td>
             <strong>${formatMoney(o.valor_total)}</strong>
-            <div class="progress"><div style="width:${Math.min(100, Math.round((o.valor_pago / Math.max(1, o.valor_total)) * 100))}%"></div></div>
+            <div class="progress"><div style="width:${totalPercent}%"></div></div>
             <div class="muted">${paymentStatus(o.valor_pago, o.valor_total)}</div>
           </td>
           <td>${formatMoney(o.valor_pago)}</td>
           <td>${orderStatusBadge(o.status)}</td>
           <td><button class="btn" type="button" onclick="openModal(${o.id})">Ver</button></td>
         </tr>
-      `
-    )
+      `;
+    })
     .join("");
+
+  // ligar handlers de seleção
+  document.querySelectorAll('.select-order').forEach((cb) => {
+    cb.addEventListener('change', (e) => {
+      const id = Number(cb.dataset.id);
+      if (cb.checked) selectedOrders.add(id); else selectedOrders.delete(id);
+      updateSelectedCount();
+    });
+  });
+};
+
+const updateSelectedCount = () => {
+  const el = document.getElementById('selected-count');
+  if (el) el.textContent = String(selectedOrders.size);
 };
 
 const renderKPIs = () => {
@@ -265,7 +287,8 @@ const renderTimeline = (order) => {
     .sort((a, b) => new Date(a.data_pagamento || 0) - new Date(b.data_pagamento || 0))[0] || null;
 
   const deliveredStatuses = ["ENTREGUE", "RETIRADO", "CONFERENCIA", "PENDENTE", "FINALIZADO"];
-  const isDelivered = Boolean(order.data_entrega) || deliveredStatuses.includes(order.status);
+  // A entrega deve ser considerada concluída somente pelo status do pedido
+  const isDelivered = deliveredStatuses.includes(order.status);
 
   const totalQty = itens.reduce((sum, item) => sum + Number(item.quantidade || 0), 0);
   const returnedQty = itens.reduce((sum, item) => sum + Number(item.quantidade_devolvida || 0), 0);
@@ -317,12 +340,13 @@ const renderTimeline = (order) => {
     },
     {
       title: "Devolução",
-      state: allItemsReturned ? "done" : pendingReturnQty > 0 ? "pending" : "waiting",
-      label: allItemsReturned ? "Concluído" : pendingReturnQty > 0 ? "Pendência" : "Aguardando",
-      icon: allItemsReturned ? "✓" : pendingReturnQty > 0 ? "!" : "●",
-      meta: allItemsReturned
+      // marcada como concluída somente se houver devolução registrada e todos os itens devolvidos
+      state: devolucoes.length > 0 && allItemsReturned ? "done" : devolucoes.length > 0 && pendingReturnQty > 0 ? "pending" : "waiting",
+      label: devolucoes.length > 0 && allItemsReturned ? "Concluído" : devolucoes.length > 0 && pendingReturnQty > 0 ? "Pendência" : "Aguardando",
+      icon: devolucoes.length > 0 && allItemsReturned ? "✓" : devolucoes.length > 0 && pendingReturnQty > 0 ? "!" : "●",
+      meta: devolucoes.length > 0 && allItemsReturned
         ? `${devolucoes[devolucoes.length - 1]?.responsavel || "Responsável não informado"} • ${formatDateTime(devolucoes[devolucoes.length - 1]?.data_devolucao || order.data_retirada)}`
-        : pendingReturnQty > 0
+        : devolucoes.length > 0 && pendingReturnQty > 0
           ? `${pendingReturnQty} item${pendingReturnQty === 1 ? "" : "s"} ainda pendente${pendingReturnQty === 1 ? "" : "s"}`
           : "Aguardando devolução",
     },
@@ -737,6 +761,7 @@ const openReturnModal = (order) => {
     nome: item.produto_nome || item.nome || "Produto",
     quantidade: Number(item.quantidade || 0),
     quantidade_devolvida: Number(item.quantidade_devolvida || 0),
+    valor_unitario: Number(item.valor_unitario || item.valor_unitario || 0),
     quantidade_pendente: Math.max(0, Number(item.quantidade || 0) - Number(item.quantidade_devolvida || 0)),
   })).filter((item) => item.quantidade_pendente > 0);
 
@@ -752,7 +777,7 @@ const openReturnModal = (order) => {
               <td>${item.quantidade}</td>
               <td>${item.quantidade_devolvida}</td>
               <td>${item.quantidade_pendente}</td>
-              <td><input type="number" min="0" max="${item.quantidade_pendente}" value="0" data-index="${index}" /></td>
+              <td><input type="number" min="0" max="${item.quantidade_pendente}" value="0" data-index="${index}" class="return-input" /></td>
             </tr>
           `).join("")}
         </tbody>
@@ -765,9 +790,46 @@ const openReturnModal = (order) => {
         <label>Observação</label>
         <textarea id="return-observacao" rows="3" placeholder="Informações da devolução"></textarea>
       </div>
+      <div style="margin-top:12px;">
+        <div><strong>Produtos devolvidos:</strong> <span id="return-total">R$ 0,00</span></div>
+        <div style="margin-top:6px;"><strong>Valor do reembolso sugerido:</strong> <span id="return-refund">R$ 0,00</span></div>
+      </div>
     </div>
   `;
   $("return-modal").classList.add("open");
+
+  // atualizar totais quando usuário digitar quantidades
+  const inputs = Array.from(document.querySelectorAll('#return-modal-body input.return-input'));
+  const totalEl = document.getElementById('return-total');
+  const refundEl = document.getElementById('return-refund');
+
+  const formatMoneyLocal = (v) => formatMoney(v);
+
+  const recompute = () => {
+    let total = 0;
+    inputs.forEach((inp) => {
+      const idx = Number(inp.dataset.index || 0);
+      const qtd = Number(inp.value || 0);
+      const item = currentReturnItems[idx];
+      if (qtd > 0 && item) {
+        total += qtd * Number(item.valor_unitario || 0);
+      }
+    });
+    if (totalEl) totalEl.textContent = formatMoneyLocal(total);
+    if (refundEl) refundEl.textContent = formatMoneyLocal(total);
+  };
+
+  inputs.forEach((inp) => inp.addEventListener('input', () => {
+    // validar limites
+    const max = Number(inp.max || 0);
+    let v = Number(inp.value || 0);
+    if (v < 0) inp.value = 0;
+    if (v > max) inp.value = max;
+    recompute();
+  }));
+
+  // inicial compute
+  recompute();
 };
 
 const closeReturnModal = () => {
@@ -840,6 +902,33 @@ const submitReturn = async () => {
     });
     if (!res.ok) throw new Error('Falha ao registrar devolução');
     closeReturnModal();
+    // calcular valor do reembolso sugerido
+    let refundAmount = 0;
+    itens.forEach((it) => {
+      const found = currentReturnItems.find((ci) => Number(ci.produto_id) === Number(it.produto_id));
+      if (found) refundAmount += Number(it.quantidade_devolvida || 0) * Number(found.valor_unitario || 0);
+    });
+
+    // perguntar ao usuário se deseja registrar reembolso
+    if (refundAmount > 0) {
+      const confirmRe = confirm(`Produtos devolvidos registrados. Deseja registrar reembolso de ${formatMoney(refundAmount)}?`);
+      if (confirmRe) {
+        const forma = prompt('Informe a forma de reembolso (PIX, DINHEIRO, CARTAO_DEBITO, CARTAO_CREDITO, TRANSFERENCIA):', 'PIX') || 'PIX';
+        try {
+          const r = await fetch(`/entregas/pedidos/${order.id}/reembolso`, {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json' },
+            body: JSON.stringify({ valor: refundAmount, forma_pagamento: forma, observacao: 'Reembolso automático após devolução', usuario_id: 1 })
+          });
+          if (!r.ok) throw new Error('Falha ao registrar reembolso');
+          alert('Reembolso registrado com sucesso');
+        } catch (err) {
+          console.error('Erro ao registrar reembolso:', err);
+          alert('Erro ao registrar reembolso');
+        }
+      }
+    }
+
     await openOrderModal(order.id);
     await loadOrders();
   } catch (err) {
@@ -980,6 +1069,50 @@ const init = () => {
     window.searchTimer = setTimeout(loadOrders, 300);
   });
 
+  // Alternar ordem por evento
+  const toggleBtn = document.getElementById('toggle-event-order');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      eventOrder = eventOrder === 'desc' ? 'asc' : 'desc';
+      // atualizar visual do botão (simples)
+      toggleBtn.textContent = eventOrder === 'desc' ? '↕' : '↕';
+      loadOrders();
+    });
+  }
+
+  // seleção: botões
+  const selectAllBtn = document.getElementById('select-all');
+  const deselectAllBtn = document.getElementById('deselect-all');
+  const invertBtn = document.getElementById('invert-selection');
+  const toggleOrderBtn = document.getElementById('toggle-order');
+  const genBtn = document.getElementById('generate-report');
+
+  if (selectAllBtn) selectAllBtn.addEventListener('click', () => {
+    orders.forEach(o => selectedOrders.add(Number(o.id)));
+    renderTable(); updateSelectedCount();
+  });
+  if (deselectAllBtn) deselectAllBtn.addEventListener('click', () => { selectedOrders.clear(); renderTable(); updateSelectedCount(); });
+  if (invertBtn) invertBtn.addEventListener('click', () => {
+    const current = new Set(selectedOrders);
+    selectedOrders.clear();
+    orders.forEach(o => {
+      if (!current.has(Number(o.id))) selectedOrders.add(Number(o.id));
+    });
+    renderTable(); updateSelectedCount();
+  });
+  if (toggleOrderBtn) toggleOrderBtn.addEventListener('click', () => { eventOrder = eventOrder === 'desc' ? 'asc' : 'desc'; loadOrders(); });
+  if (genBtn) genBtn.addEventListener('click', () => generateReport());
+
+
+const generateReport = () => {
+  if (!selectedOrders.size) return alert('Selecione ao menos um pedido para gerar o relatório.');
+  // manter ordem visível conforme DOM (ordem atual da tabela)
+  const boxes = Array.from(document.querySelectorAll('#orders-tbody .select-order'));
+  const idsOrdered = boxes.map(b => Number(b.dataset.id)).filter(id => selectedOrders.has(id));
+  const idsParam = idsOrdered.join(',');
+  if (!idsParam) return alert('Selecione ao menos um pedido para gerar o relatório.');
+  window.open(`/entregas/relatorio?ids=${encodeURIComponent(idsParam)}`, '_blank');
+};
   $("modal")?.addEventListener("click", (event) => {
     if (event.target.id === "modal") closeModal();
   });
