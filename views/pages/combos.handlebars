@@ -1,0 +1,272 @@
+<div class="container" style="max-width:1200px;margin:0 auto;padding:24px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h1>🧩 Combos</h1>
+      <p style="margin:6px 0 0;color:#64748b;">Cadastro, composição e disponibilidade dos combos do sistema.</p>
+    </div>
+    <button class="btn btn-primary" id="btn-novo-combo" type="button">+ Novo combo</button>
+  </div>
+
+  <div class="card" style="margin-top:20px;padding:20px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+      <div>
+        <label>Busca</label>
+        <input id="combo-busca" placeholder="Buscar combo" />
+      </div>
+      <div>
+        <label>Status</label>
+        <select id="combo-status">
+          <option value="">Todos</option>
+          <option value="1">Ativos</option>
+          <option value="0">Inativos</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px;overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="padding:12px;">Nome</th>
+          <th style="padding:12px;">Código</th>
+          <th style="padding:12px;">Preço aluguel</th>
+          <th style="padding:12px;">Preço venda</th>
+          <th style="padding:12px;">Disponibilidade</th>
+          <th style="padding:12px;">Status</th>
+          <th style="padding:12px;">Ações</th>
+        </tr>
+      </thead>
+      <tbody id="combo-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="combo-modal" class="modal-overlay" style="display:none;">
+  <div class="modal" style="max-width:900px;">
+    <div class="modal-header">
+      <div>
+        <div id="combo-modal-title">Novo combo</div>
+      </div>
+      <button type="button" id="combo-close" style="background:none;border:0;color:white;font-size:24px;cursor:pointer;">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="combo-form">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+          <div>
+            <label>Nome</label>
+            <input name="nome" required />
+          </div>
+          <div>
+            <label>Código</label>
+            <input name="codigo" />
+          </div>
+          <div>
+            <label>Preço de aluguel</label>
+            <input name="preco_aluguel" type="number" min="0" step="0.01" value="0" />
+          </div>
+          <div>
+            <label>Preço de venda</label>
+            <input name="preco_venda" type="number" min="0" step="0.01" value="0" />
+          </div>
+          <div>
+            <label>Ativo</label>
+            <select name="ativo">
+              <option value="1">Ativo</option>
+              <option value="0">Inativo</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;">
+          <label>Descrição</label>
+          <textarea name="descricao" rows="3" style="width:100%;"></textarea>
+        </div>
+
+        <div style="margin-top:18px; border:1px solid #e2e8f0; border-radius:12px; padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <h3 style="margin:0;">Componentes</h3>
+            <button type="button" id="btn-adicionar-item" class="btn btn-primary">+ Adicionar componente</button>
+          </div>
+          <div id="combo-itens" style="margin-top:14px;display:grid;gap:10px;"></div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+          <button type="button" class="btn" id="combo-cancelar">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar combo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const comboModal = document.getElementById('combo-modal');
+  const comboTableBody = document.getElementById('combo-table-body');
+  const comboItens = document.getElementById('combo-itens');
+  const comboForm = document.getElementById('combo-form');
+  let comboAtualId = null;
+
+  function moeda(v) {
+    return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  async function carregarCombos() {
+    const busca = document.getElementById('combo-busca').value.trim();
+    const ativo = document.getElementById('combo-status').value;
+    const resp = await fetch('/combos/api');
+    const combos = await resp.json();
+
+    const filtrados = combos.filter((combo) => {
+      const texto = `${combo.nome || ''} ${combo.codigo || ''}`.toLowerCase();
+      const okBusca = !busca || texto.includes(busca.toLowerCase());
+      const okStatus = ativo === '' || String(combo.ativo) === String(ativo);
+      return okBusca && okStatus;
+    });
+
+    comboTableBody.innerHTML = filtrados.map((combo) => `
+      <tr>
+        <td>${combo.nome}</td>
+        <td>${combo.codigo || '-'}</td>
+        <td>${moeda(combo.preco_aluguel)}</td>
+        <td>${moeda(combo.preco_venda)}</td>
+        <td>${combo.total_itens || 0} itens</td>
+        <td>${combo.ativo === 0 ? '<span class="badge b-muted">Inativo</span>' : '<span class="badge b-success">Ativo</span>'}</td>
+        <td>
+          <button type="button" class="btn" data-action="edit" data-id="${combo.id}">Editar</button>
+          <button type="button" class="btn" data-action="toggle" data-id="${combo.id}">${combo.ativo === 0 ? 'Ativar' : 'Inativar'}</button>
+        </td>
+      </tr>
+    `).join('');
+
+    document.querySelectorAll('[data-action="edit"]').forEach((btn) => {
+      btn.addEventListener('click', async () => abrirModalEdicao(Number(btn.dataset.id)));
+    });
+
+    document.querySelectorAll('[data-action="toggle"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = Number(btn.dataset.id);
+        const combo = combos.find((item) => item.id === id);
+        if (!combo) return;
+        await fetch(`/combos/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...combo, ativo: combo.ativo === 0 ? 1 : 0 }) });
+        await carregarCombos();
+      });
+    });
+  }
+
+  function adicionarLinhaItem(item = {}) {
+    const row = document.createElement('div');
+    row.style.display = 'grid';
+    row.style.gridTemplateColumns = '2fr 1fr 90px';
+    row.style.gap = '8px';
+    row.style.alignItems = 'end';
+    row.innerHTML = `
+      <div>
+        <label>Produto</label>
+        <select name="produto_id" data-product>
+          <option value="">Selecione</option>
+        </select>
+      </div>
+      <div>
+        <label>Quantidade</label>
+        <input type="number" min="1" value="${item.quantidade || 1}" name="quantidade" />
+      </div>
+      <div>
+        <button type="button" class="btn" data-remove-item>Remover</button>
+      </div>
+    `;
+
+    const select = row.querySelector('[data-product]');
+    fetch('/produtos/api').then((r) => r.json()).then((produtos) => {
+      select.innerHTML = '<option value="">Selecione</option>' + produtos
+        .filter((p) => Number(p.ativo || 1) === 1)
+        .map((p) => `<option value="${p.id}" ${Number(item.produto_id || 0) === Number(p.id) ? 'selected' : ''}>${p.nome}</option>`)
+        .join('');
+    });
+
+    row.querySelector('[data-remove-item]').addEventListener('click', () => row.remove());
+    comboItens.appendChild(row);
+  }
+
+  function abrirModalEdicao(id) {
+    comboAtualId = id;
+    document.getElementById('combo-modal-title').textContent = 'Editar combo';
+    comboModal.style.display = 'flex';
+    fetch(`/combos/${id}`).then((r) => r.json()).then(async (combo) => {
+      comboForm.nome.value = combo.nome || '';
+      comboForm.codigo.value = combo.codigo || '';
+      comboForm.descricao.value = combo.descricao || '';
+      comboForm.preco_aluguel.value = combo.preco_aluguel || 0;
+      comboForm.preco_venda.value = combo.preco_venda || 0;
+      comboForm.ativo.value = String(combo.ativo ?? 1);
+      comboItens.innerHTML = '';
+      const itens = await fetch(`/combos/${id}`).then((res) => res.json()).then((d) => d.itens || []);
+      itens.forEach((item) => adicionarLinhaItem({ produto_id: item.produto_id, quantidade: item.quantidade }));
+    });
+  }
+
+  document.getElementById('btn-novo-combo').addEventListener('click', () => {
+    comboAtualId = null;
+    comboForm.reset();
+    comboForm.preco_aluguel.value = 0;
+    comboForm.preco_venda.value = 0;
+    comboForm.ativo.value = '1';
+    comboItens.innerHTML = '';
+    document.getElementById('combo-modal-title').textContent = 'Novo combo';
+    comboModal.style.display = 'flex';
+    adicionarLinhaItem();
+  });
+
+  document.getElementById('btn-adicionar-item').addEventListener('click', () => adicionarLinhaItem());
+  document.getElementById('combo-close').addEventListener('click', () => comboModal.style.display = 'none');
+  document.getElementById('combo-cancelar').addEventListener('click', () => comboModal.style.display = 'none');
+
+  comboForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const formData = new FormData(comboForm);
+    const payload = {
+      nome: formData.get('nome'),
+      codigo: formData.get('codigo'),
+      descricao: formData.get('descricao'),
+      preco_aluguel: Number(formData.get('preco_aluguel') || 0),
+      preco_venda: Number(formData.get('preco_venda') || 0),
+      ativo: Number(formData.get('ativo')) === 1,
+      itens: [...comboItens.querySelectorAll('div')].map((row) => {
+        const produtoId = row.querySelector('[data-product]').value;
+        const quantidade = Number(row.querySelector('input[name="quantidade"]').value || 1);
+        return { produto_id: Number(produtoId), quantidade };
+      }).filter((item) => item.produto_id && item.quantidade > 0)
+    };
+
+    if (!payload.nome || !payload.nome.trim()) {
+      alert('Nome do combo é obrigatório.');
+      return;
+    }
+
+    if (!payload.itens.length) {
+      alert('Adicione pelo menos um componente ao combo.');
+      return;
+    }
+
+    try {
+      let res;
+      if (comboAtualId) {
+        res = await fetch(`/combos/${comboAtualId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      } else {
+        res = await fetch('/combos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      }
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.erro || 'Erro ao salvar combo');
+      comboModal.style.display = 'none';
+      await carregarCombos();
+      alert('Combo salvo com sucesso.');
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+
+  document.getElementById('combo-busca').addEventListener('input', carregarCombos);
+  document.getElementById('combo-status').addEventListener('change', carregarCombos);
+  carregarCombos();
+</script>

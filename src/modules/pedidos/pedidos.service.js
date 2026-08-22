@@ -407,6 +407,14 @@ export async function buscarProdutos(termo) {
   return await model.buscarProdutos(termo);
 }
 
+export async function cancelarPedido(id, dados = {}) {
+  return await model.cancelarPedido(id, dados);
+}
+
+export async function alterarQuantidadeItemPedido(id, produtoId, quantidade, dados = {}) {
+  return await model.alterarQuantidadeItemPedido(id, produtoId, quantidade, dados);
+}
+
 /**
  * Cadastra um novo cliente.
  */

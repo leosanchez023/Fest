@@ -282,6 +282,24 @@ export async function marcarEntregue(pedidoId, dados) {
 
 
   if (result.affectedRows) {
+    const [itensPedido] = await db.query(
+      `SELECT * FROM pedido_itens WHERE pedido_id = ?`,
+      [pedidoId]
+    );
+
+    for (const item of itensPedido) {
+      const produtoId = Number(item.produto_id || 0);
+      const quantidade = Number(item.quantidade || 0);
+      if (!produtoId || quantidade <= 0) continue;
+
+      await import("../estoque/estoque.service.js").then(({ confirmarEntrega }) => confirmarEntrega({
+        produtoId,
+        quantidade,
+        pedidoId,
+        usuarioId: usuario_id || null,
+        observacao: `Entrega do pedido ${pedidoId}`
+      }));
+    }
 
     await db.query(
       `
@@ -355,12 +373,16 @@ export async function registrarDevolucao(pedidoId, dados) {
 
     for (const item of itens) {
       const produtoId = Number(item.produto_id || item.id || 0);
-      const quantidade = Number(item.quantidade_devolvida || 0);
+      const quantidadeEntregue = Number(item.quantidade_entregue || item.quantidade || 0);
+      const quantidadeBoa = Number(item.quantidade_boa || item.quantidade_devolvida || 0);
+      const quantidadeDanificada = Number(item.quantidade_danificada || 0);
+      const quantidadePendente = Number(item.quantidade_faltando || item.quantidade_pendente || 0);
+      const totalDevolvido = quantidadeBoa + quantidadeDanificada + quantidadePendente;
 
-      if (!produtoId || quantidade <= 0) continue;
+      if (!produtoId || quantidadeEntregue <= 0 || totalDevolvido <= 0) continue;
 
       const [pedidoItemRows] = await conn.query(
-        `SELECT quantidade, quantidade_devolvida
+        `SELECT quantidade, quantidade_devolvida, quantidade_entregue
          FROM pedido_itens
          WHERE pedido_id = ? AND produto_id = ?
          LIMIT 1`,
@@ -370,16 +392,15 @@ export async function registrarDevolucao(pedidoId, dados) {
       const pedidoItem = pedidoItemRows[0];
       if (!pedidoItem) continue;
 
-      const existente = Number(pedidoItem.quantidade_devolvida || 0);
-      const disponivel = Math.max(0, Number(pedidoItem.quantidade || 0) - existente);
+      const entregue = Number(pedidoItem.quantidade_entregue || pedidoItem.quantidade || 0);
+      const devolvidoAtual = Number(pedidoItem.quantidade_devolvida || 0);
+      const restante = Math.max(0, entregue - devolvidoAtual);
 
-      // Não permitir devolver mais do que o disponível
-      const quantidadeParaAdicionar = Math.min(disponivel, quantidade);
-      if (quantidadeParaAdicionar <= 0) continue;
+      if (totalDevolvido > restante) {
+        throw new Error(`Quantidade devolvida excede o total entregue para o produto ${produtoId}.`);
+      }
 
-      const novaDevolvida = existente + quantidadeParaAdicionar;
-
-      const pendente = Math.max(0, Number(pedidoItem.quantidade || 0) - novaDevolvida);
+      const novaDevolvida = devolvidoAtual + totalDevolvido;
 
       await conn.query(
         `UPDATE pedido_itens
@@ -388,28 +409,49 @@ export async function registrarDevolucao(pedidoId, dados) {
         [novaDevolvida, pedidoId, produtoId]
       );
 
-      // Atualizar estoque do produto (retornar unidades ao estoque)
-      await conn.query(
-        `UPDATE produtos SET estoque = estoque + ? WHERE id = ?`,
-        [quantidadeParaAdicionar, produtoId]
-      );
+      if (quantidadeDanificada > 0) {
+        await import("../estoque/estoque.service.js").then(({ registrarDevolucao }) => registrarDevolucao({
+          produtoId,
+          quantidade: quantidadeDanificada,
+          tipo: 'DANIFICADA',
+          pedidoId,
+          usuarioId: usuario_id || null,
+          observacao: item.observacao || 'Devolução com dano'
+        }));
+      }
 
-      // Registrar movimentação de estoque do tipo RETORNO
-      await conn.query(
-        `INSERT INTO movimentacao_estoque (produto_id, pedido_id, tipo, quantidade, observacao)
-         VALUES (?, ?, 'RETORNO', ?, ?)`,
-        [produtoId, pedidoId, quantidadeParaAdicionar, item.observacao || null]
-      );
+      if (quantidadePendente > 0) {
+        await import("../estoque/estoque.service.js").then(({ registrarDevolucao }) => registrarDevolucao({
+          produtoId,
+          quantidade: quantidadePendente,
+          tipo: 'PENDENTE',
+          pedidoId,
+          usuarioId: usuario_id || null,
+          observacao: item.observacao || 'Item pendente de devolução'
+        }));
+      }
+
+      if (quantidadeBoa > 0) {
+        await import("../estoque/estoque.service.js").then(({ registrarDevolucao }) => registrarDevolucao({
+          produtoId,
+          quantidade: quantidadeBoa,
+          tipo: 'BOA',
+          pedidoId,
+          usuarioId: usuario_id || null,
+          observacao: item.observacao || 'Devolução em boas condições'
+        }));
+      }
 
       await conn.query(
         `INSERT INTO devolucao_itens
-          (devolucao_id, produto_id, quantidade_recebida, quantidade_faltando, observacao)
-         VALUES (?, ?, ?, ?, ?)`,
+          (devolucao_id, produto_id, quantidade_recebida, quantidade_faltando, quantidade_danificada, observacao)
+         VALUES (?, ?, ?, ?, ?, ?)`,
         [
           devolucaoId,
           produtoId,
-          quantidadeParaAdicionar,
-          pendente,
+          totalDevolvido,
+          quantidadePendente,
+          quantidadeDanificada,
           item.observacao || null
         ]
       );

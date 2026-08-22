@@ -18,6 +18,8 @@ router.post("/criar", controller.criar);
 
 // obter pedido para edição/duplicação
 router.get('/obter/:id', controller.buscarPorId);
+router.post('/:id/cancelar', controller.cancelar);
+router.put('/:id/itens/:produtoId', controller.alterarQuantidadeItem);
 
 // NOVO: Endereços
 router.get("/buscar-enderecos", controller.buscarEnderecos);

@@ -1,4 +1,5 @@
 import db from "../../../database/connection.js";
+import { reservarItensPedido } from "../estoque/estoque.service.js";
 
 // ---------------- CLIENTES ----------------
 export async function buscarClientes(termo) {
@@ -145,7 +146,9 @@ export async function criarPedido(dados) {
 
     const pedidoId = pedido.insertId;
 
-    for (const item of dados.itens) {
+    const itensPedido = Array.isArray(dados.itens) ? dados.itens : [];
+
+    for (const item of itensPedido) {
       await conn.query(
         `
         INSERT INTO pedido_itens (
@@ -165,17 +168,15 @@ export async function criarPedido(dados) {
           item.subtotal
         ]
       );
+    }
 
-      await conn.query(
-      `UPDATE produtos
-      SET estoque = estoque - ?
-      WHERE id = ?
-      `,
-      [
-        item.quantidade,
-        item.produto_id
-      ]
-    );
+    if ((dados.status || '').toUpperCase() === 'CONFIRMADO' || (dados.status || '').toUpperCase() === 'PEDIDO') {
+      await reservarItensPedido({
+        conn,
+        itens: itensPedido,
+        pedidoId,
+        usuarioId: dados.usuario_id || null
+      });
     }
 
     if ((dados.valor_pago || 0) > 0) {
@@ -318,6 +319,123 @@ export async function buscarPedidoPorId(id) {
     itens,
     pagamentos
   };
+}
+
+export async function cancelarPedido(pedidoId, dados = {}) {
+  const { usuario_id = null, observacao = '' } = dados;
+
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [itens] = await conn.query(
+      `SELECT produto_id, quantidade FROM pedido_itens WHERE pedido_id = ? FOR UPDATE`,
+      [pedidoId]
+    );
+
+    for (const item of itens) {
+      const produtoId = Number(item.produto_id || 0);
+      const quantidade = Number(item.quantidade || 0);
+      if (!produtoId || quantidade <= 0) continue;
+
+      await conn.query(
+        `UPDATE produtos SET estoque_reservado = GREATEST(estoque_reservado - ?, 0) WHERE id = ?`,
+        [quantidade, produtoId]
+      );
+
+      await conn.query(
+        `UPDATE reservas_estoque
+         SET status = 'CANCELADA', data_liberacao = NOW(), updatedAt = NOW()
+         WHERE produto_id = ? AND pedido_id = ? AND status = 'ATIVA'`,
+        [produtoId, pedidoId]
+      );
+
+      await conn.query(
+        `INSERT INTO movimentacao_estoque (produto_id, pedido_id, usuario_id, tipo, quantidade, observacao, data_movimentacao)
+         VALUES (?, ?, ?, 'RETORNO', ?, ?, NOW())`,
+        [produtoId, pedidoId, usuario_id, -quantidade, observacao || `Cancelamento do pedido ${pedidoId}`]
+      );
+    }
+
+    await conn.query(
+      `UPDATE pedidos SET status = 'CANCELADO' WHERE id = ?`,
+      [pedidoId]
+    );
+
+    await conn.commit();
+    return { sucesso: true, pedidoId };
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
+}
+
+export async function alterarQuantidadeItemPedido(pedidoId, produtoId, novaQuantidade, dados = {}) {
+  const qtdNova = Number(novaQuantidade || 0);
+  if (!pedidoId || !produtoId || qtdNova <= 0) {
+    throw new Error('Quantidade inválida para alteração do item do pedido.');
+  }
+
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [rows] = await conn.query(
+      `SELECT quantidade FROM pedido_itens WHERE pedido_id = ? AND produto_id = ? FOR UPDATE`,
+      [pedidoId, produtoId]
+    );
+
+    if (!rows.length) {
+      throw new Error('Item do pedido não encontrado.');
+    }
+
+    const quantidadeAtual = Number(rows[0].quantidade || 0);
+    const diferenca = qtdNova - quantidadeAtual;
+
+    if (diferenca > 0) {
+      const [produtoRows] = await conn.query('SELECT * FROM produtos WHERE id = ? FOR UPDATE', [produtoId]);
+      const produto = produtoRows[0];
+      if (!produto) throw new Error('Produto não encontrado.');
+
+      const disponivel = Number(produto.estoque || 0)
+        - Number(produto.estoque_reservado || 0)
+        - Number(produto.estoque_em_uso || 0)
+        - Number(produto.estoque_manutencao || 0)
+        - Number(produto.estoque_danificado || 0);
+
+      if (disponivel < diferenca) {
+        throw new Error(`Estoque insuficiente para acrescentar ${diferenca} unidades.`);
+      }
+
+      await conn.query(
+        `UPDATE produtos SET estoque_reservado = estoque_reservado + ? WHERE id = ?`,
+        [diferenca, produtoId]
+      );
+    }
+
+    if (diferenca < 0) {
+      const liberada = Math.abs(diferenca);
+      await conn.query(
+        `UPDATE produtos SET estoque_reservado = GREATEST(estoque_reservado - ?, 0) WHERE id = ?`,
+        [liberada, produtoId]
+      );
+    }
+
+    await conn.query(
+      `UPDATE pedido_itens SET quantidade = ? WHERE pedido_id = ? AND produto_id = ?`,
+      [qtdNova, pedidoId, produtoId]
+    );
+
+    await conn.commit();
+    return { sucesso: true, pedidoId, produtoId, quantidade: qtdNova };
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
 }
 export async function buscarClientePorId(id){
 

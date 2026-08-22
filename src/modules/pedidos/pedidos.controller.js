@@ -114,3 +114,34 @@ export async function buscarPorId(req, res) {
     });
   }
 }
+
+export async function cancelar(req, res) {
+  try {
+    const { id } = req.params;
+    const resultado = await service.cancelarPedido(id, {
+      usuario_id: req.body?.usuario_id || null,
+      observacao: req.body?.observacao || 'Cancelamento de pedido'
+    });
+
+    return res.json({ sucesso: true, ...resultado });
+  } catch (err) {
+    console.error('Erro ao cancelar pedido:', err);
+    return res.status(400).json({ erro: err.message });
+  }
+}
+
+export async function alterarQuantidadeItem(req, res) {
+  try {
+    const { id, produtoId } = req.params;
+    const quantidade = Number(req.body?.quantidade || 0);
+    const resultado = await service.alterarQuantidadeItemPedido(id, Number(produtoId), quantidade, {
+      usuario_id: req.body?.usuario_id || null,
+      observacao: req.body?.observacao || 'Alteração de quantidade do pedido'
+    });
+
+    return res.json({ sucesso: true, ...resultado });
+  } catch (err) {
+    console.error('Erro ao alterar quantidade do pedido:', err);
+    return res.status(400).json({ erro: err.message });
+  }
+}

@@ -71,6 +71,8 @@ import fornecedoresRoutes from "./src/modules/fornecedores/fornecedores.routes.j
 import pedidosRoutes from "./src/modules/pedidos/pedidos.routes.js"
 import relatoriosRoutes from "./src/modules/relatorios/relatorios.routes.js"
 import orcamentosRoutes from "./src/modules/orcamentos/orcamentos.routes.js"
+import estoqueRoutes from "./src/modules/estoque/estoque.routes.js"
+import combosRoutes from "./src/modules/combos/combos.routes.js"
 
 app.use("/", loginRoutes)
 app.use("/usuarios", usuariosRoutes)
@@ -82,6 +84,8 @@ app.use("/fornecedores", fornecedoresRoutes)
 app.use("/pedidos", pedidosRoutes)
 app.use("/orcamentos", orcamentosRoutes)
 app.use("/relatorios", relatoriosRoutes)
+app.use("/estoque", estoqueRoutes)
+app.use("/combos", combosRoutes)
 //outros
 app.listen(3000, () => {
     console.log("servidor rodando na porta 3000");

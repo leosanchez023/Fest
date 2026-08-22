@@ -29,6 +29,8 @@ export async function findAll(filtros = {}) {
     -
     p.estoque_reservado
     -
+    p.estoque_em_uso
+    -
     p.estoque_manutencao
     -
     p.estoque_danificado
@@ -50,11 +52,15 @@ export async function findAll(filtros = {}) {
     THEN 'DANIFICADO'
 
 
-    WHEN p.estoque_reservado >= p.estoque
+    WHEN p.estoque_reservado > 0
     THEN 'RESERVADO'
 
 
-    WHEN p.estoque <= 5
+    WHEN p.estoque_em_uso > 0
+    THEN 'EM_USO'
+
+
+    WHEN p.estoque <= COALESCE(p.estoque_minimo, 0)
     THEN 'BAIXO_ESTOQUE'
 
 
@@ -222,6 +228,7 @@ nome,
 codigo,
 categoria,
 tipo,
+tipo_produto,
 fornecedor_id,
 imagem,
 localizacao,
@@ -229,15 +236,18 @@ estoque,
 preco_venda,
 preco_aluguel,
 estoque_reservado,
+estoque_em_uso,
 estoque_manutencao,
-estoque_danificado
+estoque_danificado,
+estoque_minimo,
+ativo
 
 )
 
 
 VALUES
 
-(?,?,?,?,?,?,?,?,?,?,?,?,?)
+(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 
 `,
 
@@ -250,6 +260,8 @@ dados.codigo || null,
 dados.categoria || null,
 
 dados.tipo || null,
+
+dados.tipo_produto || 'PRODUTO',
 
 dados.fornecedor_id || null,
 
@@ -267,7 +279,13 @@ Number(dados.precoAluguel || 0),
 
 0,
 
-0
+0,
+
+0,
+
+Number(dados.estoque_minimo || 0),
+
+1
 
 ]
 
@@ -305,6 +323,8 @@ categoria=?,
 
 tipo=?,
 
+tipo_produto=?,
+
 fornecedor_id=?,
 
 imagem=?,
@@ -316,6 +336,8 @@ estoque=?,
 preco_venda=?,
 
 preco_aluguel=?,
+
+estoque_minimo=?,
 
 updatedAt=NOW()
 
@@ -335,6 +357,8 @@ dados.categoria || null,
 
 dados.tipo || null,
 
+dados.tipo_produto || 'PRODUTO',
+
 dados.fornecedor_id || null,
 
 dados.imagem || null,
@@ -346,6 +370,8 @@ Number(dados.estoque || 0),
 Number(dados.precoVenda || 0),
 
 Number(dados.precoAluguel || 0),
+
+Number(dados.estoque_minimo || 0),
 
 id
 
@@ -409,12 +435,16 @@ COUNT(*) total,
 COALESCE(SUM(
 estoque -
 estoque_reservado -
+estoque_em_uso -
 estoque_manutencao -
 estoque_danificado
 ),0) disponiveis,
 
 
 COALESCE(SUM(estoque_reservado),0) reservados,
+
+
+COALESCE(SUM(estoque_em_uso),0) em_uso,
 
 
 COALESCE(SUM(estoque_manutencao),0) manutencao,
@@ -427,20 +457,7 @@ SUM(
 
 CASE
 
-WHEN estoque <=5
-
-THEN 1
-
-ELSE 0
-
-END
-
-) baixo_estoque,
-
-
-COALESCE(
-SUM(
-estoque * preco_venda
+WHEN estoque <= COALESCE(estoque_minimo, 0)
 ),
 0
 ) valor_estoque

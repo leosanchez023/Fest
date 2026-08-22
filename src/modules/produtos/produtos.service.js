@@ -48,6 +48,7 @@ export async function criar(dados) {
     categoria: dados.categoria || null,
 
     tipo: dados.tipo || null,
+    tipo_produto: dados.tipo_produto || 'PRODUTO',
 
     fornecedor_id:
       dados.fornecedor_id || null,
@@ -62,7 +63,10 @@ export async function criar(dados) {
 
 
     precoAluguel:
-      Number(dados.precoAluguel || 0)
+      Number(dados.precoAluguel || 0),
+
+    estoque_minimo:
+      Number(dados.estoque_minimo || 0)
 
   });
 
@@ -96,6 +100,7 @@ export async function atualizar(id, dados) {
       categoria: dados.categoria || null,
 
       tipo: dados.tipo || null,
+      tipo_produto: dados.tipo_produto || 'PRODUTO',
 
 
       fornecedor_id:
@@ -111,7 +116,10 @@ export async function atualizar(id, dados) {
 
 
       precoAluguel:
-        Number(dados.precoAluguel || 0)
+        Number(dados.precoAluguel || 0),
+
+      estoque_minimo:
+        Number(dados.estoque_minimo || 0)
 
     }
   );

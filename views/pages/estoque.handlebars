@@ -1,0 +1,124 @@
+<link rel="stylesheet" href="/css/pages/estoque.css">
+
+<div class="estoque-wrap">
+  <div class="estoque-header card">
+    <div>
+      <h1>📦 Controle de Estoque</h1>
+      <p>Resumo geral, reservas, uso, manutenção e danificados.</p>
+    </div>
+    <button type="button" class="btn-primary" onclick="carregarResumo()">Atualizar</button>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi-card">
+      <span>Produtos</span>
+      <strong id="kpi-total">0</strong>
+    </div>
+    <div class="kpi-card green">
+      <span>Físico</span>
+      <strong id="kpi-fisico">0</strong>
+    </div>
+    <div class="kpi-card blue">
+      <span>Reservado</span>
+      <strong id="kpi-reservado">0</strong>
+    </div>
+    <div class="kpi-card purple">
+      <span>Em uso</span>
+      <strong id="kpi-uso">0</strong>
+    </div>
+    <div class="kpi-card amber">
+      <span>Manutenção</span>
+      <strong id="kpi-manutencao">0</strong>
+    </div>
+    <div class="kpi-card red">
+      <span>Danificado</span>
+      <strong id="kpi-danificado">0</strong>
+    </div>
+    <div class="kpi-card slate">
+      <span>Disponível</span>
+      <strong id="kpi-disponivel">0</strong>
+    </div>
+  </div>
+
+  <div class="card estoque-panel">
+    <h2>Resumo por produto</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Físico</th>
+            <th>Reservado</th>
+            <th>Em uso</th>
+            <th>Manutenção</th>
+            <th>Danificado</th>
+            <th>Disponível</th>
+            <th>Mínimo</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="estoque-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function carregarResumo() {
+    try {
+      const res = await fetch('/estoque/resumo');
+      const dados = await res.json();
+
+      document.getElementById('kpi-total').textContent = dados.total_produtos || 0;
+      document.getElementById('kpi-fisico').textContent = dados.estoque_fisico || 0;
+      document.getElementById('kpi-reservado').textContent = dados.estoque_reservado || 0;
+      document.getElementById('kpi-uso').textContent = dados.estoque_em_uso || 0;
+      document.getElementById('kpi-manutencao').textContent = dados.estoque_manutencao || 0;
+      document.getElementById('kpi-danificado').textContent = dados.estoque_danificado || 0;
+      document.getElementById('kpi-disponivel').textContent = dados.disponivel || 0;
+    } catch (error) {
+      console.error('Erro ao carregar resumo do estoque:', error);
+    }
+  }
+
+  async function carregarProdutosEstoque() {
+    try {
+      const res = await fetch('/produtos/api');
+      const produtos = await res.json();
+      const tbody = document.getElementById('estoque-tbody');
+
+      tbody.innerHTML = (produtos || []).map((produto) => {
+        const disponivel = Number(produto.disponivel || 0);
+        const status = produto.status || 'NORMAL';
+        const badge = {
+          NORMAL: 'badge-success',
+          BAIXO_ESTOQUE: 'badge-warning',
+          RESERVADO: 'badge-info',
+          EM_USO: 'badge-purple',
+          MANUTENCAO: 'badge-amber',
+          DANIFICADO: 'badge-danger',
+          INATIVO: 'badge-muted'
+        }[status] || 'badge-muted';
+
+        return `
+          <tr>
+            <td>${produto.nome || '-'}</td>
+            <td>${produto.estoque || 0}</td>
+            <td>${produto.estoque_reservado || 0}</td>
+            <td>${produto.estoque_em_uso || 0}</td>
+            <td>${produto.estoque_manutencao || 0}</td>
+            <td>${produto.estoque_danificado || 0}</td>
+            <td>${disponivel}</td>
+            <td>${produto.estoque_minimo || 0}</td>
+            <td><span class="badge ${badge}">${status}</span></td>
+          </tr>
+        `;
+      }).join('');
+    } catch (error) {
+      console.error('Erro ao carregar produtos do estoque:', error);
+    }
+  }
+
+  carregarResumo();
+  carregarProdutosEstoque();
+</script>
