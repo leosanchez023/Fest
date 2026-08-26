@@ -1,0 +1,30 @@
+<header class="top-header">
+  <div class="header-inner">
+
+    <div class="page-meta-display">
+      <h2 class="page-title" aria-live="polite"></h2>
+      <p class="page-subtitle muted"></p>
+    </div>
+
+    <div class="header-actions">
+      <div class="user-menu">Olá, {{#if user}}{{user.name}}{{else}}Usuário{{/if}}</div>
+    </div>
+  </div>
+
+  <script>
+    // Preenche título e subtítulo do header a partir de um elemento .page-meta na página
+    document.addEventListener('DOMContentLoaded', function(){
+      try{
+        var meta = document.querySelector('.page-meta');
+        var titleEl = document.querySelector('.page-title');
+        var subEl = document.querySelector('.page-subtitle');
+        if(meta && titleEl){
+          var t = meta.getAttribute('data-title') || meta.dataset.title || '';
+          var s = meta.getAttribute('data-subtitle') || meta.dataset.subtitle || '';
+          titleEl.textContent = t;
+          subEl.textContent = s;
+        }
+      }catch(e){console.warn('page-meta init',e)}
+    });
+  </script>
+</header>

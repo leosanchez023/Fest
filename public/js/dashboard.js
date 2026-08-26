@@ -1,10 +1,10 @@
 
 
 const stats = [
-{icon:"📋",label:"Pedidos",value:248,color:"#3b82f6"},
-{icon:"🚚",label:"Entregas Pendentes",value:32,color:"#f59e0b"},
-{icon:"🔄",label:"Retiradas",value:15,color:"#ef4444"},
-{icon:"💰",label:"Faturamento",value:"R$ 87.450",color:"#10b981"}
+{icon:"fa-solid fa-clipboard",label:"Pedidos",value:248,color:"#3b82f6"},
+{icon:"fa-solid fa-truck",label:"Entregas Pendentes",value:32,color:"#f59e0b"},
+{icon:"fa-solid fa-rotate",label:"Retiradas",value:15,color:"#ef4444"},
+{icon:"fa-solid fa-dollar-sign",label:"Faturamento",value:"R$ 87.450",color:"#10b981"}
 ]
 
 const statsContainer = document.getElementById("stats")
@@ -12,7 +12,7 @@ const statsContainer = document.getElementById("stats")
 stats.forEach(s=>{
 statsContainer.innerHTML+=`
 <div class="card stat">
-<div class="stat-icon" style="background:${s.color}">${s.icon}</div>
+<div class="stat-icon" style="background:${s.color}"><i class="${s.icon} icon-md"></i></div>
 <div>
 <div class="stat-label">${s.label}</div>
 <div class="stat-value">${s.value}</div>
@@ -57,7 +57,7 @@ const del=document.getElementById("deliveries")
 deliveries.forEach(d=>{
 del.innerHTML+=`
 <div class="delivery">
-<div class="delivery-icon">🚚</div>
+<div class="delivery-icon"><i class="fa-solid fa-truck icon-md"></i></div>
 <div class="delivery-info">
 <div class="name">${d.nome}</div>
 <div class="addr">${d.end}</div>

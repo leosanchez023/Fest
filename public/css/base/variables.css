@@ -12,6 +12,26 @@
     --info: #3b82f6;
     --radius: .75rem;
 
+    /* Typography */
+    --font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-size-base: 14px;
+    --font-size-sm: 12px;
+    --font-size-lg: 16px;
+    --line-height: 1.45;
+
+    /* Spacing */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+
+    /* Buttons / Inputs */
+    --control-height: 40px;
+    --control-radius: 8px;
+    --transition-fast: 0.12s ease;
+    --transition-md: 0.18s ease;
+
     --grad-primary: linear-gradient(135deg,#7c3aed,#c026d3);
     --grad-warning: linear-gradient(135deg,#f59e0b,#f97316);
     --grad-danger: linear-gradient(135deg,#ef4444,#dc2626);

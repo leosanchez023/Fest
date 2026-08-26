@@ -15,11 +15,11 @@
 
 <div class="tabs">
     <button class="tab active" data-tab="produtos">
-        📋 Produtos Cadastrados
+        <i class="fa-solid fa-clipboard icon-sm"></i> Produtos Cadastrados
     </button>
 
     <button class="tab" data-tab="cadastro">
-        📦 Cadastro de Produtos
+        <i class="fa-solid fa-box icon-sm"></i> Cadastro de Produtos
     </button>
 </div>
 
@@ -30,10 +30,9 @@
 
     <div class="wrap">
 
-        <!-- HEADER -->
+        <!-- PAGE META -->
         <div class="card pad header">
-            <h1>📦 Controle de Estoque</h1>
-            <p>Gerencie produtos, estoque, movimentações e disponibilidade.</p>
+            <div class="page-meta" data-title="Controle de Estoque" data-subtitle="Gerencie produtos, estoque, movimentações e disponibilidade."></div>
         </div>
 
         <!-- ===========================
@@ -45,7 +44,7 @@
             <div class="stat">
                 <div class="top">
                     <div class="label">Total de produtos</div>
-                    <div class="ico slate">📦</div>
+                    <div class="ico slate"><i class="fa-solid fa-box icon-md"></i></div>
                 </div>
 
                 <div
@@ -59,7 +58,7 @@
             <div class="stat green">
                 <div class="top">
                     <div class="label">Disponíveis</div>
-                    <div class="ico green">✅</div>
+                    <div class="ico green"><i class="fa-solid fa-circle-check icon-md"></i></div>
                 </div>
 
                 <div
@@ -73,7 +72,7 @@
             <div class="stat blue">
                 <div class="top">
                     <div class="label">Reservados</div>
-                    <div class="ico blue">🧊</div>
+                    <div class="ico blue"><i class="fa-solid fa-lock icon-md"></i></div>
                 </div>
 
                 <div
@@ -87,7 +86,7 @@
             <div class="stat">
                 <div class="top">
                     <div class="label">Em manutenção</div>
-                    <div class="ico amber">🔧</div>
+                    <div class="ico amber"><i class="fa-solid fa-screwdriver-wrench icon-md"></i></div>
                 </div>
 
                 <div
@@ -101,7 +100,7 @@
             <div class="stat">
                 <div class="top">
                     <div class="label">Danificados</div>
-                    <div class="ico red">⛔</div>
+                    <div class="ico red"><i class="fa-solid fa-triangle-exclamation icon-md"></i></div>
                 </div>
 
                 <div
@@ -115,7 +114,7 @@
             <div class="stat">
                 <div class="top">
                     <div class="label">Estoque baixo</div>
-                    <div class="ico orange">⚠️</div>
+                    <div class="ico orange"><i class="fa-solid fa-triangle-exclamation icon-md"></i></div>
                 </div>
 
                 <div
@@ -130,7 +129,7 @@
 
                 <div class="top">
                     <div class="label">Valor do estoque</div>
-                    <div class="ico purple">💳</div>
+                    <div class="ico purple"><i class="fa-solid fa-money-bill icon-md"></i></div>
                 </div>
 
                 <div
@@ -159,7 +158,7 @@
 
             <div class="search">
 
-                <span>🔍</span>
+                <span><i class="fa-solid fa-magnifying-glass icon-sm"></i></span>
 
                 <input
                     id="busca"
@@ -410,12 +409,7 @@
 
     <div class="container">
 
-        <header>
-            <h1>Cadastro de Produtos</h1>
-            <p class="subtitle">
-                Gerencie o inventário de produtos para venda e aluguel.
-            </p>
-        </header>
+        <div class="page-meta" data-title="Produtos" data-subtitle="Gerencie produtos, preços e disponibilidade"></div>
 
         <!-- FORM -->
         <div class="card">
@@ -675,7 +669,7 @@ function renderProdutos(lista) {
                         ?
                         `<img src="${p.imagem}" alt="${p.nome}">`
                         :
-                        "📦"
+                        "<i class=\"fa-solid fa-box icon-md\"></i>"
                     }
 
                 </div>
@@ -783,23 +777,11 @@ function renderProdutos(lista) {
                 <div class="actions">
 
 
-                    <button 
-                        class="iconbtn"
-                        onclick="visualizarProduto(${p.id})">
-
-                        👁
-
-                    </button>
+                    <button class="iconbtn" onclick="visualizarProduto(${p.id})"><i class="fa-solid fa-eye"></i></button>
 
 
 
-                    <button 
-                        class="iconbtn"
-                        onclick="editarProduto(${p.id})">
-
-                        ✏️
-
-                    </button>
+                    <button class="iconbtn" onclick="editarProduto(${p.id})"><i class="fa-solid fa-pen"></i></button>
 
 
 

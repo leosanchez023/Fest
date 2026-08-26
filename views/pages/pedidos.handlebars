@@ -3,8 +3,7 @@
 
 <div class="container">
 
-  <h1>Cadastro de Pedido</h1>
-  <p class="subtitle">Preencha os dados para registrar um novo pedido</p>
+  <div class="page-meta" data-title="Pedidos" data-subtitle="Gerencie pedidos, clientes e pagamentos"></div>
 
   <!-- ================= DADOS DO PEDIDO ================= -->
   <div class="card">
@@ -20,27 +19,14 @@
         <div class="client-panel-header">
             <strong>Buscar ou cadastrar cliente</strong>
 
-            <button
-                type="button"
-                class="btn-close"
-                id="btn-fechar-painel">
-                ✖
-            </button>
+            <button type="button" class="btn-close" id="btn-fechar-painel"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
         <div class="tabs">
 
-            <button
-                type="button"
-                id="tab-buscar">
-                🔍 Buscar
-            </button>
+            <button type="button" id="tab-buscar"><i class="fa-solid fa-magnifying-glass icon-sm"></i> Buscar</button>
 
-            <button
-                type="button"
-                id="tab-cadastrar">
-                ➕ Cadastrar
-            </button>
+            <button type="button" id="tab-cadastrar"><i class="fa-solid fa-plus icon-sm"></i> Cadastrar</button>
 
         </div>
 
@@ -173,7 +159,7 @@
       <input id="end-estado" class="input" maxlength="2">
     </div>
 
-    <button class="btn" type="button" id="btn-endereco">🔍 Buscar endereço</button>
+      <button class="btn" type="button" id="btn-endereco"><i class="fa-solid fa-magnifying-glass icon-sm"></i> Buscar endereço</button>
 
     <div class="grid-3" style="margin-top:1rem; align-items:end">
 
@@ -183,11 +169,11 @@
       </div>
 
       <div class="field">
-        <label>Frete ⚠️(R$)</label>
+        <label>Frete <i class="fa-solid fa-triangle-exclamation icon-xs"></i> (R$)</label>
         <input id="frete" class="input" type="number" min="0" step="0.01" value="0">
       </div>
 
-      <button id="btn-calc-frete" class="btn btn-blue">📍 Calcular⚠️</button>
+      <button id="btn-calc-frete" class="btn btn-blue"><i class="fa-solid fa-location-dot icon-sm"></i> Calcular</button>
 
     </div>
 
@@ -271,7 +257,7 @@
 
       <!-- 1. CABEÇALHO -->
       <header class="mp-header">
-        <h2 id="mp-titulo">📄 Confirmar Pedido</h2>
+        <h2 id="mp-titulo"><i class="fa-solid fa-file-invoice icon-sm"></i> Confirmar Pedido</h2>
         <span class="mp-badge mp-badge--blue" id="mp-tipo-pedido">Aluguel</span>
         <span class="mp-spacer"></span>
         <button class="mp-close" data-mp-close aria-label="Fechar">✕</button>
@@ -298,7 +284,7 @@
 
         <!-- 3. PRODUTOS -->
         <section class="mp-card">
-          <h3 class="mp-card-title">📦 Produtos</h3>
+          <h3 class="mp-card-title"><i class="fa-solid fa-box icon-sm"></i> Produtos</h3>
           <div class="mp-table-wrap">
             <table class="mp-table">
               <thead>
@@ -334,7 +320,7 @@
 
         <!-- 5. PAGAMENTO -->
         <section class="mp-card">
-          <h3 class="mp-card-title">💰 Pagamento</h3>
+          <h3 class="mp-card-title"><i class="fa-solid fa-dollar-sign icon-sm"></i> Pagamento</h3>
           <div class="mp-grid">
             <div class="mp-field"><label>Forma de pagamento</label><span id="mp-pg-forma">—</span></div>
             <div class="mp-field"><label>Valor pago</label><span id="mp-pg-pago">—</span></div>
@@ -347,7 +333,7 @@
 
         <!-- 6. OBSERVAÇÕES (oculto automaticamente se vazio) -->
         <section class="mp-card" id="mp-card-obs" hidden>
-          <h3 class="mp-card-title">📝 Observações</h3>
+          <h3 class="mp-card-title"><i class="fa-solid fa-pen icon-sm"></i> Observações</h3>
           <p id="mp-obs" style="margin:0; font-size:.92rem; line-height:1.6;"></p>
         </section>
 
@@ -367,10 +353,10 @@
 
       <!-- 9. RODAPÉ -->
       <footer class="mp-footer">
-        <button class="mp-btn mp-btn--gray"  data-mp-close>❌ Cancelar</button>
-        <button class="mp-btn mp-btn--green" id="btn-confirmar-modal">✅ Confirmar Pedido</button>
-        <button class="mp-btn mp-btn--blue"  id="btn-gerar-orcamento-modal">📄 Gerar Orçamento</button>
-        <button class="mp-btn mp-btn--dark"  id="btn-imprimir-pedido">🖨️ Imprimir</button>
+        <button class="mp-btn mp-btn--gray"  data-mp-close><i class="fa-solid fa-xmark"></i> Cancelar</button>
+        <button class="mp-btn mp-btn--green" id="btn-confirmar-modal"><i class="fa-solid fa-check"></i> Confirmar Pedido</button>
+        <button class="mp-btn mp-btn--blue"  id="btn-gerar-orcamento-modal"><i class="fa-solid fa-file-invoice-dollar"></i> Gerar Orçamento</button>
+        <button class="mp-btn mp-btn--dark"  id="btn-imprimir-pedido"><i class="fa-solid fa-print"></i> Imprimir</button>
       </footer>
     </div>
   </div>
@@ -483,7 +469,7 @@ const ModalPedido = (() => {
     if (valorFrete) {
       valorFrete.innerHTML = frete > 0
         ? brl(frete)
-        : '<span class="mp-badge mp-badge--green">🚚 Frete Grátis</span>';
+        : '<span class="mp-badge mp-badge--green"><i class="fa-solid fa-truck"></i> Frete Grátis</span>';
 
     }
 
@@ -552,26 +538,26 @@ const ModalPedido = (() => {
 
     if (restante === 0) {
 
-      status.push(["green", "✅ Pedido Completo"]);
+      status.push(["green", "<i class=\"fa-solid fa-circle-check\"></i> Pedido Completo"]);
 
     } else if (pago > 0) {
 
-      status.push(["amber", "🕓 Pagamento Parcial"]);
+      status.push(["amber", "<i class=\"fa-solid fa-clock\"></i> Pagamento Parcial"]);
 
     } else {
-      status.push(["red", "⚠️ Pagamento Pendente"]);
+      status.push(["red", "<i class=\"fa-solid fa-triangle-exclamation\"></i> Pagamento Pendente"]);
     }
 
     status.push(
       frete > 0
-        ? ["blue", "🚚 Frete Calculado"]
-        : ["slate", "📦 Sem Frete"]
+        ? ["blue", "<i class=\"fa-solid fa-truck\"></i> Frete Calculado"]
+        : ["slate", "<i class=\"fa-solid fa-box\"></i> Sem Frete"]
     );
 
     status.push(
       p.orcamento
-        ? ["slate", "📄 Orçamento"]
-        : ["dark", "🧾 Pedido"]
+        ? ["slate", "<i class=\"fa-solid fa-file-invoice-dollar\"></i> Orçamento"]
+        : ["dark", "<i class=\"fa-solid fa-file-invoice\"></i> Pedido"]
     );
 
     const statusEl = $("mp-status");

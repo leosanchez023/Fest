@@ -1,0 +1,135 @@
+/* Styles migrated from views/pages/upgrade/clientes.html */
+/* ---------- 1. Tokens do design system ---------- */
+:root{
+  --bg:#f4f6fb;
+  --surface:#ffffff;
+  --surface-2:#f8fafc;
+  --border:#e6eaf2;
+  --text:#0f172a;
+  --muted:#64748b;
+
+  --primary:#2563eb;
+  --primary-dark:#1d4ed8;
+  --primary-soft:#e8f0ff;
+
+  --green:#10b981;  --green-soft:#e6f9f2;
+  --red:#ef4444;    --red-soft:#fdecec;
+  --amber:#f59e0b;  --amber-soft:#fff5e5;
+  --violet:#7c3aed; --violet-soft:#f1e9ff;
+  --cyan:#06b6d4;   --cyan-soft:#e2f8fc;
+  --pink:#ec4899;   --pink-soft:#fdeaf4;
+
+  --radius:16px;
+  --radius-sm:10px;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+  --shadow:0 6px 20px -8px rgba(15,23,42,.18);
+  --shadow-lg:0 24px 60px -20px rgba(15,23,42,.35);
+  --t:.22s cubic-bezier(.4,0,.2,1);
+}
+
+/* ---------- 2. Reset ---------- */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  -webkit-font-smoothing:antialiased;line-height:1.45;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+table{border-collapse:collapse;width:100%}
+a{color:inherit;text-decoration:none}
+
+/* ---------- 3. Scrollbar personalizada ---------- */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+
+/* ---------- 4. Utilitários / componentes base ---------- */
+.container{max-width:1480px;margin:0 auto;padding:28px 22px 64px}
+
+.btn{
+  display:inline-flex;align-items:center;gap:8px;justify-content:center;
+  padding:10px 16px;border-radius:12px;font-weight:600;font-size:14px;
+  transition:transform var(--t),box-shadow var(--t),background var(--t),color var(--t),border-color var(--t);
+  border:1px solid transparent;white-space:nowrap;
+}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 8px 18px -8px rgba(37,99,235,.8)}
+.btn-primary:hover{background:var(--primary-dark);box-shadow:0 14px 26px -10px rgba(37,99,235,.9)}
+.btn-ghost{background:var(--surface);border-color:var(--border);color:var(--muted)}
+.btn-ghost:hover{color:var(--primary);border-color:#c7d7fb;background:var(--primary-soft)}
+.btn-soft{background:var(--surface-2);border-color:var(--border)}
+.btn-soft:hover{background:#eef2f9}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-sm{padding:7px 12px;font-size:13px;border-radius:10px}
+
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:99px;font-size:12px;font-weight:700}
+.badge i{font-size:8px}
+.badge-green{background:var(--green-soft);color:#047857}
+.badge-red{background:var(--red-soft);color:#b91c1c}
+.badge-amber{background:var(--amber-soft);color:#b45309}
+.badge-blue{background:var(--primary-soft);color:var(--primary-dark)}
+.badge-violet{background:var(--violet-soft);color:#6d28d9}
+.badge-muted{background:#eef1f6;color:var(--muted)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+
+/* Tooltip simples */
+[data-tip]{position:relative}
+[data-tip]::after{
+  content:attr(data-tip);position:absolute;bottom:118%;left:50%;transform:translate(-50%,6px);
+  background:#0f172a;color:#fff;font-size:11px;font-weight:600;padding:5px 9px;border-radius:7px;
+  white-space:nowrap;opacity:0;pointer-events:none;transition:var(--t);z-index:60;
+}
+[data-tip]:hover::after{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- 5. Cabeçalho ---------- */
+.topbar{
+  background:linear-gradient(120deg,#ffffff 0%,#f7faff 100%);
+  border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);
+  padding:24px 26px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;
+}
+.topbar h1{font-size:26px;font-weight:800;letter-spacing:-.5px;display:flex;align-items:center;gap:12px}
+.topbar h1 .ic{
+  width:44px;height:44px;border-radius:14px;display:grid;place-items:center;
+  background:var(--primary-soft);color:var(--primary);font-size:19px;
+}
+.topbar p{color:var(--muted);font-size:14px;margin-top:4px;margin-left:56px}
+.topbar-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ---------- 6. KPIs ---------- */
+.kpis{display:grid;gap:16px;margin-top:22px;grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+.kpi{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px;display:flex;gap:14px;align-items:flex-start;position:relative;overflow:hidden;
+  transition:transform var(--t),box-shadow var(--t);animation:fadeUp .45s both;
+}
+.kpi:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.kpi::after{content:"";position:absolute;inset:auto 0 0 0;height:3px;background:currentColor;opacity:.85}
+.kpi .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:18px;flex:none}
+.kpi .val{font-size:24px;font-weight:800;letter-spacing:-.6px;color:var(--text)}
+.kpi .lbl{font-size:13px;font-weight:700;color:var(--text)}
+.kpi .desc{font-size:11.5px;color:var(--muted);margin-top:2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ---------- 7. Barra de pesquisa / filtros ---------- */
+.searchbar{margin-top:22px;padding:20px}
+.search-main{display:flex;gap:12px;flex-wrap:wrap}
+.input-wrap{position:relative;flex:1;min-width:240px}
+.input-wrap > i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+.field,.input-wrap input,select,textarea{
+  width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;
+  padding:11px 14px;font-size:14px;transition:var(--t);outline:none;
+}
+.input-wrap input{padding-left:40px}
+.field:focus,.input-wrap input:focus,select:focus,textarea:focus{
+  border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(37,99,235,.12);
+}
+.filters{display:grid;gap:12px;margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
+.filters label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.search-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px dashed var(--border)}
+
+/* ... rest of original CSS continues ... */

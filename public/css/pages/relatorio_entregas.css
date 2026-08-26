@@ -1,0 +1,30 @@
+body { font-family: Arial, sans-serif; color:#0f172a; margin:12px; font-size:12px; line-height:1.2; }
+h1 { text-align:center; font-size:18px; margin:0 0 8px 0; }
+.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:11px; }
+.route-info { margin-top:6px; }
+.pedido { page-break-inside: avoid; break-inside: avoid; border:1px solid #ccc; padding:10px; margin-bottom:10px; border-radius:4px; }
+.pedido h3 { margin:0 0 6px 0; font-size:14px; }
+.pedido .meta-row { display:flex; flex-wrap:wrap; gap:10px; font-size:11px; margin:4px 0; }
+.telefone { font-weight:700; color:#0b5394; font-size:13px; }
+.produtos { margin-top:6px; }
+.produtos table { width:100%; border-collapse:collapse; margin-top:4px; }
+.produtos th, .produtos td { padding:4px 6px; border:1px solid #ddd; font-size:11px; }
+.produtos th { background:#f5f5f5; }
+.compact-block { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; font-size:11px; }
+.compact-block span { display:inline-flex; gap:4px; }
+.checkbox-area { margin-top:8px; font-size:11px; }
+.checkbox-area div { margin-bottom:4px; }
+.rota-resumo { margin-top:14px; border-top:1px solid #222; padding-top:10px; font-size:11px; }
+.rota-resumo table { width:100%; border-collapse:collapse; margin-top:6px; }
+.rota-resumo th, .rota-resumo td { padding:4px 6px; border:1px solid #ddd; }
+.rota-resumo th { background:#f5f5f5; }
+@media print {
+  body { margin:6mm; font-size:11px; }
+  .no-print { display:none; }
+  .header { margin-bottom:6px; }
+  .pedido { page-break-inside: avoid; break-inside: avoid; margin-bottom:8px; padding:8px; }
+  .produtos th, .produtos td, .rota-resumo th, .rota-resumo td { padding:3px 5px; font-size:10px; }
+  h1 { font-size:16px; }
+  .checkbox-area { margin-top:6px; }
+  .rota-resumo { margin-top:10px; padding-top:8px; }
+}

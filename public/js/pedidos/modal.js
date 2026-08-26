@@ -13,41 +13,41 @@ export function abrirModalConfirmacao(pedido) {
   const html = `
     <div style="display:grid;gap:12px;font-size:14px;">
       <div class="section">
-        <div class="section-title">👤 Cliente</div>
+        <div class="section-title"><i class="fa-solid fa-user icon-sm"></i> Cliente</div>
         <b>${cliente.nome || "-"}</b><br>
-        <small>CPF: ${cliente.cpf || "-"} <br>📞 ${cliente.telefone || "-"} <br>✉️ ${cliente.email || "-"}</small>
+        <small>CPF: ${cliente.cpf || "-"} <br><i class="fa-solid fa-phone icon-sm"></i> ${cliente.telefone || "-"} <br><i class="fa-solid fa-envelope icon-sm"></i> ${cliente.email || "-"}</small>
       </div>
       <div class="section">
-        <div class="section-title">📦 Pedido</div>
+        <div class="section-title"><i class="fa-solid fa-box icon-sm"></i> Pedido</div>
         <div><b>Tipo:</b> ${pedido.tipo_pedido || "-"}</div>
         <div><b>Contato:</b> ${pedido.telefone_contato || "-"}</div>
       </div>
       <div class="section">
-        <div class="section-title">📅 Datas</div>
+        <div class="section-title"><i class="fa-solid fa-calendar icon-sm"></i> Datas</div>
         <div>Evento: ${pedido.data_evento || "-"}</div>
         <div>Entrega: ${pedido.data_entrega || "-"}</div>
         <div>Retirada: ${pedido.data_retirada || "-"}</div>
       </div>
       <div class="section">
-        <div class="section-title">📍 Entrega</div>
+        <div class="section-title"><i class="fa-solid fa-location-dot icon-sm"></i> Entrega</div>
         ${$("end-rua")?.value || "-"}, ${$("end-numero")?.value || "-"}<br>
         ${$("end-bairro")?.value || "-"} - ${$("end-cidade")?.value || "-"}/${$("end-estado")?.value || "-"}
         <br><br>
         <b>${pedido.distancia_km || 0} km</b> • Frete: <b>${fmt(pedido.valor_frete || 0)}</b>
       </div>
       <div class="section">
-        <div class="section-title">💰 Pagamento</div>
+        <div class="section-title"><i class="fa-solid fa-dollar-sign icon-sm"></i> Pagamento</div>
         <div><b>Forma:</b> ${pedido.forma_pagamento || "-"}</div>
         <div><b>Pago:</b> ${fmt(pedido.valor_pago || 0)}</div>
         <div><b>Desconto:</b> ${fmt(pedido.valor_desconto || 0)}</div>
         <div><b>Obs:</b> ${pedido.observacao_pagamento || "-"}</div>
       </div>
       <div class="section">
-        <div class="section-title">🛒 Itens</div>
+        <div class="section-title"><i class="fa-solid fa-cart-shopping icon-sm"></i> Itens</div>
         ${itensHtml}
       </div>
       <div class="section" style="background:#ecfdf5;">
-        <div class="section-title">📊 Total</div>
+        <div class="section-title"><i class="fa-solid fa-chart-column icon-sm"></i> Total</div>
         <div><b>Total:</b> ${fmt(pedido.valor_total || 0)}</div>
       </div>
     </div>

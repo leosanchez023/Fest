@@ -18,6 +18,8 @@ router.post("/criar", controller.criar);
 
 // obter pedido para edição/duplicação
 router.get('/obter/:id', controller.buscarPorId);
+// atualizar pedido existente
+router.put('/:id', controller.atualizar);
 router.post('/:id/cancelar', controller.cancelar);
 router.put('/:id/itens/:produtoId', controller.alterarQuantidadeItem);
 

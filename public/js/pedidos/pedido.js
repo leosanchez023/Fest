@@ -103,14 +103,28 @@ export async function enviarPedido(saveAs = "CONFIRMADO") {
   pedido.status_documento = saveAs === "ORCAMENTO" ? "ORCAMENTO" : "PEDIDO";
 
   try {
-    const res = await fetch("/pedidos/criar", {
-      method: "POST",
+    let url = "/pedidos/criar";
+    let method = "POST";
+
+    if (state.editingId) {
+      url = `/pedidos/${state.editingId}`;
+      method = "PUT";
+    }
+
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pedido)
     });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.erro || "Erro ao salvar o pedido");
+
+    if (state.editingId) {
+      alert("Orçamento atualizado com sucesso!");
+      window.location.href = '/orcamentos';
+      return;
+    }
 
     alert(saveAs === "ORCAMENTO" ? "Orçamento salvo com sucesso!" : "Pedido confirmado com sucesso!");
     state.itens = [];
@@ -124,6 +138,85 @@ export async function enviarPedido(saveAs = "CONFIRMADO") {
   } catch (err) {
     console.error(err);
     alert(err.message);
+  }
+}
+
+async function carregarPedidoParaEdicao(id) {
+  try {
+    const res = await fetch(`/pedidos/obter/${id}`);
+    if (!res.ok) throw new Error('Pedido não encontrado');
+    const data = await res.json();
+
+    const pedido = data.pedido || {};
+    const itens = data.itens || [];
+
+    // Cliente
+    state.clienteSelecionado = {
+      id: pedido.cliente_id,
+      nome: pedido.cliente_nome,
+      telefone: pedido.cliente_telefone,
+      email: pedido.cliente_email
+    };
+
+    // Endereço (retornado como objeto pelo model)
+    state.enderecoSelecionado = pedido.endereco || null;
+
+    // Itens
+    state.itens = itens.map(it => ({
+      produto_id: it.produto_id,
+      nome: it.produto_nome || it.nome,
+      preco: it.valor_unitario ?? it.preco_unitario ?? 0,
+      quantidade: it.quantidade
+    }));
+
+    // Campos simples
+    if ($("tel-cliente")) $("tel-cliente").value = state.clienteSelecionado.telefone || "";
+    if ($("tel-contato")) $("tel-contato").value = pedido.telefone_contato || "";
+    if ($("data-evento")) $("data-evento").value = pedido.data_evento ? pedido.data_evento.split('T')[0] : "";
+    if ($("data-entrega")) $("data-entrega").value = pedido.data_entrega ? pedido.data_entrega.split('T')[0] : "";
+    if ($("data-retirada")) $("data-retirada").value = pedido.data_retirada ? pedido.data_retirada.split('T')[0] : "";
+    if ($("tipo-pedido")) $("tipo-pedido").value = pedido.tipo_pedido || "ALUGUEL";
+    if ($("frete")) $("frete").value = pedido.valor_frete || 0;
+    if ($("desconto")) $("desconto").value = pedido.valor_desconto || 0;
+    if ($("pago")) $("pago").value = pedido.valor_pago || 0;
+    if ($("observacoes")) $("observacoes").value = pedido.observacoes || "";
+
+    // marca modo edição
+    state.editingId = pedido.id;
+
+    // Atualiza título da página/header
+    const pageMeta = document.querySelector('.page-meta');
+    if (pageMeta) {
+      pageMeta.dataset.title = `Editar Pedido #${pedido.id}`;
+      pageMeta.dataset.subtitle = 'Editando pedido/orçamento';
+    }
+
+    // renderiza cliente e itens
+    const box = $("cliente-display");
+    if (box) {
+      box.innerHTML = `
+        <div class="cliente-box">
+          <div class="cliente-info">
+            <div class="nome">${esc(state.clienteSelecionado.nome || "")}</div>
+            <div class="meta">${esc(state.clienteSelecionado.telefone || "")}</div>
+          </div>
+          <button type="button" class="btn-alterar" id="btn-alterar">Alterar</button>
+        </div>
+      `;
+      const alterar = $("btn-alterar");
+      if (alterar) alterar.onclick = () => {
+        const abrir = $("btn-abrir-painel");
+        if (abrir) abrir.click();
+      };
+    }
+
+    preencherEndereco(state.enderecoSelecionado || {});
+    renderItens();
+    updateResumo();
+
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Erro ao carregar pedido');
   }
 }
 
@@ -498,6 +591,17 @@ if (btnOrcamento) {
   renderItens();
   updateResumo();
 
+  // Se a URL indicar um orçamento para edição (?orcamento=ID), carrega os dados
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const orcId = params.get('orcamento') || params.get('editar') || params.get('id');
+    if (orcId) {
+      carregarPedidoParaEdicao(orcId);
+    }
+  } catch (e) {
+    // ignore
+  }
+
 }
 
 
@@ -686,9 +790,9 @@ function imprimirOrcamento(pedido) {
 
 
 
-    <p>
-       <p><strong>📞 (14) 99674-9672</strong></p> Rua Tupinambas, 10-A esquina c/ Joaquim Abarca - Centro - Tupã/SP
-    </p>
+     <p>
+       <p><strong><i class="fa-solid fa-phone"></i> (14) 99674-9672</strong></p> Rua Tupinambas, 10-A esquina c/ Joaquim Abarca - Centro - Tupã/SP
+     </p>
   </div>
 
 </div>

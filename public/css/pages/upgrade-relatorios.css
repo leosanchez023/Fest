@@ -1,0 +1,82 @@
+/* Migrated styles from views/pages/upgrade/relatorios.html */
+:root{
+  --bg:#f7f8fc;
+  --card:#ffffff;
+  --border:#e8eaf0;
+  --text:#0f172a;
+  --muted:#64748b;
+  --dark:#111827;
+  --green:#059669;
+  --blue:#2563eb;
+  --amber:#d97706;
+  --red:#dc2626;
+  --purple:#7c3aed;
+  --pink:#db2777;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+  --sidebar:264px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:14px;-webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+
+/* Layout */
+.app{display:flex;min-height:100vh}
+.content{flex:1;min-width:0;padding:26px 30px 46px;margin-left:var(--sidebar)}
+.wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+
+/* Sidebar */
+.sidebar{
+  width:var(--sidebar);position:fixed;inset:0 auto 0 0;background:var(--dark);color:#cbd5e1;
+  display:flex;flex-direction:column;padding:20px 14px;gap:6px;overflow-y:auto;z-index:40;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:6px 8px 18px}
+.brand .logo{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;font-size:19px;
+  background:linear-gradient(135deg,#7c3aed,#db2777)}
+.brand b{color:#fff;font-size:15.5px;display:block;line-height:1.2;letter-spacing:-.2px}
+.brand small{color:#94a3b8;font-size:11px}
+.nav-label{font-size:10px;letter-spacing:.9px;text-transform:uppercase;color:#64748b;font-weight:700;padding:14px 10px 6px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:10px;font-size:13.5px;
+  color:#cbd5e1;cursor:pointer;border:0;background:transparent;width:100%;text-align:left}
+.nav-item:hover{background:#1f2937;color:#fff}
+.nav-item.active{background:#fff;color:#0f172a;font-weight:600}
+.nav-item .ni{width:20px;text-align:center;font-size:15px}
+.nav-item .badge{margin-left:auto;background:#dc2626;color:#fff;font-size:10.5px;font-weight:700;
+  padding:2px 7px;border-radius:999px}
+.sidebar-foot{margin-top:auto;padding:14px 10px 4px;border-top:1px solid #1f2937;display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:#334155;display:grid;place-items:center;color:#fff;font-size:12.5px;font-weight:700;flex:none}
+.sidebar-foot b{color:#fff;font-size:13px;display:block}
+.sidebar-foot small{color:#94a3b8;font-size:11px}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.pad{padding:18px 20px}
+.card-title{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:15px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.card-title h2{margin:0;font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+.card-title .count{font-size:12.5px;color:var(--muted);font-weight:500}
+.muted{color:var(--muted)}
+.sec-title{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:.7px;
+  text-transform:uppercase;color:var(--muted);margin:6px 2px -4px}
+
+/* Header */
+.header{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap}
+.header h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.7px;display:flex;align-items:center;gap:10px}
+.header p{margin:6px 0 0;color:var(--muted);font-size:13.5px}
+.actions{display:flex;gap:9px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 15px;border-radius:10px;border:1px solid var(--border);
+  background:#fff;color:var(--text);font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:var(--shadow);
+  transition:.15s background,.15s border-color,.15s transform}
+.btn:hover{background:#f8fafc}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--dark);color:#fff;border-color:var(--dark)}
+.btn.primary:hover{background:#1f2937}
+.btn.ghost{background:transparent;box-shadow:none}
+
+/* ... restante do CSS migrado ... */

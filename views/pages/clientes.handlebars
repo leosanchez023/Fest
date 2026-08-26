@@ -6,28 +6,12 @@
 
 <!-- CABEÇALHO DA PÁGINA -->
 
-<header>
-    <div class="header-inner">
-        <div class="logo">
-            <div class="logo-icon">
-                <i class="fas fa-users"></i>
-            </div>
-            <div>
-                <h1>Cadastro de Clientes</h1>
-                <small id="clientCount">{{total}} clientes</small>
-            </div>
-        </div>
+<div class="page-meta" data-title="Clientes" data-subtitle="Gerencie seus clientes e informações de contato"></div>
 
-        <!-- BOTÃO NOVO CLIENTE -->
-        <button
-            type="button"
-            class="btn btn-primary"
-            onclick="openForm()">
-            <i class="fas fa-plus"></i>
-            Novo Cliente
-        </button>
-    </div>
-</header>
+<!-- BOTÃO NOVO CLIENTE -->
+<div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+    <button type="button" class="btn btn-primary" onclick="openForm()"><i class="fa-solid fa-plus icon-sm"></i> Novo Cliente</button>
+</div>
 
 <!--  FORMULÁRIO DE CADASTRO -->
 <div id="formContainer" style="display:none;">

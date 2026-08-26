@@ -1,13 +1,10 @@
 
-main {
-    flex: 1;
-    padding: 24px 20px;
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 24px 20px;
+/* Main layout helpers */
+main, .page-content {
+    flex: 1; padding: 24px 20px; width:100%; max-width: none; box-sizing:border-box;
 }
-.container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-}
+
+.container {max-width: 1200px;margin:0 auto;padding:2rem 1rem}
+
+/* Cards/grid area should adapt to available width */
+.wrap{max-width:1320px;margin:0 auto}

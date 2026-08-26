@@ -476,6 +476,12 @@ export async function buscarPedidoPorId(id) {
   return await model.buscarPedidoPorId(id);
 }
 
+export async function atualizarPedido(id, dados) {
+  // sanitizar e validar parcialmente os dados já é responsabilidade do service.criarPedido,
+  // mas para edição vamos delegar diretamente ao model que fará transação segura.
+  return await model.atualizarPedido(id, dados);
+}
+
 export async function buscarFinanceiroPedido(id) {
   return await model.buscarFinanceiroPedido(id);
 }

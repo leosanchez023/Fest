@@ -23,8 +23,7 @@
 
 /* LAYOUTS */
 @import url('./layouts/sidebar.css');
-@import url('./layouts/layout.css');
+@import url('./layouts/header.css');
 @import url('./layouts/main.css');
 
 /* PAGE */
-@import url('./pages/sidebar.css');

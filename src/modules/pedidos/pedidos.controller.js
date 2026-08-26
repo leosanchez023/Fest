@@ -79,6 +79,18 @@ export async function buscarEnderecos(req, res) {
   }
 }
 
+  /* Atualiza um pedido existente (edição de pedido/orçamento) */
+  export async function atualizar(req, res) {
+    try {
+      const { id } = req.params;
+      const resultado = await service.atualizarPedido(id, req.body);
+      res.json(resultado);
+    } catch (err) {
+      console.error('Erro ao atualizar pedido:', err);
+      res.status(400).json({ erro: err.message });
+    }
+  }
+
 /* Cadastra um novo endereço.*/
 export async function criarEndereco(req, res) {
   try {

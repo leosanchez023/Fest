@@ -1,7 +1,7 @@
 body {
-    font-family: 'DM Sans', system-ui, sans-serif;
-    background: #f3f4f7;
-    color: #1a1f36;
+    font-family: var(--font-family);
+    background: var(--bg);
+    color: var(--fg);
     -webkit-font-smoothing: antialiased;
 }
 

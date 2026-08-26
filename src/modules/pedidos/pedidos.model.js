@@ -293,9 +293,11 @@ export async function criarEndereco(dados) {
 }
 export async function buscarPedidoPorId(id) {
   const [rows] = await db.query(
-    `SELECT p.*, c.nome as cliente_nome, c.telefone as cliente_telefone, c.email as cliente_email, c.cpf as cliente_cpf
+    `SELECT p.*, c.nome as cliente_nome, c.telefone as cliente_telefone, c.email as cliente_email, c.cpf as cliente_cpf,
+            e.rua as endereco_rua, e.numero as endereco_numero, e.bairro as endereco_bairro, e.cidade as endereco_cidade, e.estado as endereco_estado
      FROM pedidos p
      LEFT JOIN cliente c ON c.id = p.cliente_id
+     LEFT JOIN endereco e ON e.id = p.endereco_id
      WHERE p.id = ?
     `,
     [id]
@@ -314,11 +316,110 @@ export async function buscarPedidoPorId(id) {
 
   const [pagamentos] = await db.query(`SELECT * FROM pagamentos WHERE pedido_id = ? ORDER BY data_pagamento DESC`, [id]);
 
+  // montar objeto com endereco aninhado
+  pedido.endereco = {
+    id: pedido.endereco_id || null,
+    rua: pedido.endereco_rua || null,
+    numero: pedido.endereco_numero || null,
+    bairro: pedido.endereco_bairro || null,
+    cidade: pedido.endereco_cidade || null,
+    estado: pedido.endereco_estado || null
+  };
+
   return {
     pedido,
     itens,
     pagamentos
   };
+}
+
+export async function atualizarPedido(id, dados) {
+  const conn = await db.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // Atualiza os campos do pedido
+    await conn.query(
+      `UPDATE pedidos SET
+         cliente_id = ?, endereco_id = ?, data_evento = ?, data_entrega = ?, data_retirada = ?, telefone_contato = ?, tipo_pedido = ?, observacoes = ?
+       WHERE id = ?`,
+      [
+        dados.cliente_id,
+        dados.endereco_id || null,
+        dados.data_evento || null,
+        dados.data_entrega || null,
+        dados.data_retirada || null,
+        dados.telefone_contato || null,
+        dados.tipo_pedido || 'ALUGUEL',
+        dados.observacoes || null,
+        id
+      ]
+    );
+
+    // Buscar itens atuais
+    const [existentes] = await conn.query(
+      `SELECT produto_id, quantidade FROM pedido_itens WHERE pedido_id = ?`,
+      [id]
+    );
+
+    const mapaExistentes = new Map(existentes.map(r => [String(r.produto_id), r]));
+
+    const novos = Array.isArray(dados.itens) ? dados.itens : [];
+
+    const vistos = new Set();
+
+    for (const item of novos) {
+      const produtoId = Number(item.produto_id);
+      const quantidade = Number(item.quantidade || 0);
+      const preco = Number(item.preco_unitario ?? item.preco ?? 0);
+      const subtotal = preco * quantidade;
+
+      vistos.add(String(produtoId));
+
+      if (mapaExistentes.has(String(produtoId))) {
+        // Atualiza item existente
+        await conn.query(
+          `UPDATE pedido_itens SET quantidade = ?, valor_unitario = ?, subtotal = ? WHERE pedido_id = ? AND produto_id = ?`,
+          [quantidade, preco, subtotal, id, produtoId]
+        );
+      } else {
+        // Insere novo item
+        await conn.query(
+          `INSERT INTO pedido_itens (pedido_id, produto_id, quantidade, valor_unitario, subtotal) VALUES (?, ?, ?, ?, ?)`,
+          [id, produtoId, quantidade, preco, subtotal]
+        );
+      }
+    }
+
+    // Remove itens que não estão mais na lista
+    for (const ex of existentes) {
+      if (!vistos.has(String(ex.produto_id))) {
+        await conn.query(`DELETE FROM pedido_itens WHERE pedido_id = ? AND produto_id = ?`, [id, ex.produto_id]);
+      }
+    }
+
+    // Recalcula valores
+    const [somaRows] = await conn.query(`SELECT COALESCE(SUM(subtotal),0) as valor_produtos FROM pedido_itens WHERE pedido_id = ?`, [id]);
+    const valor_produtos = Number(somaRows[0].valor_produtos || 0);
+    const valor_frete = Number(dados.valor_frete || 0);
+    const valor_desconto = Number(dados.valor_desconto || 0);
+    const valor_total = valor_produtos + valor_frete - valor_desconto;
+
+    await conn.query(
+      `UPDATE pedidos SET valor_produtos = ?, valor_frete = ?, valor_desconto = ?, valor_total = ? WHERE id = ?`,
+      [valor_produtos, valor_frete, valor_desconto, valor_total, id]
+    );
+
+    await conn.commit();
+
+    return { sucesso: true, pedidoId: id };
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 }
 
 export async function cancelarPedido(pedidoId, dados = {}) {

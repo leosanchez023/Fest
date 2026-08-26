@@ -1,9 +1,7 @@
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/pages/funcionario.css">
 
-<header>
-  <h1>👤 Funcionários</h1>
-</header>
+<div class="page-meta" data-title="Funcionários" data-subtitle="Gerencie usuários, cargos e permissões do sistema"></div>
 
 <div class="container">
 
@@ -82,12 +80,12 @@
         <td>{{nome}}</td>
         <td>{{email}}</td>
 
-        <td>{{#if dashboard}}✅{{else}}❌{{/if}}</td>
-        <td>{{#if clientes}}✅{{else}}❌{{/if}}</td>
-        <td>{{#if produtos}}✅{{else}}❌{{/if}}</td>
-        <td>{{#if pedidos}}✅{{else}}❌{{/if}}</td>
-        <td>{{#if relatorios}}✅{{else}}❌{{/if}}</td>
-        <td>{{#if funcionarios}}✅{{else}}❌{{/if}}</td>
+        <td>{{#if dashboard}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
+        <td>{{#if clientes}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
+        <td>{{#if produtos}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
+        <td>{{#if pedidos}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
+        <td>{{#if relatorios}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
+        <td>{{#if funcionarios}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
 
       </tr>
     {{/each}}

@@ -1,0 +1,27 @@
+:root{
+  --icon-xs:12px;
+  --icon-sm:16px;
+  --icon-md:20px;
+  --icon-lg:24px;
+  --icon-xl:32px;
+}
+
+.icon{display:inline-flex;align-items:center;justify-content:center;color:currentColor}
+.icon-xs{width:var(--icon-xs);height:var(--icon-xs);font-size:var(--icon-xs)}
+.icon-sm{width:var(--icon-sm);height:var(--icon-sm);font-size:var(--icon-sm)}
+.icon-md{width:var(--icon-md);height:var(--icon-md);font-size:var(--icon-md)}
+.icon-lg{width:var(--icon-lg);height:var(--icon-lg);font-size:var(--icon-lg)}
+.icon-xl{width:var(--icon-xl);height:var(--icon-xl);font-size:var(--icon-xl)}
+
+/* helper to ensure icons inherit text color */
+.icon *{color:inherit}
+
+/* header title */
+.page-meta-display{display:flex;flex-direction:column;align-items:center;flex:1;text-align:center;padding:6px 12px}
+.page-meta-display .page-title{font-size:18px;font-weight:700}
+.page-meta-display .page-subtitle{font-size:13px;margin-top:4px;color:var(--muted,#6b7280)}
+
+/* small breakpoint */
+@media (max-width:900px){
+  .page-meta-display{display:none}
+}

@@ -3,5 +3,6 @@ export const state = {
   enderecoSelecionado: null,
   prodSel: null,
   itens: [],
-  tabAtiva: "buscar"
+  tabAtiva: "buscar",
+  editingId: null
 };

@@ -1,325 +1,20 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Relatórios · Serve Festa</title>
-<style>
-  :root{
-    --bg:#f7f8fc;
-    --card:#ffffff;
-    --border:#e8eaf0;
-    --text:#0f172a;
-    --muted:#64748b;
-    --dark:#111827;
-    --green:#059669;
-    --blue:#2563eb;
-    --amber:#d97706;
-    --red:#dc2626;
-    --purple:#7c3aed;
-    --pink:#db2777;
-    --radius:14px;
-    --shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
-    --sidebar:264px;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{
-    background:var(--bg);color:var(--text);
-    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-    font-size:14px;-webkit-font-smoothing:antialiased;
-  }
-  a{color:inherit;text-decoration:none}
-  button{font-family:inherit}
+{{!-- Relatórios (conteúdo) — convertido para usar o layout principal --}}
+<link rel="stylesheet" href="/css/pages/upgrade-relatorios.css">
 
-  /* ---------- Layout ---------- */
-  .app{display:flex;min-height:100vh}
-  .content{flex:1;min-width:0;padding:26px 30px 46px;margin-left:var(--sidebar)}
-  .wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
-
-  /* ---------- Sidebar ---------- */
-  .sidebar{
-    width:var(--sidebar);position:fixed;inset:0 auto 0 0;background:var(--dark);color:#cbd5e1;
-    display:flex;flex-direction:column;padding:20px 14px;gap:6px;overflow-y:auto;z-index:40;
-  }
-  .brand{display:flex;align-items:center;gap:11px;padding:6px 8px 18px}
-  .brand .logo{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;font-size:19px;
-    background:linear-gradient(135deg,#7c3aed,#db2777)}
-  .brand b{color:#fff;font-size:15.5px;display:block;line-height:1.2;letter-spacing:-.2px}
-  .brand small{color:#94a3b8;font-size:11px}
-  .nav-label{font-size:10px;letter-spacing:.9px;text-transform:uppercase;color:#64748b;font-weight:700;padding:14px 10px 6px}
-  .nav-item{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:10px;font-size:13.5px;
-    color:#cbd5e1;cursor:pointer;border:0;background:transparent;width:100%;text-align:left}
-  .nav-item:hover{background:#1f2937;color:#fff}
-  .nav-item.active{background:#fff;color:#0f172a;font-weight:600}
-  .nav-item .ni{width:20px;text-align:center;font-size:15px}
-  .nav-item .badge{margin-left:auto;background:#dc2626;color:#fff;font-size:10.5px;font-weight:700;
-    padding:2px 7px;border-radius:999px}
-  .sidebar-foot{margin-top:auto;padding:14px 10px 4px;border-top:1px solid #1f2937;display:flex;align-items:center;gap:10px}
-  .avatar{width:34px;height:34px;border-radius:50%;background:#334155;display:grid;place-items:center;color:#fff;font-size:12.5px;font-weight:700;flex:none}
-  .sidebar-foot b{color:#fff;font-size:13px;display:block}
-  .sidebar-foot small{color:#94a3b8;font-size:11px}
-
-  /* ---------- Cards / generic ---------- */
-  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
-  .pad{padding:18px 20px}
-  .card-title{display:flex;justify-content:space-between;align-items:center;gap:12px;
-    padding:15px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-  .card-title h2{margin:0;font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:8px}
-  .card-title .count{font-size:12.5px;color:var(--muted);font-weight:500}
-  .muted{color:var(--muted)}
-  .sec-title{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:.7px;
-    text-transform:uppercase;color:var(--muted);margin:6px 2px -4px}
-
-  /* ---------- Header ---------- */
-  .header{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap}
-  .header h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.7px;display:flex;align-items:center;gap:10px}
-  .header p{margin:6px 0 0;color:var(--muted);font-size:13.5px}
-  .actions{display:flex;gap:9px;flex-wrap:wrap}
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 15px;border-radius:10px;border:1px solid var(--border);
-    background:#fff;color:var(--text);font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:var(--shadow);
-    transition:.15s background,.15s border-color,.15s transform}
-  .btn:hover{background:#f8fafc}
-  .btn:active{transform:translateY(1px)}
-  .btn.primary{background:var(--dark);color:#fff;border-color:var(--dark)}
-  .btn.primary:hover{background:#1f2937}
-  .btn.ghost{background:transparent;box-shadow:none}
-
-  /* period bar */
-  .periodbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}
-  .chips{display:flex;flex-wrap:wrap;gap:7px}
-  .chip{padding:8px 15px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--text);
-    font-size:13px;cursor:pointer;font-weight:500;transition:.15s}
-  .chip:hover{background:#f1f5f9}
-  .chip.active{background:var(--dark);color:#fff;border-color:var(--dark)}
-  .range{display:none;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
-  .range.show{display:flex}
-  input[type=date],select,input[type=text],input[type=search]{
-    padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;
-    font-size:13.5px;color:var(--text);font-family:inherit;outline:none;width:100%}
-  input:focus,select:focus{border-color:#c7d2fe;box-shadow:0 0 0 3px rgba(99,102,241,.12)}
-
-  /* ---------- KPI cards ---------- */
-  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-  .kpi{padding:15px 16px;border-radius:var(--radius);background:#fff;border:1px solid var(--border);box-shadow:var(--shadow)}
-  .kpi .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-  .kpi .label{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:700}
-  .kpi .value{font-size:23px;font-weight:800;margin-top:11px;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
-  .kpi .sub{font-size:11.5px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:6px}
-  .ico{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none;font-size:15px}
-  .ico.slate{background:#f1f5f9}.ico.green{background:#dcfce7}.ico.blue{background:#dbeafe}
-  .ico.amber{background:#fef3c7}.ico.red{background:#fee2e2}.ico.orange{background:#ffedd5}
-  .ico.purple{background:#ede9fe}.ico.pink{background:#fce7f3}.ico.teal{background:#ccfbf1}
-  .trend{font-weight:700;font-size:11.5px}
-  .up{color:var(--green)}.down{color:var(--red)}
-  .kpi.tint-green{background:#f6fdf9}.kpi.tint-blue{background:#f5f9ff}
-  .kpi.tint-amber{background:#fffbf2}.kpi.tint-red{background:#fff6f6}
-
-  /* ---------- Charts ---------- */
-  .grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px}
-  .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-  .chart-box{padding:14px 12px 6px}
-  svg{display:block;width:100%;height:auto;overflow:visible}
-  .g-axis{stroke:#eef1f6;stroke-width:1}
-  .g-lbl{font-size:10.5px;fill:#94a3b8;font-weight:600}
-  .g-val{font-size:11px;fill:#475569;font-weight:700}
-  .legend{display:flex;flex-wrap:wrap;gap:10px 16px;padding:10px 20px 16px}
-  .legend div{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted)}
-  .dot{width:9px;height:9px;border-radius:3px;flex:none}
-  .bar-row{display:grid;grid-template-columns:1fr;gap:11px;padding:16px 20px 20px}
-  .bar-item .l{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:6px;gap:12px}
-  .bar-item .l>span:first-child{display:flex;align-items:center;min-width:0}
-  .bar-item .l b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .bar-item .l>span:last-child{white-space:nowrap;flex:none;font-size:11.5px;font-variant-numeric:tabular-nums}
-  .bar-track{height:9px;border-radius:999px;background:#f1f5f9;overflow:hidden}
-  .bar-fill{height:100%;border-radius:999px;transition:width .5s ease}
-  .rank{width:20px;height:20px;border-radius:6px;background:#f1f5f9;color:var(--muted);
-    display:inline-grid;place-items:center;font-size:11px;font-weight:800;margin-right:8px}
-  .rank.top{background:var(--dark);color:#fff}
-
-  /* ---------- Tables ---------- */
-  .toolbar{display:grid;grid-template-columns:minmax(0,1fr) 170px 170px;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border)}
-  .search{position:relative}
-  .search input{padding-left:36px}
-  .search span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px}
-  .tscroll{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;min-width:720px}
-  th{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:700;
-     text-align:left;padding:12px 14px;background:#fcfcfe;white-space:nowrap}
-  th.sortable{cursor:pointer;user-select:none}
-  th.sortable:hover{color:var(--text)}
-  th .arrow{opacity:.35;margin-left:3px}
-  th.sorted .arrow{opacity:1;color:var(--text)}
-  td{padding:13px 14px;border-top:1px solid var(--border);vertical-align:middle;font-size:13.5px}
-  tbody tr:hover{background:#fafbff}
-  tbody tr{cursor:pointer}
-  th.num,td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-  .strong{font-weight:600}
-  .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--muted)}
-  .green-t{color:var(--green);font-weight:600}
-  .red-t{color:var(--red);font-weight:600}
-  .amber-t{color:var(--amber);font-weight:600}
-  .empty{padding:40px;text-align:center;color:var(--muted)}
-
-  .tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
-    font-size:11.5px;font-weight:700;white-space:nowrap}
-  .t-green{background:#dcfce7;color:#166534}
-  .t-amber{background:#fef3c7;color:#92400e}
-  .t-red{background:#fee2e2;color:#991b1b}
-  .t-blue{background:#dbeafe;color:#1e40af}
-  .t-slate{background:#f1f5f9;color:#475569}
-  .t-purple{background:#ede9fe;color:#5b21b6}
-  .row-low{background:#fffaf3}
-  .row-low:hover{background:#fff5e8}
-
-  .thumb{width:34px;height:34px;border-radius:9px;background:#f1f5f9;display:grid;place-items:center;font-size:15px;flex:none}
-  .cellflex{display:flex;align-items:center;gap:11px;min-width:0}
-  .cellflex b{font-weight:600;display:block;line-height:1.3}
-  .cellflex small{color:var(--muted);font-size:11.5px}
-
-  /* ---------- Delivery panel ---------- */
-  .deliv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:18px 20px}
-  .deliv .d{border:1px solid var(--border);border-radius:12px;padding:14px}
-  .deliv .d .v{font-size:22px;font-weight:800;margin-top:8px}
-  .gauge{display:flex;align-items:center;gap:18px;padding:18px 20px;border-top:1px solid var(--border)}
-  .gauge .txt b{font-size:26px;font-weight:800;display:block;letter-spacing:-.6px}
-
-  /* ---------- Alerts ---------- */
-  .alerts{display:flex;flex-direction:column;gap:10px;padding:16px 20px}
-  .alert{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border-radius:12px;border:1px solid;background:#fff}
-  .alert b{display:block;font-size:13.5px;margin-bottom:3px}
-  .alert p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.45}
-  .alert .a-ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;font-size:14px}
-  .a-red{border-color:#fecaca;background:#fff7f7}
-  .a-amber{border-color:#fde68a;background:#fffbf0}
-  .a-blue{border-color:#bfdbfe;background:#f6faff}
-  .a-purple{border-color:#ddd6fe;background:#faf8ff}
-  .alert .go{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--blue);cursor:pointer;white-space:nowrap;
-    background:none;border:0;padding:4px}
-
-  /* ---------- Drawer (filtros avançados) ---------- */
-  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.42);opacity:0;pointer-events:none;transition:.2s;z-index:50}
-  .overlay.show{opacity:1;pointer-events:auto}
-  .drawer{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:#fff;z-index:60;
-    transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;
-    box-shadow:-8px 0 30px rgba(15,23,42,.12)}
-  .drawer.show{transform:translateX(0)}
-  .drawer header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-  .drawer header h3{margin:0;font-size:16px;font-weight:700}
-  .drawer .body{padding:18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;flex:1}
-  .drawer footer{padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px}
-  .drawer footer .btn{flex:1;justify-content:center}
-  .field label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
-    color:var(--muted);margin-bottom:6px}
-  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .iconbtn{border:0;background:#f1f5f9;width:32px;height:32px;border-radius:9px;cursor:pointer;font-size:15px}
-
-  /* ---------- Modal detalhes ---------- */
-  .modal{position:fixed;z-index:60;top:50%;left:50%;transform:translate(-50%,-46%) scale(.98);opacity:0;
-    pointer-events:none;transition:.2s;width:560px;max-width:94vw;background:#fff;border-radius:16px;
-    box-shadow:0 24px 60px rgba(15,23,42,.24);overflow:hidden}
-  .modal.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
-  .modal header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-  .modal header h3{margin:0;font-size:16px;font-weight:700}
-  .modal .body{padding:18px 20px;display:flex;flex-direction:column;gap:2px;max-height:60vh;overflow:auto}
-  .kv{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px dashed var(--border);font-size:13.5px}
-  .kv:last-child{border-bottom:0}
-  .kv span{color:var(--muted)}
-  .modal footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
-
-  /* ---------- Toast ---------- */
-  .toasts{position:fixed;right:20px;bottom:20px;z-index:80;display:flex;flex-direction:column;gap:10px}
-  .toast{background:var(--dark);color:#fff;padding:13px 16px;border-radius:12px;font-size:13.5px;
-    box-shadow:0 12px 30px rgba(15,23,42,.25);display:flex;align-items:center;gap:10px;
-    animation:slidein .25s ease}
-  @keyframes slidein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-
-  .footnote{text-align:center;color:#94a3b8;font-size:12px;padding:8px 0 4px}
-
-  /* ---------- Responsivo ---------- */
-  @media (max-width:1240px){
-    .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .grid-2{grid-template-columns:1fr}
-    .grid-3{grid-template-columns:1fr 1fr}
-    .deliv{grid-template-columns:repeat(2,minmax(0,1fr))}
-  }
-  @media (max-width:1024px){
-    :root{--sidebar:0px}
-    .sidebar{transform:translateX(-100%);transition:transform .25s;width:264px}
-    .sidebar.show{transform:none}
-    .content{margin-left:0;padding:20px 18px 40px}
-    .menu-toggle{display:inline-flex !important}
-  }
-  @media (max-width:760px){
-    .grid-3{grid-template-columns:1fr}
-    .kpis{grid-template-columns:1fr}
-    .toolbar{grid-template-columns:1fr}
-    .deliv{grid-template-columns:1fr}
-  }
-  .menu-toggle{display:none}
-
-  /* ---------- Impressão ---------- */
-  @media print{
-    .sidebar,.actions,.periodbar,.toolbar,.overlay,.drawer,.toasts,.menu-toggle,.alert .go{display:none !important}
-    body{background:#fff}
-    .content{margin:0;padding:0}
-    .card{break-inside:avoid;box-shadow:none}
-    table{min-width:0}
-  }
-</style>
-</head>
-<body>
-<div class="app">
-
-  <!-- ============ SIDEBAR (simulação ERP) ============ -->
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <div class="logo">🎉</div>
-      <div><b>Serve Festa</b><small>ERP de Locação</small></div>
-    </div>
-
-    <div class="nav-label">Operação</div>
-    <button class="nav-item"><span class="ni">🏠</span> Dashboard</button>
-    <button class="nav-item"><span class="ni">🧾</span> Pedidos <span class="badge">12</span></button>
-    <button class="nav-item"><span class="ni">📄</span> Orçamentos</button>
-    <button class="nav-item"><span class="ni">🚚</span> Entregas</button>
-    <button class="nav-item"><span class="ni">📅</span> Agenda</button>
-
-    <div class="nav-label">Cadastros</div>
-    <button class="nav-item"><span class="ni">📦</span> Estoque</button>
-    <button class="nav-item"><span class="ni">👥</span> Clientes</button>
-    <button class="nav-item"><span class="ni">🏷️</span> Categorias</button>
-
-    <div class="nav-label">Gestão</div>
-    <button class="nav-item"><span class="ni">💰</span> Financeiro</button>
-    <button class="nav-item active"><span class="ni">📊</span> Relatórios</button>
-    <button class="nav-item"><span class="ni">⚙️</span> Configurações</button>
-
-    <div class="sidebar-foot">
-      <div class="avatar">MR</div>
-      <div><b>Marcos Ribeiro</b><small>Administrador</small></div>
-    </div>
-  </aside>
-
-  <!-- ============ CONTEÚDO ============ -->
-  <main class="content">
-    <div class="wrap">
+<div class="wrap">
 
       <!-- 1. CABEÇALHO -->
-      <header class="header">
+      <div class="page-meta" data-title="Relatórios" data-subtitle="Análise completa do desempenho da empresa · Últimos 30 dias"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <div>
-          <h1>
-            <button class="btn menu-toggle" id="menuToggle" title="Menu">☰</button>
-            📊 Relatórios
-          </h1>
-          <p>Análise completa do desempenho da empresa · <span id="periodLabel">Últimos 30 dias</span></p>
+          <button class="btn menu-toggle" id="menuToggle" title="Menu"><i class="fa-solid fa-bars"></i></button>
         </div>
-        <div class="actions">
-          <button class="btn" id="btnFilters">⚙️ Filtros avançados <span class="tag t-slate" id="filterCount" style="display:none">0</span></button>
-          <button class="btn" id="btnPrint">🖨️ Imprimir relatório</button>
-          <button class="btn primary" id="btnExport">⬇️ Exportar relatório</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" id="btnFilters"><i class="fa-solid fa-filter icon-sm"></i> Filtros avançados <span class="tag t-slate" id="filterCount" style="display:none">0</span></button>
+          <button class="btn" id="btnPrint"><i class="fa-solid fa-print icon-sm"></i> Imprimir relatório</button>
+          <button class="btn primary" id="btnExport"><i class="fa-solid fa-file-export icon-sm"></i> Exportar relatório</button>
         </div>
-      </header>
+      </div>
 
       <!-- Filtro de período -->
       <div class="card pad periodbar">
@@ -340,23 +35,23 @@
       </div>
 
       <!-- 2. INDICADORES -->
-      <div class="sec-title">💰 Financeiro</div>
+      <div class="sec-title"><i class="fa-solid fa-dollar-sign"></i> Financeiro</div>
       <section class="kpis" id="kpiFin"></section>
 
-      <div class="sec-title">🧾 Pedidos</div>
+      <div class="sec-title"><i class="fa-solid fa-cart-shopping"></i> Pedidos</div>
       <section class="kpis" id="kpiPed"></section>
 
-      <div class="sec-title">👥 Clientes &nbsp;·&nbsp; 📦 Estoque</div>
+      <div class="sec-title"><i class="fa-solid fa-users"></i> Clientes &nbsp;·&nbsp; <i class="fa-solid fa-box"></i> Estoque</div>
       <section class="kpis" id="kpiCli"></section>
       <section class="kpis" id="kpiEst"></section>
 
       <!-- 3. GRÁFICOS -->
-      <div class="sec-title">📈 Indicadores visuais</div>
+      <div class="sec-title"><i class="fa-solid fa-chart-line"></i> Indicadores visuais</div>
 
       <section class="grid-2">
         <div class="card">
           <div class="card-title">
-            <h2>📈 Faturamento por mês</h2>
+            <h2><i class="fa-solid fa-chart-line icon-sm"></i> Faturamento por mês</h2>
             <span class="count" id="revSummary">—</span>
           </div>
           <div class="chart-box"><div id="chartRevenue"></div></div>
@@ -368,7 +63,7 @@
 
         <div class="card">
           <div class="card-title">
-            <h2>📊 Pedidos por período</h2>
+            <h2><i class="fa-solid fa-chart-column icon-sm"></i> Pedidos por período</h2>
             <span class="count" id="ordSummary">—</span>
           </div>
           <div class="chart-box"><div id="chartOrders"></div></div>
@@ -378,42 +73,42 @@
 
       <section class="grid-3">
         <div class="card">
-          <div class="card-title"><h2>🏆 Produtos mais alugados</h2></div>
+          <div class="card-title"><h2><i class="fa-solid fa-box icon-sm"></i> Produtos mais alugados</h2></div>
           <div class="bar-row" id="chartTopProducts"></div>
         </div>
 
         <div class="card">
-          <div class="card-title"><h2>💳 Formas de pagamento</h2></div>
+          <div class="card-title"><h2><i class="fa-solid fa-credit-card icon-sm"></i> Formas de pagamento</h2></div>
           <div class="chart-box" style="padding:8px 12px 0"><div id="chartPayments"></div></div>
           <div class="legend" id="legendPayments"></div>
         </div>
 
         <div class="card">
-          <div class="card-title"><h2>🧩 Tipos de pedido</h2></div>
+          <div class="card-title"><h2><i class="fa-solid fa-puzzle-piece icon-sm"></i> Tipos de pedido</h2></div>
           <div class="chart-box" style="padding:8px 12px 0"><div id="chartTypes"></div></div>
           <div class="legend" id="legendTypes"></div>
         </div>
       </section>
 
       <!-- 8. ALERTAS INTELIGENTES -->
-      <div class="sec-title">🔔 Alertas inteligentes</div>
+      <div class="sec-title"><i class="fa-solid fa-bell"></i> Alertas inteligentes</div>
       <section class="card">
         <div class="card-title">
-          <h2>⚠️ Pontos de atenção</h2>
+          <h2><i class="fa-solid fa-triangle-exclamation icon-sm"></i> Pontos de atenção</h2>
           <span class="count" id="alertCount">—</span>
         </div>
         <div class="alerts" id="alertList"></div>
       </section>
 
       <!-- 4. RELATÓRIO FINANCEIRO -->
-      <div class="sec-title">💵 Relatório financeiro detalhado</div>
+      <div class="sec-title"><i class="fa-solid fa-dollar-sign"></i> Relatório financeiro detalhado</div>
       <section class="card">
         <div class="card-title">
-          <h2>🧾 Movimentações do período</h2>
+          <h2><i class="fa-solid fa-file-invoice icon-sm"></i> Movimentações do período</h2>
           <span class="count" id="finCount">—</span>
         </div>
         <div class="toolbar">
-          <div class="search"><span>🔍</span><input type="search" id="finSearch" placeholder="Pesquisar por cliente, pedido ou tipo..." /></div>
+          <div class="search"><i class="fa-solid fa-magnifying-glass icon-sm"></i><input type="search" id="finSearch" placeholder="Pesquisar por cliente, pedido ou tipo..." /></div>
           <select id="finStatus">
             <option value="">Todos os status</option>
             <option value="Pago">Pago</option>
@@ -451,14 +146,14 @@
       </section>
 
       <!-- 5. RELATÓRIO DE PRODUTOS -->
-      <div class="sec-title">📦 Relatório de produtos</div>
+      <div class="sec-title"><i class="fa-solid fa-box"></i> Relatório de produtos</div>
       <section class="card">
         <div class="card-title">
-          <h2>🎪 Desempenho do catálogo</h2>
+          <h2><i class="fa-solid fa-box icon-sm"></i> Desempenho do catálogo</h2>
           <span class="count" id="prodCount">—</span>
         </div>
         <div class="toolbar">
-          <div class="search"><span>🔍</span><input type="search" id="prodSearch" placeholder="Pesquisar produto..." /></div>
+          <div class="search"><i class="fa-solid fa-magnifying-glass icon-sm"></i><input type="search" id="prodSearch" placeholder="Pesquisar produto..." /></div>
           <select id="prodCat"><option value="">Todas as categorias</option></select>
           <select id="prodFlag">
             <option value="">Todos os produtos</option>
@@ -484,7 +179,7 @@
       </section>
 
       <!-- 6. RELATÓRIO DE CLIENTES -->
-      <div class="sec-title">👥 Relatório de clientes</div>
+      <div class="sec-title"><i class="fa-solid fa-users"></i> Relatório de clientes</div>
       <section class="grid-2">
         <div class="card">
           <div class="card-title">
@@ -492,7 +187,7 @@
             <span class="count" id="cliCount">—</span>
           </div>
           <div class="toolbar" style="grid-template-columns:minmax(0,1fr) 190px">
-            <div class="search"><span>🔍</span><input type="search" id="cliSearch" placeholder="Pesquisar cliente..." /></div>
+            <div class="search"><i class="fa-solid fa-magnifying-glass icon-sm"></i><input type="search" id="cliSearch" placeholder="Pesquisar cliente..." /></div>
             <select id="cliSort">
               <option value="spent">Ordenar por valor gasto</option>
               <option value="orders">Ordenar por nº de pedidos</option>
@@ -515,15 +210,15 @@
         </div>
 
         <div class="card">
-          <div class="card-title"><h2>🔥 Clientes que mais alugam</h2><span class="count">Top 6 do período</span></div>
+          <div class="card-title"><h2><i class="fa-solid fa-fire icon-sm"></i> Clientes que mais alugam</h2><span class="count">Top 6 do período</span></div>
           <div class="bar-row" id="chartTopClients"></div>
         </div>
       </section>
 
       <!-- 7. RELATÓRIO DE ENTREGAS -->
-      <div class="sec-title">🚚 Relatório de entregas</div>
+      <div class="sec-title"><i class="fa-solid fa-truck"></i> Relatório de entregas</div>
       <section class="card">
-        <div class="card-title"><h2>📍 Logística do período</h2><span class="count" id="delivCount">—</span></div>
+        <div class="card-title"><h2><i class="fa-solid fa-location-dot icon-sm"></i> Logística do período</h2><span class="count" id="delivCount">—</span></div>
         <div class="deliv" id="delivGrid"></div>
         <div class="gauge">
           <div id="gaugeChart"></div>
@@ -543,8 +238,8 @@
 <div class="overlay" id="overlay"></div>
 <aside class="drawer" id="drawer">
   <header>
-    <h3>⚙️ Filtros avançados</h3>
-    <button class="iconbtn" id="drawerClose">✕</button>
+    <h3><i class="fa-solid fa-gear icon-sm"></i> Filtros avançados</h3>
+    <button class="iconbtn" id="drawerClose"><i class="fa-solid fa-xmark"></i></button>
   </header>
   <div class="body">
     <div class="two">
@@ -571,10 +266,10 @@
 
 <!-- MODAL DETALHES -->
 <div class="modal" id="modal">
-  <header><h3 id="modalTitle">Detalhes</h3><button class="iconbtn" id="modalClose">✕</button></header>
+  <header><h3 id="modalTitle">Detalhes</h3><button class="iconbtn" id="modalClose"><i class="fa-solid fa-xmark"></i></button></header>
   <div class="body" id="modalBody"></div>
   <footer>
-    <button class="btn" id="modalPrint">🖨️ Imprimir</button>
+    <button class="btn" id="modalPrint"><i class="fa-solid fa-print"></i> Imprimir</button>
     <button class="btn primary" id="modalOk">Fechar</button>
   </footer>
 </div>
@@ -618,23 +313,23 @@ const MockDB = {
     { label:'Venda',   value:  96, color:'#059669' },
   ],
 
-  products: [
-    { id:'P-001', icon:'🪑', name:'Cadeira Tiffany Branca',      cat:'Mobiliário',   total:400, rented:286, revenue: 48720, uses:186 },
-    { id:'P-002', icon:'🪑', name:'Cadeira Plástica Branca',     cat:'Mobiliário',   total:600, rented:212, revenue: 21400, uses:158 },
-    { id:'P-003', icon:'🍽️', name:'Mesa Redonda 1,50m',          cat:'Mobiliário',   total: 90, rented: 74, revenue: 33150, uses:142 },
-    { id:'P-004', icon:'⛺', name:'Tenda Piramidal 5x5',          cat:'Estruturas',   total: 24, rented: 21, revenue: 62800, uses: 88 },
-    { id:'P-005', icon:'🎪', name:'Tenda Chapéu de Bruxa 8x8',    cat:'Estruturas',   total:  8, rented:  7, revenue: 41200, uses: 46 },
-    { id:'P-006', icon:'🧺', name:'Toalha Redonda Cetim',         cat:'Enxoval',      total:180, rented:126, revenue: 15840, uses:131 },
-    { id:'P-007', icon:'🎈', name:'Kit Balões Metalizados',       cat:'Decoração',    total:120, rented: 34, revenue:  8920, uses: 62 },
-    { id:'P-008', icon:'💡', name:'Iluminação LED Ambiente',      cat:'Iluminação',   total: 60, rented: 52, revenue: 27650, uses: 97 },
-    { id:'P-009', icon:'🔊', name:'Caixa de Som Ativa 15"',       cat:'Som e Vídeo',  total: 16, rented: 14, revenue: 31900, uses: 71 },
-    { id:'P-010', icon:'🎤', name:'Kit Microfone Sem Fio',        cat:'Som e Vídeo',  total: 12, rented: 10, revenue: 12400, uses: 53 },
-    { id:'P-011', icon:'🍾', name:'Taça de Vidro Champagne',      cat:'Utensílios',   total:480, rented:318, revenue: 14200, uses:124 },
-    { id:'P-012', icon:'🍰', name:'Mesa Provençal para Bolo',     cat:'Mobiliário',   total: 14, rented: 12, revenue: 18900, uses: 68 },
-    { id:'P-013', icon:'🧊', name:'Cooler / Refrigerador 300L',   cat:'Utensílios',   total:  6, rented:  5, revenue:  7300, uses: 29 },
-    { id:'P-014', icon:'🌸', name:'Arranjo Floral Provençal',     cat:'Decoração',    total: 40, rented: 33, revenue: 16750, uses: 74 },
-    { id:'P-015', icon:'🪟', name:'Painel Redondo Decorativo',    cat:'Decoração',    total: 10, rented:  9, revenue: 21300, uses: 59 },
-    { id:'P-016', icon:'🔥', name:'Churrasqueira Industrial',     cat:'Utensílios',   total:  5, rented:  4, revenue:  6100, uses: 22 },
+    products: [
+    { id:'P-001', icon:'fa-solid fa-box', name:'Cadeira Tiffany Branca',      cat:'Mobiliário',   total:400, rented:286, revenue: 48720, uses:186 },
+    { id:'P-002', icon:'fa-solid fa-box', name:'Cadeira Plástica Branca',     cat:'Mobiliário',   total:600, rented:212, revenue: 21400, uses:158 },
+    { id:'P-003', icon:'fa-solid fa-box', name:'Mesa Redonda 1,50m',          cat:'Mobiliário',   total: 90, rented: 74, revenue: 33150, uses:142 },
+    { id:'P-004', icon:'fa-solid fa-box', name:'Tenda Piramidal 5x5',          cat:'Estruturas',   total: 24, rented: 21, revenue: 62800, uses: 88 },
+    { id:'P-005', icon:'fa-solid fa-box', name:'Tenda Chapéu de Bruxa 8x8',    cat:'Estruturas',   total:  8, rented:  7, revenue: 41200, uses: 46 },
+    { id:'P-006', icon:'fa-solid fa-box', name:'Toalha Redonda Cetim',         cat:'Enxoval',      total:180, rented:126, revenue: 15840, uses:131 },
+    { id:'P-007', icon:'fa-solid fa-box', name:'Kit Balões Metalizados',       cat:'Decoração',    total:120, rented: 34, revenue:  8920, uses: 62 },
+    { id:'P-008', icon:'fa-solid fa-box', name:'Iluminação LED Ambiente',      cat:'Iluminação',   total: 60, rented: 52, revenue: 27650, uses: 97 },
+    { id:'P-009', icon:'fa-solid fa-box', name:'Caixa de Som Ativa 15"',       cat:'Som e Vídeo',  total: 16, rented: 14, revenue: 31900, uses: 71 },
+    { id:'P-010', icon:'fa-solid fa-box', name:'Kit Microfone Sem Fio',        cat:'Som e Vídeo',  total: 12, rented: 10, revenue: 12400, uses: 53 },
+    { id:'P-011', icon:'fa-solid fa-box', name:'Taça de Vidro Champagne',      cat:'Utensílios',   total:480, rented:318, revenue: 14200, uses:124 },
+    { id:'P-012', icon:'fa-solid fa-box', name:'Mesa Provençal para Bolo',     cat:'Mobiliário',   total: 14, rented: 12, revenue: 18900, uses: 68 },
+    { id:'P-013', icon:'fa-solid fa-box', name:'Cooler / Refrigerador 300L',   cat:'Utensílios',   total:  6, rented:  5, revenue:  7300, uses: 29 },
+    { id:'P-014', icon:'fa-solid fa-box', name:'Arranjo Floral Provençal',     cat:'Decoração',    total: 40, rented: 33, revenue: 16750, uses: 74 },
+    { id:'P-015', icon:'fa-solid fa-box', name:'Painel Redondo Decorativo',    cat:'Decoração',    total: 10, rented:  9, revenue: 21300, uses: 59 },
+    { id:'P-016', icon:'fa-solid fa-box', name:'Churrasqueira Industrial',     cat:'Utensílios',   total:  5, rented:  4, revenue:  6100, uses: 22 },
   ],
 
   clients: [
@@ -985,7 +680,7 @@ function renderKPIs() {
 
   $('#kpiPed').innerHTML = [
     { label:'Total de pedidos',    icon:'🧾', color:'slate', value:num(scale(s.orders)),      sub:'no período selecionado', trend:11.5 },
-    { label:'Em andamento',        icon:'🔄', color:'blue',  tint:'blue', value:num(scale(s.inProgress)),  sub:'aguardando entrega ou retorno' },
+    { label:'Em andamento',        icon:'fa-solid fa-rotate', color:'blue',  tint:'blue', value:num(scale(s.inProgress)),  sub:'aguardando entrega ou retorno' },
     { label:'Finalizados',         icon:'🏁', color:'green', value:num(scale(s.finished)),    sub:`${pct(s.finished,s.orders)}% de conclusão`, trend:8.3 },
     { label:'Orçamentos gerados',  icon:'📄', color:'orange',value:num(scale(s.quotes)),      sub:'32% convertidos em pedido', trend:-2.4 },
   ].map(kpiCard).join('');
@@ -998,8 +693,8 @@ function renderKPIs() {
   ].map(kpiCard).join('');
 
   $('#kpiEst').innerHTML = [
-    { label:'Produtos em catálogo',   icon:'📦', color:'slate', value:num(s.productsTotal),     sub:`${State.data.products.length} itens distintos` },
-    { label:'Alugados atualmente',    icon:'🚚', color:'blue',  tint:'blue', value:num(s.productsRented), sub:`${pct(s.productsRented,s.productsTotal)}% do estoque em uso` },
+    { label:'Produtos em catálogo',   icon:'fa-solid fa-box', color:'slate', value:num(s.productsTotal),     sub:`${State.data.products.length} itens distintos` },
+    { label:'Alugados atualmente',    icon:'fa-solid fa-truck', color:'blue',  tint:'blue', value:num(s.productsRented), sub:`${pct(s.productsRented,s.productsTotal)}% do estoque em uso` },
     { label:'Disponíveis',            icon:'🟢', color:'green', value:num(s.productsAvailable), sub:'prontos para locação' },
     { label:'Com estoque baixo',      icon:'⚠️', color:'red',   tint:'red', value:num(productRows().filter(p => p.low).length), sub:'abaixo do mínimo operacional' },
   ].map(kpiCard).join('');
@@ -1099,7 +794,7 @@ function renderDeliveries() {
   const d = State.data.deliveries;
   const items = [
     { label:'Entregas realizadas', v:scale(d.done),          icon:'✅', color:'green', tone:'green-t' },
-    { label:'Entregas pendentes',  v:scale(d.pending),       icon:'📦', color:'amber', tone:'amber-t' },
+    { label:'Entregas pendentes',  v:scale(d.pending),       icon:'fa-solid fa-box', color:'amber', tone:'amber-t' },
     { label:'Retiradas pendentes', v:scale(d.pickupPending), icon:'↩️', color:'blue',  tone:'' },
     { label:'Atrasos',             v:scale(d.late),          icon:'⏰', color:'red',   tone:'red-t' },
   ];
@@ -1130,7 +825,7 @@ function renderAlerts() {
       title:`${overdue.length} cliente(s) com pagamentos pendentes`,
       text:`Total em aberto de ${money2(overdueSum)}. Priorize os pedidos com mais de 20 dias.`,
       action:'Ver financeiro', target:'#finTable', flag:['finStatus','Pendente'] },
-    { cls:'a-blue', icon:'🚚', ico:'blue',
+    { cls:'a-blue', icon:'fa-solid fa-truck', ico:'blue',
       title:'7 pedidos com entrega nas próximas 48h',
       text:'Confirme rota, equipe de montagem e conferência de itens antes do carregamento.',
       action:'Ver entregas', target:'#delivGrid' },
@@ -1330,10 +1025,8 @@ function fillSelects() {
   fillSelects();
   bind();
   renderAll();
-  setTimeout(() => toast('📊 Relatórios carregados com dados demonstrativos.'), 400);
+  setTimeout(() => toast('<i class="fa-solid fa-chart-column"></i> Relatórios carregados com dados demonstrativos.'), 400);
   // Redesenha os gráficos SVG ao redimensionar (mantém proporção fluida)
   let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(renderCharts, 200); });
 })();
 </script>
-</body>
-</html>

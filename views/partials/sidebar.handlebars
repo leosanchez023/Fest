@@ -1,57 +1,69 @@
-<link rel="stylesheet" href="/css/style.css">
-<aside class="sidebar">
+<aside id="sidebar" class="sidebar" role="navigation" aria-label="Menu principal">
 
-<div class="sidebar-brand">
-<div class="icon">🎉</div>
-<h1>FestaGest</h1>
-</div>
+  <div class="sidebar-header">
+    <div class="sidebar-brand">
+      <div class="brand-logo" aria-hidden="true"><i class="fa-solid fa-cake-candles"></i></div>
+      <div class="brand-info">
+        <div class="brand-title">FEST</div>
+        <div class="brand-sub muted">Sistema de Gestão</div>
+      </div>
+    </div>
+  </div>
 
-<nav>
+  <nav class="sidebar-nav">
 
-<a href="/dashboard">📊 Dashboard⚠️</a>
+    <a class="nav-item" href="/dashboard"><i class="fa-solid fa-chart-simple ni"></i><span>Dashboard</span></a>
 
-<div class="nav-group">
-  <div class="nav-group-title">🛒 Pedidos</div>
-  <a class="subtitle" href="/pedidos">Fazer Pedido✔️</a>
-  <a class="subtitle" href="/orcamentos">Orçamentos✔️</a>
-  <a class="subtitle" href="/entregas"> Entregas✔️</a>
-</div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Pedidos</div>
+      <a class="nav-item" href="/pedidos"><i class="fa-solid fa-cart-shopping ni"></i><span>Pedidos</span></a>
+      <a class="nav-item" href="/orcamentos"><i class="fa-solid fa-file-invoice-dollar ni"></i><span>Orçamentos</span></a>
+      <a class="nav-item" href="/entregas"><i class="fa-solid fa-truck ni"></i><span>Entregas</span></a>
+    </div>
 
-<div class="nav group">
-  <div class="nav-group-title">Cadastros</div>
-  <a class="subtitle" href="/clientes"> Clientes</a>
-  <a class="subtitle" href="/fornecedores">Fornecedores</a>
-  <a class="subtitle" href="/produtos">📦 Produtos✔️</a>
-  <a href="/usuarios">⚙️ funcionario✔️</a>
-</div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Cadastros</div>
+      <a class="nav-item" href="/clientes"><i class="fa-solid fa-users ni"></i><span>Clientes</span></a>
+      <a class="nav-item" href="/produtos"><i class="fa-solid fa-box-open ni"></i><span>Produtos</span></a>
+      <a class="nav-item" href="/fornecedores"><i class="fa-solid fa-industry ni"></i><span>Fornecedores</span></a>
+      <a class="nav-item" href="/usuarios"><i class="fa-solid fa-user-gear ni"></i><span>Funcionários</span></a>
+    </div>
 
-<div class="nav group">
-  <div class="nav-group-title">Estoque</div>
-  <a class="subtitle" href="/estoque">📦 Estoque</a>
-  <a class="subtitle" href="/combos">🧩 Combos</a>
-</div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Estoque</div>
+      <a class="nav-item" href="/estoque"><i class="fa-solid fa-boxes-packing ni"></i><span>Estoque</span></a>
+      <a class="nav-item" href="/combos"><i class="fa-solid fa-puzzle-piece ni"></i><span>Combos</span></a>
+    </div>
 
-<div class="nav group">
-  <div class="nav-group-title">relatorios</div>
-  <a href="/relatorios">📈devedores⚠️</a>
-</div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Relatórios</div>
+      <a class="nav-item" href="/relatorios"><i class="fa-solid fa-chart-line ni"></i><span>Relatórios</span></a>
+      <a class="nav-item" href="/devedores"><i class="fa-solid fa-user-clock ni"></i><span>Devedores</span></a>
+    </div>
 
-</nav>
+  </nav>
 
-<div class="sidebar-footer">
-© 2026 Sistema de Festas
-</div>
+  <div class="sidebar-footer">
+    <button class="nav-item logout" onclick="window.location.href='/logout'"><i class="fa-solid fa-right-from-bracket ni"></i><span>Sair</span></button>
+    <div class="copyright">© 2026 Sistema de Festas</div>
+  </div>
 
 </aside>
 
 <script>
-const links = document.querySelectorAll(".sidebar nav a");
-const currentPath = window.location.pathname; // pega a URL atual
-
-links.forEach(link => {
-  // compara o href do link com a URL atual
-  if (link.getAttribute("href") === currentPath) {
-    link.classList.add("active");
-  }
+document.addEventListener('DOMContentLoaded', function(){
+  const links = document.querySelectorAll('.sidebar-nav .nav-item');
+  const path = window.location.pathname.replace(/\/$/, '') || '/dashboard';
+  links.forEach(link => {
+    const href = link.getAttribute('href') || link.dataset.href || '';
+    if(!href) return;
+    // marca ativo se for igual ou prefixo (ex: /produtos/123)
+    if(path === href || path.indexOf(href) === 0) {
+      link.classList.add('active');
+      // marcar a seção pai se necessário
+      const section = link.closest('.sidebar-section');
+      if(section) section.classList.add('open');
+    }
+  });
 });
 </script>
