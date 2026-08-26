@@ -6,62 +6,46 @@ import * as service from "./produtos.service.js";
 // ===============================
 
 export async function listar(req, res) {
-
   try {
-
+    console.log("=== ACESSANDO /PRODUTOS ===");
 
     const filtros = {
-
       busca: req.query.busca || "",
-
       categoria: req.query.categoria || "",
-
       fornecedor: req.query.fornecedor || "",
-
       status: req.query.status || ""
-
     };
 
+    console.log("Filtros:", filtros);
 
     const produtos = await service.listar(filtros);
+    console.log("Produtos:", produtos.length);
 
     const dashboard = await service.dashboard();
+    console.log("Dashboard:", dashboard);
 
     const historico = await service.historico();
-
-
+    console.log("Histórico:", historico);
 
     res.render("pages/produtos/index", {
-
       produtos,
-
       dashboard,
-
       historico,
-
       filtros
-
     });
 
-
-
-  } catch(err){
-
-
+  } catch (err) {
+    console.error("=================================");
+    console.error("ERRO AO ABRIR PRODUTOS");
     console.error(err);
+    console.error("=================================");
 
+    req.flash("error_msg", err.message);
 
-    req.flash(
-      "error_msg",
-      err.message
+    res.status(500).send(
+      "Erro ao abrir produtos: " + err.message
     );
-
-
-    res.redirect("/");
-
-
   }
-
 }
 
 

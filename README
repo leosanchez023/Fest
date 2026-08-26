@@ -8,17 +8,6 @@
 O <strong>Fest</strong> é um sistema desenvolvido para centralizar e automatizar o gerenciamento de empresas que trabalham com locação de artigos para festas, oferecendo controle completo sobre clientes, produtos, pedidos, entregas, pagamentos, fornecedores e usuários.
 </p>
 
-<p>
-
-![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?logo=node.js&logoColor=white)
-![Express](https://img.shields.io/badge/Express-5.x-000000?logo=express&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-ES6-F7DF1E?logo=javascript&logoColor=black)
-![Handlebars](https://img.shields.io/badge/Handlebars-4.x-FF6F00?logo=handlebarsdotjs&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-success)
-
-</p>
-
 </div>
 
 ---
@@ -99,33 +88,6 @@ Entre seus principais diferenciais destacam-se:
 - Preparado para trabalho em equipe utilizando Git.
 
 ---
-
-# 📌 Status do Projeto
-
-| Situação                    |
-| --------------------------- |
-| 🟢 Em desenvolvimento ativo |
-
-### Funcionalidades implementadas
-
-- ✅ Clientes
-- ✅ Produtos
-- ✅ Pedidos
-- ✅ Fornecedores
-- ✅ Entregas
-- ✅ Financeiro
-- ✅ Usuários
-
-### Próximas funcionalidades
-
-- ⏳ Dashboard avançado
-- ⏳ Relatórios
-- ⏳ Agenda
-- ⏳ Notificações
-- ⏳ API pública
-- ⏳ Aplicativo Mobile
-
-# 📚 Índice
 
 ## 📖 Introdução
 
@@ -396,11 +358,7 @@ Fest/
 │   │
 │   ├── config/                                # Configurações gerais da aplicação.
 │   │   │
-│   │   ├── database.js                        # Configuração da conexão com o banco de dados.
-│   │   ├── auth.js                            # Configuração da autenticação.
-│   │   ├── session.js                         # Configuração das sessões.
-│   │   ├── handlebars.js                      # Configuração do Express Handlebars.
-│   │   ├── passport.js                        # Estratégias de autenticação (quando utilizadas).
+│   │   ├── database.js                        # Configuração da conexão com o banco de 
 │   │   └── index.js                           # Inicialização das configurações.
 │   │
 │   └── modules/                               # Módulos organizados por responsabilidade.

@@ -36,9 +36,6 @@ function openForm() {
 }
 
 
-
-
-
 //FILTRO DE CLIENTES
 
 function submitFilter(event) {
@@ -75,9 +72,6 @@ function submitFilter(event) {
     );
 
 }
-
-
-
 
 
 // NAVEGAÇÃO ENTRE PÁGINAS

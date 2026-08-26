@@ -419,63 +419,61 @@ WHERE id=?
 // DASHBOARD
 // ==========================================
 
-export async function dashboard(){
+export async function dashboard() {
 
+  const [rows] = await db.query(`
+    SELECT
 
-const [rows] = await db.query(
+      COUNT(*) AS total,
 
-`
+      COALESCE(
+        SUM(
+          estoque
+          - estoque_reservado
+          - estoque_em_uso
+          - estoque_manutencao
+          - estoque_danificado
+        ),
+        0
+      ) AS disponiveis,
 
-SELECT
+      COALESCE(
+        SUM(estoque_reservado),
+        0
+      ) AS reservados,
 
+      COALESCE(
+        SUM(estoque_em_uso),
+        0
+      ) AS em_uso,
 
-COUNT(*) total,
+      COALESCE(
+        SUM(estoque_manutencao),
+        0
+      ) AS manutencao,
 
+      COALESCE(
+        SUM(estoque_danificado),
+        0
+      ) AS danificados,
 
-COALESCE(SUM(
-estoque -
-estoque_reservado -
-estoque_em_uso -
-estoque_manutencao -
-estoque_danificado
-),0) disponiveis,
+      COALESCE(
+        SUM(
+          CASE
+            WHEN estoque <= COALESCE(estoque_minimo, 0)
+            THEN 1
+            ELSE 0
+          END
+        ),
+        0
+      ) AS baixo_estoque
 
+    FROM produtos
 
-COALESCE(SUM(estoque_reservado),0) reservados,
+    WHERE ativo = 1
+  `);
 
-
-COALESCE(SUM(estoque_em_uso),0) em_uso,
-
-
-COALESCE(SUM(estoque_manutencao),0) manutencao,
-
-
-COALESCE(SUM(estoque_danificado),0) danificados,
-
-
-SUM(
-
-CASE
-
-WHEN estoque <= COALESCE(estoque_minimo, 0)
-),
-0
-) valor_estoque
-
-
-FROM produtos
-
-
-WHERE ativo=1
-
-
-`
-
-);
-
-
-return rows[0];
-
+  return rows[0];
 }
 
 

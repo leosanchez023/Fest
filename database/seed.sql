@@ -593,3 +593,820 @@ ALTER TABLE user_permissions AUTO_INCREMENT = 5;
 
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+USE fest;
+
+START TRANSACTION;
+
+-- ============================================================
+-- FEST - SEED COMPLETA
+-- ESTOQUE + COMBOS + RESERVAS + COMPONENTES + HISTÓRICO
+-- ============================================================
+
+
+-- ============================================================
+-- 1. PRODUTOS
+-- ============================================================
+
+INSERT INTO produtos
+(
+    nome,
+    tipo,
+    estoque,
+    estoque_reservado,
+    estoque_em_uso,
+    estoque_manutencao,
+    estoque_danificado,
+    estoque_minimo,
+    tipo_produto
+)
+VALUES
+(
+    'Cadeira de Plástico',
+    'PRODUTO',
+    100,
+    0,
+    0,
+    0,
+    0,
+    20,
+    'PRODUTO'
+),
+(
+    'Mesa Retangular 1,80m',
+    'PRODUTO',
+    30,
+    0,
+    0,
+    0,
+    0,
+    5,
+    'PRODUTO'
+),
+(
+    'Toalha Branca',
+    'PRODUTO',
+    50,
+    0,
+    0,
+    0,
+    0,
+    10,
+    'PRODUTO'
+),
+(
+    'Prato Branco',
+    'PRODUTO',
+    200,
+    0,
+    0,
+    0,
+    0,
+    30,
+    'PRODUTO'
+),
+(
+    'Copo Acrílico',
+    'PRODUTO',
+    300,
+    0,
+    0,
+    0,
+    0,
+    50,
+    'PRODUTO'
+),
+(
+    'Talher Inox',
+    'PRODUTO',
+    250,
+    0,
+    0,
+    0,
+    0,
+    40,
+    'PRODUTO'
+),
+(
+    'Jogo Americano',
+    'PRODUTO',
+    100,
+    0,
+    0,
+    0,
+    0,
+    15,
+    'PRODUTO'
+),
+(
+    'Guardanapo de Tecido',
+    'PRODUTO',
+    150,
+    0,
+    0,
+    0,
+    0,
+    20,
+    'PRODUTO'
+),
+(
+    'Bandeja Decorativa',
+    'PRODUTO',
+    25,
+    0,
+    0,
+    0,
+    0,
+    5,
+    'PRODUTO'
+),
+(
+    'Suporte para Doces',
+    'PRODUTO',
+    20,
+    0,
+    0,
+    0,
+    0,
+    3,
+    'PRODUTO'
+);
+
+
+-- ============================================================
+-- 2. COMBOS
+-- ============================================================
+
+INSERT INTO combos
+(
+    nome,
+    descricao,
+    codigo,
+    preco_venda,
+    preco_aluguel,
+    ativo
+)
+VALUES
+(
+    'Combo Festa Básico',
+    'Mesa, cadeiras e toalha para pequenas festas.',
+    'FESTA-BASICO',
+    150.00,
+    80.00,
+    1
+),
+(
+    'Combo Festa Completo',
+    'Estrutura completa para uma festa de médio porte.',
+    'FESTA-COMPLETO',
+    350.00,
+    180.00,
+    1
+),
+(
+    'Combo Mesa e Cadeiras',
+    'Mesa retangular acompanhada de seis cadeiras.',
+    'MESA-CADEIRAS',
+    220.00,
+    100.00,
+    1
+),
+(
+    'Combo Mesa Completa',
+    'Mesa, cadeiras, toalha, pratos, copos e talheres.',
+    'MESA-COMPLETA',
+    450.00,
+    230.00,
+    1
+),
+(
+    'Combo Decoração',
+    'Itens básicos para decoração de mesas.',
+    'DECORACAO',
+    180.00,
+    90.00,
+    1
+);
+
+
+-- ============================================================
+-- 3. ITENS DOS COMBOS
+-- ============================================================
+
+-- Combo Festa Básico
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT
+    c.id,
+    p.id,
+    1
+FROM combos c
+JOIN produtos p ON p.nome = 'Mesa Retangular 1,80m'
+WHERE c.codigo = 'FESTA-BASICO';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT
+    c.id,
+    p.id,
+    4
+FROM combos c
+JOIN produtos p ON p.nome = 'Cadeira de Plástico'
+WHERE c.codigo = 'FESTA-BASICO';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT
+    c.id,
+    p.id,
+    1
+FROM combos c
+JOIN produtos p ON p.nome = 'Toalha Branca'
+WHERE c.codigo = 'FESTA-BASICO';
+
+
+-- Combo Festa Completo
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 2
+FROM combos c
+JOIN produtos p ON p.nome = 'Mesa Retangular 1,80m'
+WHERE c.codigo = 'FESTA-COMPLETO';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 8
+FROM combos c
+JOIN produtos p ON p.nome = 'Cadeira de Plástico'
+WHERE c.codigo = 'FESTA-COMPLETO';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 2
+FROM combos c
+JOIN produtos p ON p.nome = 'Toalha Branca'
+WHERE c.codigo = 'FESTA-COMPLETO';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 20
+FROM combos c
+JOIN produtos p ON p.nome = 'Prato Branco'
+WHERE c.codigo = 'FESTA-COMPLETO';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 20
+FROM combos c
+JOIN produtos p ON p.nome = 'Copo Acrílico'
+WHERE c.codigo = 'FESTA-COMPLETO';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 20
+FROM combos c
+JOIN produtos p ON p.nome = 'Talher Inox'
+WHERE c.codigo = 'FESTA-COMPLETO';
+
+
+-- Combo Mesa e Cadeiras
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 1
+FROM combos c
+JOIN produtos p ON p.nome = 'Mesa Retangular 1,80m'
+WHERE c.codigo = 'MESA-CADEIRAS';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 6
+FROM combos c
+JOIN produtos p ON p.nome = 'Cadeira de Plástico'
+WHERE c.codigo = 'MESA-CADEIRAS';
+
+
+-- Combo Mesa Completa
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 1
+FROM combos c
+JOIN produtos p ON p.nome = 'Mesa Retangular 1,80m'
+WHERE c.codigo = 'MESA-COMPLETA';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 6
+FROM combos c
+JOIN produtos p ON p.nome = 'Cadeira de Plástico'
+WHERE c.codigo = 'MESA-COMPLETA';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 1
+FROM combos c
+JOIN produtos p ON p.nome = 'Toalha Branca'
+WHERE c.codigo = 'MESA-COMPLETA';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 6
+FROM combos c
+JOIN produtos p ON p.nome = 'Prato Branco'
+WHERE c.codigo = 'MESA-COMPLETA';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 6
+FROM combos c
+JOIN produtos p ON p.nome = 'Copo Acrílico'
+WHERE c.codigo = 'MESA-COMPLETA';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 6
+FROM combos c
+JOIN produtos p ON p.nome = 'Talher Inox'
+WHERE c.codigo = 'MESA-COMPLETA';
+
+
+-- Combo Decoração
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 4
+FROM combos c
+JOIN produtos p ON p.nome = 'Jogo Americano'
+WHERE c.codigo = 'DECORACAO';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 4
+FROM combos c
+JOIN produtos p ON p.nome = 'Guardanapo de Tecido'
+WHERE c.codigo = 'DECORACAO';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 2
+FROM combos c
+JOIN produtos p ON p.nome = 'Bandeja Decorativa'
+WHERE c.codigo = 'DECORACAO';
+
+INSERT INTO combo_itens
+(combo_id, produto_id, quantidade)
+SELECT c.id, p.id, 2
+FROM combos c
+JOIN produtos p ON p.nome = 'Suporte para Doces'
+WHERE c.codigo = 'DECORACAO';
+
+
+-- ============================================================
+-- 4. SIMULA ESTOQUE RESERVADO
+-- ============================================================
+
+UPDATE produtos
+SET estoque_reservado = 20
+WHERE nome = 'Cadeira de Plástico';
+
+UPDATE produtos
+SET estoque_reservado = 5
+WHERE nome = 'Mesa Retangular 1,80m';
+
+UPDATE produtos
+SET estoque_reservado = 10
+WHERE nome = 'Toalha Branca';
+
+UPDATE produtos
+SET estoque_reservado = 30
+WHERE nome = 'Prato Branco';
+
+UPDATE produtos
+SET estoque_reservado = 40
+WHERE nome = 'Copo Acrílico';
+
+UPDATE produtos
+SET estoque_reservado = 40
+WHERE nome = 'Talher Inox';
+
+
+-- ============================================================
+-- 5. SIMULA PRODUTOS EM USO
+-- ============================================================
+
+UPDATE produtos
+SET estoque_em_uso = 12
+WHERE nome = 'Cadeira de Plástico';
+
+UPDATE produtos
+SET estoque_em_uso = 3
+WHERE nome = 'Mesa Retangular 1,80m';
+
+UPDATE produtos
+SET estoque_em_uso = 5
+WHERE nome = 'Toalha Branca';
+
+
+-- ============================================================
+-- 6. SIMULA PRODUTOS EM MANUTENÇÃO
+-- ============================================================
+
+UPDATE produtos
+SET estoque_manutencao = 2
+WHERE nome = 'Mesa Retangular 1,80m';
+
+UPDATE produtos
+SET estoque_manutencao = 5
+WHERE nome = 'Cadeira de Plástico';
+
+
+-- ============================================================
+-- 7. SIMULA PRODUTOS DANIFICADOS
+-- ============================================================
+
+UPDATE produtos
+SET estoque_danificado = 3
+WHERE nome = 'Cadeira de Plástico';
+
+UPDATE produtos
+SET estoque_danificado = 1
+WHERE nome = 'Mesa Retangular 1,80m';
+
+
+-- ============================================================
+-- 8. HISTÓRICO DE ESTOQUE
+-- ============================================================
+
+INSERT INTO estoque_historico
+(
+    produto_id,
+    pedido_id,
+    usuario_id,
+    tipo,
+    quantidade,
+    observacao
+)
+SELECT
+    id,
+    NULL,
+    NULL,
+    'ENTRADA',
+    estoque,
+    'Entrada de estoque inicial - Seed FEST'
+FROM produtos
+WHERE nome IN
+(
+    'Cadeira de Plástico',
+    'Mesa Retangular 1,80m',
+    'Toalha Branca',
+    'Prato Branco',
+    'Copo Acrílico',
+    'Talher Inox',
+    'Jogo Americano',
+    'Guardanapo de Tecido',
+    'Bandeja Decorativa',
+    'Suporte para Doces'
+);
+
+
+INSERT INTO estoque_historico
+(
+    produto_id,
+    pedido_id,
+    usuario_id,
+    tipo,
+    quantidade,
+    observacao
+)
+SELECT
+    id,
+    NULL,
+    NULL,
+    'RESERVA',
+    estoque_reservado,
+    'Produtos reservados para pedidos de teste'
+FROM produtos
+WHERE estoque_reservado > 0;
+
+
+INSERT INTO estoque_historico
+(
+    produto_id,
+    pedido_id,
+    usuario_id,
+    tipo,
+    quantidade,
+    observacao
+)
+SELECT
+    id,
+    NULL,
+    NULL,
+    'USO',
+    estoque_em_uso,
+    'Produtos atualmente em uso - Seed FEST'
+FROM produtos
+WHERE estoque_em_uso > 0;
+
+
+INSERT INTO estoque_historico
+(
+    produto_id,
+    pedido_id,
+    usuario_id,
+    tipo,
+    quantidade,
+    observacao
+)
+SELECT
+    id,
+    NULL,
+    NULL,
+    'MANUTENCAO',
+    estoque_manutencao,
+    'Produtos enviados para manutenção'
+FROM produtos
+WHERE estoque_manutencao > 0;
+
+
+INSERT INTO estoque_historico
+(
+    produto_id,
+    pedido_id,
+    usuario_id,
+    tipo,
+    quantidade,
+    observacao
+)
+SELECT
+    id,
+    NULL,
+    NULL,
+    'DANIFICADO',
+    estoque_danificado,
+    'Produtos registrados como danificados'
+FROM produtos
+WHERE estoque_danificado > 0;
+
+
+-- ============================================================
+-- 9. RESERVAS DE ESTOQUE
+-- ============================================================
+-- ATENÇÃO:
+-- Para criar reservas precisamos de pedidos existentes.
+-- Portanto, esta parte será executada somente se houver pedidos.
+
+
+INSERT INTO reservas_estoque
+(
+    pedido_id,
+    produto_id,
+    quantidade,
+    status,
+    data_reserva
+)
+SELECT
+    p.id,
+    pr.id,
+    10,
+    'ATIVA',
+    NOW()
+FROM pedidos p
+JOIN produtos pr
+    ON pr.nome = 'Cadeira de Plástico'
+ORDER BY p.id DESC
+LIMIT 1;
+
+
+INSERT INTO reservas_estoque
+(
+    pedido_id,
+    produto_id,
+    quantidade,
+    status,
+    data_reserva
+)
+SELECT
+    p.id,
+    pr.id,
+    2,
+    'ATIVA',
+    NOW()
+FROM pedidos p
+JOIN produtos pr
+    ON pr.nome = 'Mesa Retangular 1,80m'
+ORDER BY p.id DESC
+LIMIT 1;
+
+
+-- ============================================================
+-- 10. PEDIDO ITEM COMPONENTES
+-- ============================================================
+-- Cria componentes para o último item de pedido existente.
+-- Se não houver pedido_itens, simplesmente não haverá registros.
+
+
+INSERT INTO pedido_item_componentes
+(
+    pedido_item_id,
+    produto_id,
+    quantidade_por_unidade,
+    quantidade_total
+)
+SELECT
+    pi.id,
+    pr.id,
+    4,
+    4
+FROM pedido_itens pi
+JOIN produtos pr
+    ON pr.nome = 'Cadeira de Plástico'
+ORDER BY pi.id DESC
+LIMIT 1;
+
+
+INSERT INTO pedido_item_componentes
+(
+    pedido_item_id,
+    produto_id,
+    quantidade_por_unidade,
+    quantidade_total
+)
+SELECT
+    pi.id,
+    pr.id,
+    1,
+    1
+FROM pedido_itens pi
+JOIN produtos pr
+    ON pr.nome = 'Mesa Retangular 1,80m'
+ORDER BY pi.id DESC
+LIMIT 1;
+
+
+-- ============================================================
+-- 11. MOVIMENTAÇÃO DE ESTOQUE
+-- ============================================================
+
+INSERT INTO movimentacao_estoque
+(
+    produto_id,
+    usuario_id,
+    tipo,
+    tipo_movimento,
+    quantidade,
+    data_movimentacao,
+    createdAt
+)
+SELECT
+    id,
+    NULL,
+    'ENTRADA',
+    'ENTRADA',
+    estoque,
+    NOW(),
+    NOW()
+FROM produtos
+WHERE nome = 'Cadeira de Plástico';
+
+
+INSERT INTO movimentacao_estoque
+(
+    produto_id,
+    usuario_id,
+    tipo,
+    tipo_movimento,
+    quantidade,
+    data_movimentacao,
+    createdAt
+)
+SELECT
+    id,
+    NULL,
+    'ENTRADA',
+    'ENTRADA',
+    estoque,
+    NOW(),
+    NOW()
+FROM produtos
+WHERE nome = 'Mesa Retangular 1,80m';
+
+
+INSERT INTO movimentacao_estoque
+(
+    produto_id,
+    usuario_id,
+    tipo,
+    tipo_movimento,
+    quantidade,
+    data_movimentacao,
+    createdAt
+)
+SELECT
+    id,
+    NULL,
+    'ENTRADA',
+    'ENTRADA',
+    estoque,
+    NOW(),
+    NOW()
+FROM produtos
+WHERE nome = 'Toalha Branca';
+
+
+-- ============================================================
+-- 12. FINALIZA
+-- ============================================================
+
+COMMIT;
+
+
+-- ============================================================
+-- 13. CONSULTAS PARA CONFERIR A SEED
+-- ============================================================
+
+SELECT
+    id,
+    nome,
+    estoque,
+    estoque_reservado,
+    estoque_em_uso,
+    estoque_manutencao,
+    estoque_danificado,
+    estoque_minimo,
+    (
+        estoque
+        - estoque_reservado
+        - estoque_em_uso
+        - estoque_manutencao
+        - estoque_danificado
+    ) AS estoque_disponivel
+FROM produtos
+ORDER BY id;
+
+
+SELECT
+    c.id,
+    c.nome AS combo,
+    c.codigo,
+    c.preco_venda,
+    c.preco_aluguel,
+    c.ativo
+FROM combos c
+ORDER BY c.id;
+
+
+SELECT
+    c.nome AS combo,
+    p.nome AS produto,
+    ci.quantidade
+FROM combo_itens ci
+JOIN combos c
+    ON c.id = ci.combo_id
+JOIN produtos p
+    ON p.id = ci.produto_id
+ORDER BY c.id, p.nome;
+
+
+SELECT
+    eh.id,
+    p.nome AS produto,
+    eh.tipo,
+    eh.quantidade,
+    eh.observacao,
+    eh.data_movimentacao
+FROM estoque_historico eh
+JOIN produtos p
+    ON p.id = eh.produto_id
+ORDER BY eh.id DESC;
+
+
+SELECT
+    r.id,
+    r.pedido_id,
+    p.nome AS produto,
+    r.quantidade,
+    r.status,
+    r.data_reserva
+FROM reservas_estoque r
+JOIN produtos p
+    ON p.id = r.produto_id
+ORDER BY r.id DESC;
