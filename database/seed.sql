@@ -1,4 +1,4 @@
-SET FOREIGN_KEY_CHECKS = 0;
+﻿SET FOREIGN_KEY_CHECKS = 0;
 
 /* ==========================================================
    USUÁRIOS
@@ -270,7 +270,13 @@ INSERT INTO produtos (
     id,
     nome,
     tipo,
+    tipo_produto,
     estoque,
+    estoque_reservado,
+    estoque_em_uso,
+    estoque_manutencao,
+    estoque_danificado,
+    estoque_minimo,
     preco_venda,
     preco_aluguel,
     codigo,
@@ -278,37 +284,34 @@ INSERT INTO produtos (
     fornecedor_id,
     imagem,
     localizacao,
-    estoque_reservado,
-    estoque_manutencao,
-    estoque_danificado,
     ativo
 )
 VALUES
-    (1, 'Mesa Plástica Branca', 'Mesa', 50, 90, 15, 'MES001', 'Mesas', 1, NULL, 'A1', 0, 0, 0, 1),
-    (2, 'Mesa Redonda', 'Mesa', 20, 150, 25, 'MES002', 'Mesas', 1, NULL, 'A1', 0, 0, 0, 1),
-    (3, 'Mesa Infantil', 'Mesa', 15, 120, 20, 'MES003', 'Mesas', 1, NULL, 'A1', 0, 0, 0, 1),
-    (4, 'Cadeira Branca', 'Cadeira', 200, 35, 5, 'CAD001', 'Cadeiras', 1, NULL, 'A2', 0, 0, 0, 1),
-    (5, 'Cadeira Tiffany', 'Cadeira', 80, 90, 18, 'CAD002', 'Cadeiras', 1, NULL, 'A2', 0, 0, 0, 1),
-    (6, 'Banqueta', 'Cadeira', 30, 120, 25, 'CAD003', 'Cadeiras', 1, NULL, 'A2', 0, 0, 0, 1),
-    (7, 'Toalha Branca', 'Toalha', 60, 40, 8, 'TOA001', 'Toalhas', 2, NULL, 'B1', 0, 0, 0, 1),
-    (8, 'Toalha Preta', 'Toalha', 50, 45, 8, 'TOA002', 'Toalhas', 2, NULL, 'B1', 0, 0, 0, 1),
-    (9, 'Toalha Vermelha', 'Toalha', 40, 45, 8, 'TOA003', 'Toalhas', 2, NULL, 'B1', 0, 0, 0, 1),
-    (10, 'Painel Luxo', 'Painel', 8, 450, 120, 'DEC001', 'Decoração', 2, NULL, 'B2', 0, 0, 0, 1),
-    (11, 'Arco Desconstruído', 'Painel', 10, 350, 80, 'DEC002', 'Decoração', 2, NULL, 'B2', 0, 0, 0, 1),
-    (12, 'Tapete Vermelho', 'Decoração', 10, 200, 40, 'DEC003', 'Decoração', 2, NULL, 'B2', 0, 0, 0, 1),
-    (13, 'Prato Branco', 'Louça', 300, 12, 2, 'LOU001', 'Louças', 3, NULL, 'C1', 0, 0, 0, 1),
-    (14, 'Prato Fundo', 'Louça', 200, 15, 2.5, 'LOU002', 'Louças', 3, NULL, 'C1', 0, 0, 0, 1),
-    (15, 'Taça Vidro', 'Louça', 180, 18, 3, 'LOU003', 'Louças', 3, NULL, 'C1', 0, 0, 0, 1),
-    (16, 'Copo Long Drink', 'Louça', 250, 10, 2, 'LOU004', 'Louças', 3, NULL, 'C1', 0, 0, 0, 1),
-    (17, 'Jarra Vidro', 'Louça', 40, 40, 8, 'LOU005', 'Louças', 3, NULL, 'C1', 0, 0, 0, 1),
-    (18, 'Caixa de Som JBL', 'Som', 6, 1800, 180, 'SOM001', 'Som', 4, NULL, 'D1', 0, 0, 0, 1),
-    (19, 'Microfone Sem Fio', 'Som', 10, 450, 50, 'SOM002', 'Som', 4, NULL, 'D1', 0, 0, 0, 1),
-    (20, 'Mesa de Som', 'Som', 4, 1200, 120, 'SOM003', 'Som', 4, NULL, 'D1', 0, 0, 0, 1),
-    (21, 'Refletor LED', 'Iluminação', 15, 180, 35, 'LUZ001', 'Iluminação', 4, NULL, 'D2', 0, 0, 0, 1),
-    (22, 'Canhão de LED', 'Iluminação', 12, 350, 70, 'LUZ002', 'Iluminação', 4, NULL, 'D2', 0, 0, 0, 1),
-    (23, 'Máquina de Fumaça', 'Iluminação', 5, 700, 120, 'LUZ003', 'Iluminação', 4, NULL, 'D2', 0, 0, 0, 1),
-    (24, 'Pula Pula', 'Brinquedo', 3, 2500, 350, 'BRI001', 'Brinquedos', 5, NULL, 'E1', 0, 0, 0, 1),
-    (25, 'Piscina de Bolinhas', 'Brinquedo', 2, 1800, 250, 'BRI002', 'Brinquedos', 5, NULL, 'E1', 0, 0, 0, 1);
+    (1, 'Mesa Plástica Branca', 'Mesa', 'PRODUTO', 50, 0, 0, 0, 0, 5, 90, 15, 'MES001', 'Mesas', 1, NULL, 'A1', 1),
+    (2, 'Mesa Redonda', 'Mesa', 'PRODUTO', 20, 0, 0, 0, 0, 5, 150, 25, 'MES002', 'Mesas', 1, NULL, 'A1', 1),
+    (3, 'Mesa Infantil', 'Mesa', 'PRODUTO', 15, 0, 0, 0, 0, 5, 120, 20, 'MES003', 'Mesas', 1, NULL, 'A1', 1),
+    (4, 'Cadeira Branca', 'Cadeira', 'PRODUTO', 200, 0, 0, 0, 0, 20, 35, 5, 'CAD001', 'Cadeiras', 1, NULL, 'A2', 1),
+    (5, 'Cadeira Tiffany', 'Cadeira', 'PRODUTO', 80, 0, 0, 0, 0, 10, 90, 18, 'CAD002', 'Cadeiras', 1, NULL, 'A2', 1),
+    (6, 'Banqueta', 'Cadeira', 'PRODUTO', 30, 0, 0, 0, 0, 5, 120, 25, 'CAD003', 'Cadeiras', 1, NULL, 'A2', 1),
+    (7, 'Toalha Branca', 'Toalha', 'PRODUTO', 60, 0, 0, 0, 0, 10, 40, 8, 'TOA001', 'Toalhas', 2, NULL, 'B1', 1),
+    (8, 'Toalha Preta', 'Toalha', 'PRODUTO', 50, 0, 0, 0, 0, 10, 45, 8, 'TOA002', 'Toalhas', 2, NULL, 'B1', 1),
+    (9, 'Toalha Vermelha', 'Toalha', 'PRODUTO', 40, 0, 0, 0, 0, 10, 45, 8, 'TOA003', 'Toalhas', 2, NULL, 'B1', 1),
+    (10, 'Painel Luxo', 'Painel', 'PRODUTO', 8, 0, 0, 0, 0, 2, 450, 120, 'DEC001', 'Decoração', 2, NULL, 'B2', 1),
+    (11, 'Arco Desconstruído', 'Painel', 'PRODUTO', 10, 0, 0, 0, 0, 2, 350, 80, 'DEC002', 'Decoração', 2, NULL, 'B2', 1),
+    (12, 'Tapete Vermelho', 'Decoração', 'PRODUTO', 10, 0, 0, 0, 0, 2, 200, 40, 'DEC003', 'Decoração', 2, NULL, 'B2', 1),
+    (13, 'Prato Branco', 'Louça', 'PRODUTO', 300, 0, 0, 0, 0, 30, 12, 2, 'LOU001', 'Louças', 3, NULL, 'C1', 1),
+    (14, 'Prato Fundo', 'Louça', 'PRODUTO', 200, 0, 0, 0, 0, 20, 15, 2.5, 'LOU002', 'Louças', 3, NULL, 'C1', 1),
+    (15, 'Taça Vidro', 'Louça', 'PRODUTO', 180, 0, 0, 0, 0, 20, 18, 3, 'LOU003', 'Louças', 3, NULL, 'C1', 1),
+    (16, 'Copo Long Drink', 'Louça', 'PRODUTO', 250, 0, 0, 0, 0, 25, 10, 2, 'LOU004', 'Louças', 3, NULL, 'C1', 1),
+    (17, 'Jarra Vidro', 'Louça', 'PRODUTO', 40, 0, 0, 0, 0, 5, 40, 8, 'LOU005', 'Louças', 3, NULL, 'C1', 1),
+    (18, 'Caixa de Som JBL', 'Som', 'PRODUTO', 6, 0, 0, 0, 0, 1, 1800, 180, 'SOM001', 'Som', 4, NULL, 'D1', 1),
+    (19, 'Microfone Sem Fio', 'Som', 'PRODUTO', 10, 0, 0, 0, 0, 2, 450, 50, 'SOM002', 'Som', 4, NULL, 'D1', 1),
+    (20, 'Mesa de Som', 'Som', 'PRODUTO', 4, 0, 0, 0, 0, 1, 1200, 120, 'SOM003', 'Som', 4, NULL, 'D1', 1),
+    (21, 'Refletor LED', 'Iluminação', 'PRODUTO', 15, 0, 0, 0, 0, 2, 180, 35, 'LUZ001', 'Iluminação', 4, NULL, 'D2', 1),
+    (22, 'Canhão de LED', 'Iluminação', 'PRODUTO', 12, 0, 0, 0, 0, 2, 350, 70, 'LUZ002', 'Iluminação', 4, NULL, 'D2', 1),
+    (23, 'Máquina de Fumaça', 'Iluminação', 'PRODUTO', 5, 0, 0, 0, 0, 1, 700, 120, 'LUZ003', 'Iluminação', 4, NULL, 'D2', 1),
+    (24, 'Pula Pula', 'Brinquedo', 'PRODUTO', 3, 0, 0, 0, 0, 1, 2500, 350, 'BRI001', 'Brinquedos', 5, NULL, 'E1', 1),
+    (25, 'Piscina de Bolinhas', 'Brinquedo', 'PRODUTO', 2, 0, 0, 0, 0, 1, 1800, 250, 'BRI002', 'Brinquedos', 5, NULL, 'E1', 1);
 
 
 /* ==========================================================
@@ -593,6 +596,23 @@ ALTER TABLE user_permissions AUTO_INCREMENT = 5;
 
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1410,3 +1430,8 @@ FROM reservas_estoque r
 JOIN produtos p
     ON p.id = r.produto_id
 ORDER BY r.id DESC;
+
+
+
+
+
