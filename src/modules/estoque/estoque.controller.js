@@ -38,9 +38,9 @@ export async function index(req, res) {
 export async function resumo(req, res) {
   try {
     const dados = await service.resumoEstoque();
-    res.json(dados);
+    res.json({ success: true, message: 'Resumo carregado com sucesso.', data: dados });
   } catch (error) {
-    res.status(500).json({ erro: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 }
 
@@ -52,8 +52,8 @@ export async function ajustar(req, res) {
       usuarioId: req.body.usuario_id || null,
       observacao: req.body.observacao || 'Ajuste manual'
     });
-    res.json({ sucesso: true, ...resultado });
+    res.json({ success: true, message: 'Ajuste realizado com sucesso.', data: resultado });
   } catch (error) {
-    res.status(400).json({ erro: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 }

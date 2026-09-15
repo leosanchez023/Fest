@@ -7,26 +7,31 @@ export function adicionarItem() {
   const prodList = $("prod-list");
   const prodQtd = $("prod-qtd");
 
-  if (!state.prodSel) {
-    alert("Selecione um produto da lista.");
+  const selecionado = state.tipoItem === "COMBO" ? state.comboSel : state.prodSel;
+  if (!selecionado) {
+    alert("Selecione um item da lista.");
     return;
   }
 
   const qtd = Math.max(1, Number(prodQtd?.value) || 1);
-  const existente = state.itens.findIndex((item) => String(item.produto_id) === String(state.prodSel.id));
+  const chave = state.tipoItem === "COMBO" ? `c:${selecionado.id}` : `p:${selecionado.id}`;
+  const existente = state.itens.findIndex((item) => item.chave === chave);
 
   if (existente >= 0) {
     state.itens[existente].quantidade += qtd;
   } else {
     state.itens.push({
-      produto_id: state.prodSel.id,
-      nome: state.prodSel.nome,
-      preco: state.prodSel.preco,
+      produto_id: state.tipoItem === "COMBO" ? null : selecionado.id,
+      combo_id: state.tipoItem === "COMBO" ? selecionado.id : null,
+      chave,
+      nome: selecionado.nome,
+      preco: selecionado.preco,
       quantidade: qtd
     });
   }
 
   state.prodSel = null;
+  state.comboSel = null;
   if (prodQuery) prodQuery.value = "";
   if (prodQtd) prodQtd.value = "1";
   if (prodList) prodList.style.display = "none";
@@ -78,6 +83,8 @@ export function montarPedido() {
 ),
     itens: state.itens.map((item) => ({
       produto_id: item.produto_id,
+      combo_id: item.combo_id,
+      tipo_item: item.tipo_item,
       quantidade: item.quantidade,
       preco_unitario: Number(item.preco || 0),
       subtotal: Number(item.preco || 0) * Number(item.quantidade || 0),
@@ -164,7 +171,9 @@ async function carregarPedidoParaEdicao(id) {
     // Itens
     state.itens = itens.map(it => ({
       produto_id: it.produto_id,
-      nome: it.produto_nome || it.nome,
+      combo_id: it.combo_id,
+      chave: it.combo_id ? `c:${it.combo_id}` : `p:${it.produto_id}`,
+      nome: it.produto_nome || it.combo_nome || it.nome,
       preco: it.valor_unitario ?? it.preco_unitario ?? 0,
       quantidade: it.quantidade
     }));
@@ -238,7 +247,7 @@ function renderItens() {
       <td class="text-right">${fmt(item.preco)}</td>
       <td class="text-right">${fmt(item.preco * item.quantidade)}</td>
       <td class="text-center">
-        <button type="button" class="btn-remove" data-idx="${idx}">✕</button>
+        <button type="button" class="btn-remove" data-idx="${idx}" aria-label="Remover item"><i class="fa-solid fa-xmark"></i></button>
       </td>
     </tr>
   `).join("");

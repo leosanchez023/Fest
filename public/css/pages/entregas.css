@@ -230,3 +230,32 @@
   font-size: 0.9rem;
   margin-top: 4px;
 }
+
+.container > .card{margin-bottom:16px}
+.container > .card h2{color:var(--color-text)}
+.container .grid-6{gap:12px}
+.container .grid-6 > div{min-width:0}
+.container #count-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:var(--color-primary-light);color:var(--color-primary-dark);font-size:12px;font-weight:700}
+.finance-modal-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto;background:rgba(16,42,67,.55)!important}
+.finance-modal-overlay.open{display:flex}
+.finance-modal-card{width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:24px;background:var(--color-card);border:1px solid var(--color-border)!important;border-radius:12px!important;box-shadow:var(--shadow-lg)!important}
+.finance-modal-card h3{margin:0 0 18px;color:var(--color-text)}
+.finance-modal-card .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;flex-wrap:wrap}
+.finance-modal-card .actions .btn{margin-top:0}
+.delivery-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:150px}
+.delivery-actions .iconbtn{width:30px;height:30px;display:inline-grid;place-items:center}
+.delivery-actions .iconbtn[disabled]{opacity:.45;cursor:not-allowed}
+.delivery-table-wrap{overflow-x:auto}
+.delivery-table-wrap table{min-width:1180px}
+.delivery-empty{padding:28px!important;text-align:center;color:var(--color-text-muted)}
+.btn-ghost{border:1px solid var(--color-border);background:var(--color-card);color:var(--color-text-muted);border-radius:7px;cursor:pointer}
+
+@media(max-width:800px){
+  .container .grid-6{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media(max-width:640px){
+  .container .grid-6{grid-template-columns:1fr}
+  .finance-modal-card{padding:18px}
+  .finance-modal-card .actions .btn{width:100%}
+}

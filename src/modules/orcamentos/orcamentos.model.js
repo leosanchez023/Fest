@@ -1,7 +1,10 @@
 import db from '../../../database/connection.js';
 
 export async function buscarOrcamentos(query) {
-  const where = `WHERE p.status_documento = 'ORCAMENTO'`;
+  const termo = String(query?.search || query?.q || '').trim();
+  const where = `WHERE p.status_documento = 'ORCAMENTO'
+    ${termo ? 'AND (c.nome LIKE ? OR c.telefone LIKE ? OR CAST(p.id AS CHAR) LIKE ?)' : ''}`;
+  const params = termo ? [`%${termo}%`, `%${termo}%`, `%${termo}%`] : [];
 
   const [rows] = await db.query(
     `SELECT p.*, c.nome as cliente,
@@ -10,7 +13,8 @@ export async function buscarOrcamentos(query) {
      LEFT JOIN cliente c ON c.id = p.cliente_id
      ${where}
      ORDER BY p.data_pedido DESC
-    `
+    `,
+    params
   );
 
   return rows;

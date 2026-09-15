@@ -2,12 +2,18 @@
   <div class="header-inner">
 
     <div class="page-meta-display">
+      <nav class="breadcrumb" aria-label="Navegação estrutural">
+        <a href="/dashboard">Início</a>
+        <span aria-hidden="true">/</span>
+        <span class="breadcrumb-current">Visão geral</span>
+      </nav>
       <h2 class="page-title" aria-live="polite"></h2>
       <p class="page-subtitle muted"></p>
     </div>
 
     <div class="header-actions">
-      <div class="user-menu">Olá, {{#if user}}{{user.name}}{{else}}Usuário{{/if}}</div>
+      <span class="header-status"><i class="fa-solid fa-circle"></i> Sistema online</span>
+      <div class="user-menu"><i class="fa-solid fa-user-circle"></i><span>Olá, {{#if user}}{{user.name}}{{else}}Usuário{{/if}}</span></div>
     </div>
   </div>
 
@@ -23,6 +29,8 @@
           var s = meta.getAttribute('data-subtitle') || meta.dataset.subtitle || '';
           titleEl.textContent = t;
           subEl.textContent = s;
+          var breadcrumbCurrent = document.querySelector('.breadcrumb-current');
+          if (breadcrumbCurrent && t) breadcrumbCurrent.textContent = t;
         }
       }catch(e){console.warn('page-meta init',e)}
     });

@@ -1,15 +1,30 @@
 :root {
-    --bg: #f5f7fb;
-    --card: #ffffff;
-    --border: #e5e9f2;
-    --muted: #6b7280;
-    --fg: #0f172a;
-    --primary: #6d28d9;
+    --color-primary: #0f9f92;
+    --color-primary-dark: #087f79;
+    --color-primary-light: #dff7f3;
+    --color-sidebar: #123c4a;
+    --color-sidebar-hover: #1b5261;
+    --color-background: #f5f8fa;
+    --color-card: #ffffff;
+    --color-border: #dbe5ea;
+    --color-text: #102a43;
+    --color-text-muted: #66788a;
+    --color-success: #16a36a;
+    --color-warning: #d97706;
+    --color-danger: #dc3f4c;
+    --color-info: #2878b8;
+
+    --bg: var(--color-background);
+    --card: var(--color-card);
+    --border: var(--color-border);
+    --muted: var(--color-text-muted);
+    --fg: var(--color-text);
+    --primary: var(--color-primary);
     --primary-fg: #ffffff;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --info: #3b82f6;
+    --success: var(--color-success);
+    --warning: var(--color-warning);
+    --danger: var(--color-danger);
+    --info: var(--color-info);
     --radius: .75rem;
 
     /* Typography */
@@ -32,10 +47,10 @@
     --transition-fast: 0.12s ease;
     --transition-md: 0.18s ease;
 
-    --grad-primary: linear-gradient(135deg,#7c3aed,#c026d3);
-    --grad-warning: linear-gradient(135deg,#f59e0b,#f97316);
-    --grad-danger: linear-gradient(135deg,#ef4444,#dc2626);
-    --grad-info: linear-gradient(135deg,#3b82f6,#6366f1);
+    --grad-primary: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    --grad-warning: linear-gradient(135deg, #f59e0b, #ea8a16);
+    --grad-danger: linear-gradient(135deg, var(--color-danger), #b92f3d);
+    --grad-info: linear-gradient(135deg, var(--color-info), #175985);
 
     --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
     --shadow-lg: 0 10px 25px -8px rgba(31,41,99,.18);

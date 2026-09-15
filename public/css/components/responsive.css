@@ -18,4 +18,31 @@
     gap:12px;
   }
 
+  .table-wrap,
+  .table-container {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-wrap table,
+  .table-container table {
+    min-width: 680px;
+  }
+
+  .btn,
+  .btn-primary,
+  .btn-secondary {
+    max-width: 100%;
+  }
+
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal {
+    max-height: calc(100vh - 24px);
+    padding: 18px;
+  }
+
 }

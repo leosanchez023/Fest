@@ -21,7 +21,8 @@
     </div>
   </div>
 
-  <div class="card" style="margin-top:20px;overflow:hidden;">
+  <div class="card combo-table-card" style="margin-top:20px;overflow:hidden;">
+    <div class="table-wrap">
     <table style="width:100%;border-collapse:collapse;">
       <thead>
         <tr>
@@ -36,6 +37,7 @@
       </thead>
       <tbody id="combo-table-body"></tbody>
     </table>
+    </div>
   </div>
 </div>
 
@@ -153,6 +155,7 @@
 
   function adicionarLinhaItem(item = {}) {
     const row = document.createElement('div');
+    row.className = 'combo-item-row';
     row.style.display = 'grid';
     row.style.gridTemplateColumns = '2fr 1fr 90px';
     row.style.gap = '8px';
@@ -228,7 +231,7 @@
       preco_aluguel: Number(formData.get('preco_aluguel') || 0),
       preco_venda: Number(formData.get('preco_venda') || 0),
       ativo: Number(formData.get('ativo')) === 1,
-      itens: [...comboItens.querySelectorAll('div')].map((row) => {
+      itens: [...comboItens.querySelectorAll('.combo-item-row')].map((row) => {
         const produtoId = row.querySelector('[data-product]').value;
         const quantidade = Number(row.querySelector('input[name="quantidade"]').value || 1);
         return { produto_id: Number(produtoId), quantidade };

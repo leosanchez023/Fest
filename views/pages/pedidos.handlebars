@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/pages/pedidos.css">
 
 <div class="container">
@@ -96,7 +95,15 @@
     <div class="grid-3" style="align-items:end">
 
       <div class="field">
-        <label>Produto</label>
+        <label>Tipo</label>
+        <select id="tipo-item" class="input">
+          <option value="PRODUTO">Produto</option>
+          <option value="COMBO">Combo</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label id="item-label">Produto</label>
         <div class="autocomplete-wrap">
           <input id="prod-query" class="input" autocomplete="off">
           <div id="prod-list" class="autocomplete-list"></div>
@@ -108,7 +115,7 @@
         <input id="prod-qtd" class="input" type="number" min="1" value="1">
       </div>
 
-      <button id="btn-add-item" class="btn btn-teal">+ Adicionar</button>
+      <button id="btn-add-item" class="btn btn-teal"><i class="fa-solid fa-plus icon-sm"></i> Adicionar</button>
 
     </div>
 
@@ -243,7 +250,7 @@
     <button
       id="btn-salvar-pedido"
       class="btn btn-green">
-      💾 Salvar
+      <i class="fa-solid fa-floppy-disk icon-sm"></i> Salvar
     </button>
     </div>
 
@@ -260,7 +267,7 @@
         <h2 id="mp-titulo"><i class="fa-solid fa-file-invoice icon-sm"></i> Confirmar Pedido</h2>
         <span class="mp-badge mp-badge--blue" id="mp-tipo-pedido">Aluguel</span>
         <span class="mp-spacer"></span>
-        <button class="mp-close" data-mp-close aria-label="Fechar">✕</button>
+        <button class="mp-close" data-mp-close aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
       </header>
 
       <!-- CORPO -->
@@ -268,7 +275,7 @@
 
         <!-- 2. CLIENTE -->
         <section class="mp-card">
-          <h3 class="mp-card-title">👤 Cliente</h3>
+          <h3 class="mp-card-title"><i class="fa-solid fa-user icon-sm"></i> Cliente</h3>
           <div class="mp-grid">
             <div class="mp-field"><label>Nome</label><span id="mp-cli-nome">—</span></div>
             <div class="mp-field"><label>Telefone</label><span id="mp-cli-tel">—</span></div>
@@ -306,7 +313,7 @@
 
         <!-- 4. FRETE -->
         <section class="mp-card" id="mp-card-frete">
-          <h3 class="mp-card-title">📍 Endereço de Entrega</h3>
+          <h3 class="mp-card-title"><i class="fa-solid fa-location-dot icon-sm"></i> Endereço de Entrega</h3>
           <div class="mp-grid">
             <div class="mp-field"><label>Rua</label><span id="mp-fr-rua">—</span></div>
             <div class="mp-field"><label>Número</label><span id="mp-fr-num">—</span></div>
@@ -506,7 +513,7 @@ const ModalPedido = (() => {
     if (badge) {
 
       badge.innerHTML = restante === 0
-        ? '<span class="mp-badge mp-badge--green">✅ Pagamento Completo</span>'
+        ? '<span class="mp-badge mp-badge--green"><i class="fa-solid fa-circle-check"></i> Pagamento Completo</span>'
         : "";
     }
 

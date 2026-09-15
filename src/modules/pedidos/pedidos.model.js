@@ -1,5 +1,11 @@
 import db from "../../../database/connection.js";
-import { reservarItensPedido } from "../estoque/estoque.service.js";
+import {
+  reservarItensPedido,
+  reservarComponentesCombos,
+  registrarVendaNaTransacao,
+  ajustarReservasPedidoNaTransacao,
+  liberarReservasPedidoNaTransacao
+} from "../estoque/estoque.service.js";
 
 // ---------------- CLIENTES ----------------
 export async function buscarClientes(termo) {
@@ -99,6 +105,19 @@ export async function buscarProdutoPorId(id) {
   return rows[0];
 }
 
+export async function buscarComboPorId(id) {
+  const [rows] = await db.query(
+    `SELECT c.id, c.nome, c.preco_venda, c.preco_aluguel, c.ativo,
+            COUNT(ci.id) AS total_componentes
+     FROM combos c
+     LEFT JOIN combo_itens ci ON ci.combo_id = c.id
+     WHERE c.id = ?
+     GROUP BY c.id`,
+    [id]
+  );
+  return rows[0] || null;
+}
+
 // ---------------- PEDIDOS ----------------
 export async function criarPedido(dados) {
   const conn = await db.getConnection();
@@ -149,31 +168,55 @@ export async function criarPedido(dados) {
     const itensPedido = Array.isArray(dados.itens) ? dados.itens : [];
 
     for (const item of itensPedido) {
-      await conn.query(
+      const [itemResult] = await conn.query(
         `
         INSERT INTO pedido_itens (
           pedido_id,
           produto_id,
+          tipo_item,
+          combo_id,
           quantidade,
           valor_unitario,
           subtotal
         )
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         `,
         [
           pedidoId,
           item.produto_id,
+          (item.tipo_item || dados.tipo_pedido || 'ALUGUEL').toUpperCase() === 'VENDA' ? 'VENDA' : 'ALUGUEL',
+          item.combo_id || null,
           item.quantidade,
           item.preco_unitario,
           item.subtotal
         ]
       );
+        item.pedido_item_id = itemResult.insertId;
     }
 
     if ((dados.status || '').toUpperCase() === 'CONFIRMADO' || (dados.status || '').toUpperCase() === 'PEDIDO') {
+      const itensVenda = itensPedido.filter((item) => (item.tipo_item || dados.tipo_pedido || 'ALUGUEL').toUpperCase() === 'VENDA');
+      const itensAluguel = itensPedido.filter((item) => (item.tipo_item || dados.tipo_pedido || 'ALUGUEL').toUpperCase() !== 'VENDA');
+
+      for (const item of itensVenda) {
+        await registrarVendaNaTransacao(conn, {
+          produtoId: item.produto_id,
+          quantidade: Number(item.quantidade),
+          pedidoId,
+          usuarioId: dados.usuario_id || null,
+          observacao: 'Venda confirmada no pedido'
+        });
+      }
+
       await reservarItensPedido({
         conn,
-        itens: itensPedido,
+        itens: itensAluguel.filter((item) => !item.combo_id),
+        pedidoId,
+        usuarioId: dados.usuario_id || null
+      });
+      await reservarComponentesCombos({
+        conn,
+        itens: itensAluguel,
         pedidoId,
         usuarioId: dados.usuario_id || null
       });
@@ -308,8 +351,9 @@ export async function buscarPedidoPorId(id) {
   const pedido = rows[0];
 
   const [itens] = await db.query(
-    `SELECT pi.*, pr.nome as produto_nome FROM pedido_itens pi
+    `SELECT pi.*, pr.nome as produto_nome, c.nome as combo_nome FROM pedido_itens pi
      LEFT JOIN produtos pr ON pr.id = pi.produto_id
+     LEFT JOIN combos c ON c.id = pi.combo_id
      WHERE pi.pedido_id = ?`,
     [id]
   );
@@ -339,7 +383,17 @@ export async function atualizarPedido(id, dados) {
   try {
     await conn.beginTransaction();
 
-    // Atualiza os campos do pedido
+    const [pedidoRows] = await conn.query(
+      `SELECT id, status, status_documento, tipo_pedido
+       FROM pedidos WHERE id = ? FOR UPDATE`,
+      [id]
+    );
+    const pedidoAtual = pedidoRows[0];
+    if (!pedidoAtual) throw new Error('Pedido não encontrado.');
+    if (['CANCELADO', 'ENTREGUE', 'RETIRADO'].includes(pedidoAtual.status)) {
+      throw new Error('Pedido entregue, retirado ou cancelado não pode ser editado.');
+    }
+
     await conn.query(
       `UPDATE pedidos SET
          cliente_id = ?, endereco_id = ?, data_evento = ?, data_entrega = ?, data_retirada = ?, telefone_contato = ?, tipo_pedido = ?, observacoes = ?
@@ -357,58 +411,83 @@ export async function atualizarPedido(id, dados) {
       ]
     );
 
-    // Buscar itens atuais
-    const [existentes] = await conn.query(
-      `SELECT produto_id, quantidade FROM pedido_itens WHERE pedido_id = ?`,
-      [id]
-    );
-
-    const mapaExistentes = new Map(existentes.map(r => [String(r.produto_id), r]));
-
     const novos = Array.isArray(dados.itens) ? dados.itens : [];
-
+    if (!novos.length) throw new Error('Pedido sem itens.');
     const vistos = new Set();
+    const itensNormalizados = [];
 
     for (const item of novos) {
-      const produtoId = Number(item.produto_id);
+      const comboId = item.combo_id ? Number(item.combo_id) : null;
+      const produtoId = item.produto_id ? Number(item.produto_id) : null;
       const quantidade = Number(item.quantidade || 0);
-      const preco = Number(item.preco_unitario ?? item.preco ?? 0);
-      const subtotal = preco * quantidade;
+      if (quantidade <= 0) throw new Error('Quantidade deve ser maior que zero.');
+      if ((comboId && produtoId) || (!comboId && !produtoId)) throw new Error('Cada item deve ser produto ou combo.');
 
-      vistos.add(String(produtoId));
+      const chave = `${comboId ? 'c' : 'p'}:${comboId || produtoId}`;
+      if (vistos.has(chave)) throw new Error('Não é permitido repetir o mesmo produto ou combo.');
+      vistos.add(chave);
 
-      if (mapaExistentes.has(String(produtoId))) {
-        // Atualiza item existente
-        await conn.query(
-          `UPDATE pedido_itens SET quantidade = ?, valor_unitario = ?, subtotal = ? WHERE pedido_id = ? AND produto_id = ?`,
-          [quantidade, preco, subtotal, id, produtoId]
-        );
+      if (comboId) {
+        const [combos] = await conn.query(`SELECT id, ativo FROM combos WHERE id = ? FOR UPDATE`, [comboId]);
+        if (!combos.length || Number(combos[0].ativo) !== 1) throw new Error('Combo inexistente ou inativo.');
       } else {
-        // Insere novo item
-        await conn.query(
-          `INSERT INTO pedido_itens (pedido_id, produto_id, quantidade, valor_unitario, subtotal) VALUES (?, ?, ?, ?, ?)`,
-          [id, produtoId, quantidade, preco, subtotal]
+        const [produtos] = await conn.query(`SELECT id, ativo FROM produtos WHERE id = ? FOR UPDATE`, [produtoId]);
+        if (!produtos.length || Number(produtos[0].ativo) !== 1) throw new Error('Produto inexistente ou inativo.');
+      }
+
+      const preco = Number(item.preco_unitario ?? item.preco ?? 0);
+      itensNormalizados.push({
+        produto_id: produtoId,
+        combo_id: comboId,
+        tipo_item: (item.tipo_item || dados.tipo_pedido || pedidoAtual.tipo_pedido || 'ALUGUEL').toUpperCase() === 'VENDA' ? 'VENDA' : 'ALUGUEL',
+        quantidade,
+        preco,
+        subtotal: preco * quantidade
+      });
+    }
+
+    await conn.query(`DELETE FROM pedido_itens WHERE pedido_id = ?`, [id]);
+    for (const item of itensNormalizados) {
+      const [inserted] = await conn.query(
+        `INSERT INTO pedido_itens
+          (pedido_id, produto_id, tipo_item, combo_id, quantidade, valor_unitario, subtotal)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [id, item.produto_id, item.tipo_item, item.combo_id, item.quantidade, item.preco, item.subtotal]
+      );
+
+      if (item.combo_id) {
+        const [componentes] = await conn.query(
+          `SELECT produto_id, quantidade FROM combo_itens WHERE combo_id = ? FOR UPDATE`,
+          [item.combo_id]
         );
+        if (!componentes.length) throw new Error('Combo sem componentes.');
+        for (const componente of componentes) {
+          await conn.query(
+            `INSERT INTO pedido_item_componentes
+              (pedido_item_id, pedido_id, produto_id, quantidade_por_unidade, quantidade_total)
+             VALUES (?, ?, ?, ?, ?)`,
+            [inserted.insertId, id, componente.produto_id, componente.quantidade, Number(componente.quantidade) * item.quantidade]
+          );
+        }
       }
     }
 
-    // Remove itens que não estão mais na lista
-    for (const ex of existentes) {
-      if (!vistos.has(String(ex.produto_id))) {
-        await conn.query(`DELETE FROM pedido_itens WHERE pedido_id = ? AND produto_id = ?`, [id, ex.produto_id]);
-      }
+    if (pedidoAtual.status_documento === 'PEDIDO' && pedidoAtual.status !== 'ORCAMENTO') {
+      await ajustarReservasPedidoNaTransacao(conn, {
+        pedidoId: id,
+        itens: itensNormalizados,
+        usuarioId: dados.usuario_id || null,
+        observacao: 'Ajuste de itens do pedido'
+      });
     }
 
-    // Recalcula valores
-    const [somaRows] = await conn.query(`SELECT COALESCE(SUM(subtotal),0) as valor_produtos FROM pedido_itens WHERE pedido_id = ?`, [id]);
-    const valor_produtos = Number(somaRows[0].valor_produtos || 0);
-    const valor_frete = Number(dados.valor_frete || 0);
-    const valor_desconto = Number(dados.valor_desconto || 0);
-    const valor_total = valor_produtos + valor_frete - valor_desconto;
-
+    const [somaRows] = await conn.query(`SELECT COALESCE(SUM(subtotal), 0) AS valor_produtos FROM pedido_itens WHERE pedido_id = ?`, [id]);
+    const valorProdutos = Number(somaRows[0].valor_produtos || 0);
+    const valorFrete = Number(dados.valor_frete || 0);
+    const valorDesconto = Number(dados.valor_desconto || 0);
     await conn.query(
       `UPDATE pedidos SET valor_produtos = ?, valor_frete = ?, valor_desconto = ?, valor_total = ? WHERE id = ?`,
-      [valor_produtos, valor_frete, valor_desconto, valor_total, id]
+      [valorProdutos, valorFrete, valorDesconto, valorProdutos + valorFrete - valorDesconto, id]
     );
 
     await conn.commit();
@@ -429,34 +508,11 @@ export async function cancelarPedido(pedidoId, dados = {}) {
   try {
     await conn.beginTransaction();
 
-    const [itens] = await conn.query(
-      `SELECT produto_id, quantidade FROM pedido_itens WHERE pedido_id = ? FOR UPDATE`,
-      [pedidoId]
-    );
-
-    for (const item of itens) {
-      const produtoId = Number(item.produto_id || 0);
-      const quantidade = Number(item.quantidade || 0);
-      if (!produtoId || quantidade <= 0) continue;
-
-      await conn.query(
-        `UPDATE produtos SET estoque_reservado = GREATEST(estoque_reservado - ?, 0) WHERE id = ?`,
-        [quantidade, produtoId]
-      );
-
-      await conn.query(
-        `UPDATE reservas_estoque
-         SET status = 'CANCELADA', data_liberacao = NOW(), updatedAt = NOW()
-         WHERE produto_id = ? AND pedido_id = ? AND status = 'ATIVA'`,
-        [produtoId, pedidoId]
-      );
-
-      await conn.query(
-        `INSERT INTO movimentacao_estoque (produto_id, pedido_id, usuario_id, tipo, quantidade, observacao, data_movimentacao)
-         VALUES (?, ?, ?, 'RETORNO', ?, ?, NOW())`,
-        [produtoId, pedidoId, usuario_id, -quantidade, observacao || `Cancelamento do pedido ${pedidoId}`]
-      );
-    }
+    await liberarReservasPedidoNaTransacao(conn, {
+      pedidoId,
+      usuarioId: usuario_id,
+      observacao: observacao || `Cancelamento do pedido ${pedidoId}`
+    });
 
     await conn.query(
       `UPDATE pedidos SET status = 'CANCELADO' WHERE id = ?`,
@@ -484,7 +540,7 @@ export async function alterarQuantidadeItemPedido(pedidoId, produtoId, novaQuant
     await conn.beginTransaction();
 
     const [rows] = await conn.query(
-      `SELECT quantidade FROM pedido_itens WHERE pedido_id = ? AND produto_id = ? FOR UPDATE`,
+      `SELECT id, quantidade FROM pedido_itens WHERE pedido_id = ? AND produto_id = ? FOR UPDATE`,
       [pedidoId, produtoId]
     );
 
@@ -492,41 +548,26 @@ export async function alterarQuantidadeItemPedido(pedidoId, produtoId, novaQuant
       throw new Error('Item do pedido não encontrado.');
     }
 
-    const quantidadeAtual = Number(rows[0].quantidade || 0);
-    const diferenca = qtdNova - quantidadeAtual;
+    const [itens] = await conn.query(
+      `SELECT id, produto_id, combo_id, tipo_item, quantidade
+       FROM pedido_itens WHERE pedido_id = ? FOR UPDATE`,
+      [pedidoId]
+    );
+    const itensAtualizados = itens.map((item) => ({
+      ...item,
+      quantidade: item.id === rows[0].id ? qtdNova : item.quantidade
+    }));
 
-    if (diferenca > 0) {
-      const [produtoRows] = await conn.query('SELECT * FROM produtos WHERE id = ? FOR UPDATE', [produtoId]);
-      const produto = produtoRows[0];
-      if (!produto) throw new Error('Produto não encontrado.');
-
-      const disponivel = Number(produto.estoque || 0)
-        - Number(produto.estoque_reservado || 0)
-        - Number(produto.estoque_em_uso || 0)
-        - Number(produto.estoque_manutencao || 0)
-        - Number(produto.estoque_danificado || 0);
-
-      if (disponivel < diferenca) {
-        throw new Error(`Estoque insuficiente para acrescentar ${diferenca} unidades.`);
-      }
-
-      await conn.query(
-        `UPDATE produtos SET estoque_reservado = estoque_reservado + ? WHERE id = ?`,
-        [diferenca, produtoId]
-      );
-    }
-
-    if (diferenca < 0) {
-      const liberada = Math.abs(diferenca);
-      await conn.query(
-        `UPDATE produtos SET estoque_reservado = GREATEST(estoque_reservado - ?, 0) WHERE id = ?`,
-        [liberada, produtoId]
-      );
-    }
+    await ajustarReservasPedidoNaTransacao(conn, {
+      pedidoId,
+      itens: itensAtualizados,
+      usuarioId: dados.usuario_id || null,
+      observacao: dados.observacao || 'Ajuste de quantidade do pedido'
+    });
 
     await conn.query(
-      `UPDATE pedido_itens SET quantidade = ? WHERE pedido_id = ? AND produto_id = ?`,
-      [qtdNova, pedidoId, produtoId]
+      `UPDATE pedido_itens SET quantidade = ?, subtotal = valor_unitario * ? WHERE id = ?`,
+      [qtdNova, qtdNova, rows[0].id]
     );
 
     await conn.commit();
@@ -557,4 +598,77 @@ export async function buscarEnderecoPorId(id){
     );
 
     return rows[0] || null;
+}
+
+export async function buscarFinanceiroPedido(pedidoId) {
+  const [rows] = await db.query(
+    `SELECT p.id, p.valor_produtos, p.valor_frete, p.valor_desconto,
+            p.valor_total,
+            COALESCE(SUM(CASE WHEN pg.valor > 0 THEN pg.valor ELSE 0 END), 0) AS pagamentos,
+            COALESCE(SUM(CASE WHEN pg.valor < 0 THEN ABS(pg.valor) ELSE 0 END), 0) AS reembolsos
+     FROM pedidos p
+     LEFT JOIN pagamentos pg ON pg.pedido_id = p.id
+     WHERE p.id = ?
+     GROUP BY p.id`,
+    [pedidoId]
+  );
+  if (!rows.length) return null;
+  const financeiro = rows[0];
+  financeiro.saldo = Number(financeiro.valor_total) - Number(financeiro.pagamentos) + Number(financeiro.reembolsos);
+  return financeiro;
+}
+
+export async function inserirPagamentoPedido(pedidoId, dados) {
+  const valor = Number(dados.valor);
+  if (!Number.isFinite(valor) || valor <= 0) throw new Error('Valor de pagamento inválido.');
+
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [pedidos] = await conn.query('SELECT id FROM pedidos WHERE id = ? FOR UPDATE', [pedidoId]);
+    if (!pedidos.length) throw new Error('Pedido não encontrado.');
+    const [result] = await conn.query(
+      `INSERT INTO pagamentos (pedido_id, usuario_id, valor, forma_pagamento, observacao)
+       VALUES (?, ?, ?, ?, ?)`,
+      [pedidoId, dados.usuario_id || null, valor, dados.forma_pagamento || 'TRANSFERENCIA', dados.observacao || null]
+    );
+    await conn.query(
+      `INSERT INTO ocorrencias (pedido_id, usuario_id, tipo, descricao, valor, status)
+       VALUES (?, ?, 'PAGAMENTO', ?, ?, 'RESOLVIDO')`,
+      [pedidoId, dados.usuario_id || null, `Pagamento de ${valor.toFixed(2)}`, valor]
+    );
+    await conn.commit();
+    return result;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
+}
+
+export async function inserirCobrancaPedido(pedidoId, dados) {
+  const valor = Number(dados.valor);
+  if (!Number.isFinite(valor) || valor <= 0) throw new Error('Valor de cobrança inválido.');
+  const tipos = ['DANO', 'ATRASO', 'PERDA', 'TAXA', 'OUTRO'];
+  if (!tipos.includes(dados.tipo)) throw new Error('Tipo de cobrança inválido.');
+
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.query('SELECT id FROM pedidos WHERE id = ? FOR UPDATE', [pedidoId]);
+    await conn.query(
+      `INSERT INTO ocorrencias (pedido_id, usuario_id, tipo, descricao, valor, status)
+       VALUES (?, ?, ?, ?, ?, 'ABERTO')`,
+      [pedidoId, dados.usuario_id || null, dados.tipo, dados.descricao, valor]
+    );
+    await conn.query('UPDATE pedidos SET valor_total = valor_total + ? WHERE id = ?', [valor, pedidoId]);
+    await conn.commit();
+    return { pedidoId, valor, tipo: dados.tipo };
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
 }

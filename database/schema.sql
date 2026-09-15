@@ -1,5 +1,3 @@
-DROP DATABASE fest;
-
 CREATE DATABASE fest
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_0900_ai_ci;
@@ -40,15 +38,13 @@ CREATE TABLE produtos (
   imagem VARCHAR(255) DEFAULT NULL,
   localizacao VARCHAR(100) DEFAULT NULL,
   estoque_reservado INT DEFAULT 0,
+  estoque_em_uso INT NOT NULL DEFAULT 0,
   estoque_manutencao INT DEFAULT 0,
   estoque_danificado INT DEFAULT 0,
+  estoque_minimo INT NOT NULL DEFAULT 0,
+  tipo_produto VARCHAR(20) NOT NULL DEFAULT 'PRODUTO',
   ativo TINYINT(1) DEFAULT 1,
-  PRIMARY KEY(id),
-  KEY fk_produto_fornecedor(fornecedor_id),
-  CONSTRAINT fk_produto_fornecedor
-    FOREIGN KEY(fornecedor_id)
-    REFERENCES fornecedores(id)
-
+  PRIMARY KEY(id)
 );
 CREATE TABLE cliente (
   id INT NOT NULL AUTO_INCREMENT,
@@ -123,6 +119,8 @@ CREATE TABLE pedido_itens (
   id INT NOT NULL AUTO_INCREMENT,
   pedido_id INT NOT NULL,
   produto_id INT NOT NULL,
+  tipo_item VARCHAR(10) NOT NULL DEFAULT 'ALUGUEL',
+  combo_id INT DEFAULT NULL,
   quantidade INT NOT NULL,
   valor_unitario DECIMAL(10,2) NOT NULL,
   subtotal DECIMAL(10,2) NOT NULL,
@@ -204,7 +202,9 @@ CREATE TABLE movimentacao_estoque (
   id INT NOT NULL AUTO_INCREMENT,
   produto_id INT NOT NULL,
   pedido_id INT,
-  tipo ENUM('ENTRADA','SAIDA','RETORNO','VENDA','AJUSTE') NOT NULL,
+  usuario_id INT DEFAULT NULL,
+  tipo VARCHAR(40) NOT NULL,
+  tipo_movimento VARCHAR(40) NOT NULL DEFAULT 'AJUSTE',
   quantidade INT NOT NULL,
   data_movimentacao DATETIME DEFAULT CURRENT_TIMESTAMP,
   observacao TEXT,
@@ -226,6 +226,7 @@ CREATE TABLE user_permissions (
   entregas TINYINT(1) DEFAULT 0,
   retiradas TINYINT(1) DEFAULT 0,
   pagamentos TINYINT(1) DEFAULT 0,
+  estoque TINYINT(1) DEFAULT 0,
   fornecedor TINYINT(1) DEFAULT 0,
   cadastro_admin TINYINT(1) DEFAULT 0,
   PRIMARY KEY (id),
@@ -262,50 +263,84 @@ criado_em DATETIME DEFAULT NULL,
 atualizado_em DATETIME DEFAULT NULL,
 PRIMARY KEY(id)
 );
+ALTER TABLE produtos
+  ADD KEY fk_produto_fornecedor(fornecedor_id),
+  ADD CONSTRAINT fk_produto_fornecedor
+    FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id);
 
-CREATE TABLE ocorrencias (
-id INT NOT NULL AUTO_INCREMENT,
-pedido_id INT NOT NULL,
-usuario_id INT DEFAULT NULL,
-tipo VARCHAR(100) NOT NULL,
-descricao TEXT NOT NULL,
-valor DECIMAL(10,2)
-DEFAULT 0.00,
-status ENUM(
-'ABERTO',
-'EM_ANDAMENTO',
-'RESOLVIDO',
-'CANCELADO'
-)
-DEFAULT 'ABERTO',
-data_ocorrencia DATETIME
-DEFAULT CURRENT_TIMESTAMP,
-PRIMARY KEY(id),
-FOREIGN KEY(pedido_id)
-REFERENCES pedidos(id)
-ON DELETE CASCADE,
-FOREIGN KEY(usuario_id)
-REFERENCES usuario(id)
+CREATE TABLE reservas_estoque (
+  id INT NOT NULL AUTO_INCREMENT,
+  pedido_id INT NOT NULL,
+  produto_id INT NOT NULL,
+  quantidade INT NOT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'ATIVA',
+  data_reserva DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  data_liberacao DATETIME DEFAULT NULL,
+  createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_reservas_pedido (pedido_id),
+  KEY idx_reservas_produto (produto_id),
+  KEY idx_reservas_status (status),
+  FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
+  FOREIGN KEY (produto_id) REFERENCES produtos(id)
 );
 
-CREATE TABLE movimentacao_estoque (
-id INT NOT NULL AUTO_INCREMENT,
-produto_id INT NOT NULL,
-pedido_id INT DEFAULT NULL,
-tipo ENUM(
-'ENTRADA',
-'SAIDA',
-'RETORNO',
-'VENDA',
-'AJUSTE'
-) NOT NULL,
-quantidade INT NOT NULL,
-data_movimentacao DATETIME
-DEFAULT CURRENT_TIMESTAMP,
-observacao TEXT,
-PRIMARY KEY(id),
-FOREIGN KEY(produto_id)
-REFERENCES produtos(id),
-FOREIGN KEY(pedido_id)
-REFERENCES pedidos(id)
+CREATE TABLE estoque_historico (
+  id INT NOT NULL AUTO_INCREMENT,
+  produto_id INT NOT NULL,
+  pedido_id INT DEFAULT NULL,
+  usuario_id INT DEFAULT NULL,
+  tipo VARCHAR(40) NOT NULL,
+  quantidade INT NOT NULL,
+  observacao TEXT DEFAULT NULL,
+  data_movimentacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_historico_produto (produto_id),
+  KEY idx_historico_pedido (pedido_id),
+  FOREIGN KEY (produto_id) REFERENCES produtos(id),
+  FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
+  FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+);
+
+CREATE TABLE combos (
+  id INT NOT NULL AUTO_INCREMENT,
+  nome VARCHAR(255) NOT NULL,
+  descricao TEXT,
+  codigo VARCHAR(50),
+  preco_venda DECIMAL(10,2) DEFAULT 0.00,
+  preco_aluguel DECIMAL(10,2) DEFAULT 0.00,
+  ativo TINYINT(1) NOT NULL DEFAULT 1,
+  createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uniq_combo_codigo (codigo)
+);
+
+CREATE TABLE combo_itens (
+  id INT NOT NULL AUTO_INCREMENT,
+  combo_id INT NOT NULL,
+  produto_id INT NOT NULL,
+  quantidade INT NOT NULL DEFAULT 1,
+  createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_combo_id (combo_id),
+  KEY idx_produto_combo (produto_id),
+  FOREIGN KEY (combo_id) REFERENCES combos(id) ON DELETE CASCADE,
+  FOREIGN KEY (produto_id) REFERENCES produtos(id)
+);
+
+CREATE TABLE pedido_item_componentes (
+  id INT NOT NULL AUTO_INCREMENT,
+  pedido_item_id INT NOT NULL,
+  produto_id INT NOT NULL,
+  quantidade_por_unidade INT NOT NULL DEFAULT 1,
+  quantidade_total INT NOT NULL DEFAULT 0,
+  createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_composicao_pedido_item (pedido_item_id),
+  KEY idx_composicao_produto (produto_id),
+  FOREIGN KEY (pedido_item_id) REFERENCES pedido_itens(id) ON DELETE CASCADE,
+  FOREIGN KEY (produto_id) REFERENCES produtos(id)
 );

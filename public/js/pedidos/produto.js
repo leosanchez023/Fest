@@ -6,12 +6,15 @@ export function inicializarProduto() {
   const prodQuery = $("prod-query");
   const prodList = $("prod-list");
   const btnAdd = $("btn-add-item");
+  const tipoItem = $("tipo-item");
+  const itemLabel = $("item-label");
 
   if (!prodQuery || !prodList) return;
 
-  const buscarProdutos = debounce(async () => {
+  const buscarItens = debounce(async () => {
     const q = prodQuery.value.trim();
     state.prodSel = null;
+    state.comboSel = null;
 
     if (!q) {
       prodList.style.display = "none";
@@ -20,20 +23,26 @@ export function inicializarProduto() {
     }
 
     try {
-      const res = await fetch(`/pedidos/buscar-produtos?q=${encodeURIComponent(q)}`);
-      const produtos = await res.json();
+      const endpoint = state.tipoItem === "COMBO"
+        ? "/combos/api"
+        : `/pedidos/buscar-produtos?q=${encodeURIComponent(q)}`;
+      const res = await fetch(endpoint);
+      const itens = await res.json();
+      const resultados = state.tipoItem === "COMBO"
+        ? itens.filter((item) => `${item.nome || ""} ${item.codigo || ""}`.toLowerCase().includes(q.toLowerCase()))
+        : itens;
 
-      if (!Array.isArray(produtos) || !produtos.length) {
+      if (!Array.isArray(resultados) || !resultados.length) {
         prodList.style.display = "none";
         prodList.innerHTML = "";
         return;
       }
 
-      prodList.innerHTML = produtos.map((p) => `
+      prodList.innerHTML = resultados.map((p) => `
         <button type="button" class="autocomplete-item"
           data-id="${esc(p.id)}"
           data-nome="${esc(p.nome)}"
-          data-preco="${esc(p.preco_venda)}">
+          data-preco="${esc(state.tipoItem === "COMBO" ? p.preco_aluguel : p.preco_venda)}">
           <span>${esc(p.nome)}</span>
           <span class="preco">${fmt(p.preco_venda)}</span>
         </button>
@@ -42,12 +51,10 @@ export function inicializarProduto() {
       prodList.style.display = "block";
       prodList.querySelectorAll(".autocomplete-item").forEach((btn) => {
         btn.onclick = () => {
-          state.prodSel = {
-            id: btn.dataset.id,
-            nome: btn.dataset.nome,
-            preco: Number(btn.dataset.preco)
-          };
-          prodQuery.value = state.prodSel.nome;
+          const selecionado = { id: btn.dataset.id, nome: btn.dataset.nome, preco: Number(btn.dataset.preco) };
+          if (state.tipoItem === "COMBO") state.comboSel = selecionado;
+          else state.prodSel = selecionado;
+          prodQuery.value = selecionado.nome;
           prodList.style.display = "none";
         };
       });
@@ -56,8 +63,14 @@ export function inicializarProduto() {
     }
   }, 250);
 
-  prodQuery.addEventListener("input", buscarProdutos);
-  prodQuery.addEventListener("focus", buscarProdutos);
+  prodQuery.addEventListener("input", buscarItens);
+  prodQuery.addEventListener("focus", buscarItens);
+  tipoItem?.addEventListener("change", () => {
+    state.tipoItem = tipoItem.value;
+    itemLabel.textContent = state.tipoItem === "COMBO" ? "Combo" : "Produto";
+    prodQuery.value = "";
+    prodList.style.display = "none";
+  });
 
   document.addEventListener("click", (e) => {
     if (!prodQuery.contains(e.target) && !prodList.contains(e.target)) {

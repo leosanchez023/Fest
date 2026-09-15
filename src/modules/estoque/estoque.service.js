@@ -52,8 +52,11 @@ export function statusEstoque(produto) {
   return 'NORMAL';
 }
 
-async function buscarProduto(conn, produtoId) {
-  const [rows] = await conn.query('SELECT * FROM produtos WHERE id = ?', [produtoId]);
+async function buscarProduto(conn, produtoId, bloquear = false) {
+  const [rows] = await conn.query(
+    `SELECT * FROM produtos WHERE id = ?${bloquear ? ' FOR UPDATE' : ''}`,
+    [produtoId]
+  );
   return rows[0] || null;
 }
 
@@ -91,7 +94,7 @@ export async function registrarEntrada({ produtoId, quantidade, usuarioId = null
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const produto = await buscarProduto(conn, produtoId);
+    const produto = await buscarProduto(conn, produtoId, true);
     if (!produto) throw new Error('Produto não encontrado.');
 
     await conn.query(
@@ -126,7 +129,7 @@ export async function registrarSaida({ produtoId, quantidade, usuarioId = null, 
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const produto = await buscarProduto(conn, produtoId);
+    const produto = await buscarProduto(conn, produtoId, true);
     if (!produto) throw new Error('Produto não encontrado.');
 
     if (produtosDisponiveis(produto) < qtd) {
@@ -222,7 +225,7 @@ export async function reservarEstoque({ produtoId, quantidade, pedidoId = null, 
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const produto = await buscarProduto(conn, produtoId);
+    const produto = await buscarProduto(conn, produtoId, true);
     if (!produto) throw new Error('Produto não encontrado.');
     if (!validarEstoque(produto)) throw new Error('Produto com dados de estoque inválidos.');
 
@@ -287,26 +290,61 @@ export async function reservarItensPedido({ conn, itens = [], pedidoId = null, u
       throw new Error(`Produto ${produto.nome || produtoId} possui estoque inválido.`);
     }
 
+    const [reservasAtivas] = await conn.query(
+      `SELECT id, quantidade
+       FROM reservas_estoque
+       WHERE pedido_id = ? AND produto_id = ? AND status = 'ATIVA'
+       ORDER BY id ASC
+       FOR UPDATE`,
+      [pedidoId, produtoId]
+    );
+    const quantidadeReservada = reservasAtivas.reduce(
+      (total, reserva) => total + Number(reserva.quantidade || 0),
+      0
+    );
+    const quantidadeNecessaria = Math.max(0, quantidade - quantidadeReservada);
+
+    if (quantidadeNecessaria === 0) {
+      reservas.push({
+        id: reservasAtivas[0]?.id,
+        produto_id: produtoId,
+        quantidade: quantidadeReservada,
+        pedido_id: pedidoId
+      });
+      continue;
+    }
+
     const disponivel = produtosDisponiveis(produto);
-    if (disponivel < quantidade) {
-      throw new Error(`Não foi possível reservar o pedido.\nProduto: ${produto.nome}\nNecessário: ${quantidade}\nDisponível: ${disponivel}\nFaltam: ${quantidade - disponivel}`);
+    if (disponivel < quantidadeNecessaria) {
+      throw new Error(`Não foi possível reservar o pedido.\nProduto: ${produto.nome}\nNecessário: ${quantidadeNecessaria}\nDisponível: ${disponivel}\nFaltam: ${quantidadeNecessaria - disponivel}`);
     }
 
     await conn.query(
       `UPDATE produtos SET estoque_reservado = estoque_reservado + ? WHERE id = ?`,
-      [quantidade, produtoId]
+      [quantidadeNecessaria, produtoId]
     );
 
-    const [reservaResult] = await conn.query(
-      `INSERT INTO reservas_estoque (pedido_id, produto_id, quantidade, status, data_reserva, createdAt, updatedAt)
-       VALUES (?, ?, ?, 'ATIVA', NOW(), NOW(), NOW())`,
-      [pedidoId, produtoId, quantidade]
-    );
+    let reservaId = reservasAtivas[0]?.id;
+    if (reservaId) {
+      await conn.query(
+        `UPDATE reservas_estoque
+         SET quantidade = quantidade + ?, updatedAt = NOW()
+         WHERE id = ?`,
+        [quantidadeNecessaria, reservaId]
+      );
+    } else {
+      const [reservaResult] = await conn.query(
+        `INSERT INTO reservas_estoque (pedido_id, produto_id, quantidade, status, data_reserva, createdAt, updatedAt)
+         VALUES (?, ?, ?, 'ATIVA', NOW(), NOW(), NOW())`,
+        [pedidoId, produtoId, quantidadeNecessaria]
+      );
+      reservaId = reservaResult.insertId;
+    }
 
     reservas.push({
-      id: reservaResult.insertId,
+      id: reservaId,
       produto_id: produtoId,
-      quantidade,
+      quantidade: quantidadeReservada + quantidadeNecessaria,
       pedido_id: pedidoId
     });
 
@@ -315,8 +353,218 @@ export async function reservarItensPedido({ conn, itens = [], pedidoId = null, u
       pedido_id: pedidoId,
       usuario_id: usuarioId,
       tipo: TIPOS_MOVIMENTACAO.RESERVA,
-      quantidade,
+      quantidade: quantidadeNecessaria,
       observacao: 'Reserva automática do pedido'
+    });
+  }
+
+  return reservas;
+}
+
+export async function reservarComponentesCombos({ conn, itens = [], pedidoId = null, usuarioId = null }) {
+  const itensCombo = itens.filter((item) => item.combo_id);
+  if (!itensCombo.length) return [];
+
+  const componentes = [];
+  for (const item of itensCombo) {
+    const [rows] = await conn.query(
+      `SELECT ci.produto_id, ci.quantidade, p.nome
+       FROM combo_itens ci
+       INNER JOIN produtos p ON p.id = ci.produto_id
+       WHERE ci.combo_id = ?
+       FOR UPDATE`,
+      [item.combo_id]
+    );
+    if (!rows.length) throw new Error(`Combo ${item.combo_id} não possui componentes.`);
+    for (const componente of rows) {
+      componentes.push({
+        produto_id: componente.produto_id,
+        quantidade: Number(componente.quantidade) * Number(item.quantidade || 0),
+        nome: componente.nome
+      });
+    }
+  }
+
+  const agregados = [...componentes.reduce((mapa, item) => {
+    const atual = mapa.get(item.produto_id) || { produto_id: item.produto_id, quantidade: 0 };
+    atual.quantidade += item.quantidade;
+    mapa.set(item.produto_id, atual);
+    return mapa;
+  }, new Map()).values()];
+
+  const reservas = await reservarItensPedido({ conn, itens: agregados, pedidoId, usuarioId });
+  for (const item of itensCombo) {
+    const [rows] = await conn.query(
+      `SELECT id, produto_id, quantidade FROM combo_itens WHERE combo_id = ?`,
+      [item.combo_id]
+    );
+    for (const componente of rows) {
+      await conn.query(
+        `INSERT INTO pedido_item_componentes
+          (pedido_item_id, produto_id, quantidade_por_unidade, quantidade_total)
+         VALUES (?, ?, ?, ?)`,
+        [item.pedido_item_id || item.id, componente.produto_id, componente.quantidade, Number(componente.quantidade) * Number(item.quantidade || 0)]
+      );
+    }
+  }
+  return reservas;
+}
+
+async function necessidadesDeReserva(conn, itens = []) {
+  const agregados = new Map();
+
+  for (const item of itens) {
+    const quantidade = Number(item.quantidade || 0);
+    if (quantidade <= 0 || (item.tipo_item || '').toUpperCase() === 'VENDA') continue;
+
+    if (item.combo_id) {
+      const [componentes] = await conn.query(
+        `SELECT ci.produto_id, ci.quantidade, p.nome
+         FROM combo_itens ci
+         INNER JOIN produtos p ON p.id = ci.produto_id
+         WHERE ci.combo_id = ? AND p.ativo = 1
+         FOR UPDATE`,
+        [item.combo_id]
+      );
+      if (!componentes.length) throw new Error(`Combo ${item.combo_id} não possui componentes ativos.`);
+      for (const componente of componentes) {
+        const atual = agregados.get(componente.produto_id) || { produto_id: componente.produto_id, quantidade: 0 };
+        atual.quantidade += Number(componente.quantidade) * quantidade;
+        agregados.set(componente.produto_id, atual);
+      }
+    } else if (item.produto_id) {
+      const produtoId = Number(item.produto_id);
+      const atual = agregados.get(produtoId) || { produto_id: produtoId, quantidade: 0 };
+      atual.quantidade += quantidade;
+      agregados.set(produtoId, atual);
+    }
+  }
+
+  return [...agregados.values()];
+}
+
+async function liberarReservaNaTransacao(conn, {
+  produtoId,
+  quantidade,
+  pedidoId = null,
+  usuarioId = null,
+  observacao = ''
+}) {
+  const qtd = Number(quantidade || 0);
+  if (!produtoId || qtd <= 0) throw new Error('Quantidade para liberação inválida.');
+
+  const produto = await buscarProduto(conn, produtoId, true);
+  if (!produto) throw new Error('Produto não encontrado.');
+  if (Number(produto.estoque_reservado || 0) < qtd) {
+    throw new Error(`Reserva insuficiente para liberar o produto ${produto.nome || produtoId}.`);
+  }
+
+  const [reservas] = await conn.query(
+    `SELECT id, quantidade FROM reservas_estoque
+     WHERE produto_id = ? AND pedido_id = ? AND status = 'ATIVA'
+     ORDER BY id ASC FOR UPDATE`,
+    [produtoId, pedidoId]
+  );
+  const totalReservado = reservas.reduce((total, reserva) => total + Number(reserva.quantidade || 0), 0);
+  if (totalReservado < qtd) {
+    throw new Error(`Reserva do produto ${produto.nome || produtoId} não cobre a quantidade solicitada.`);
+  }
+
+  let restante = qtd;
+  for (const reserva of reservas) {
+    if (restante <= 0) break;
+    const consumida = Math.min(restante, Number(reserva.quantidade || 0));
+    const novaQuantidade = Number(reserva.quantidade) - consumida;
+    await conn.query(
+      `UPDATE reservas_estoque
+       SET quantidade = ?, status = ?, data_liberacao = IF(? = 'LIBERADA', NOW(), data_liberacao), updatedAt = NOW()
+       WHERE id = ?`,
+      [novaQuantidade, novaQuantidade === 0 ? 'LIBERADA' : 'ATIVA', novaQuantidade === 0 ? 'LIBERADA' : 'ATIVA', reserva.id]
+    );
+    restante -= consumida;
+  }
+
+  await conn.query(
+    `UPDATE produtos
+     SET estoque_reservado = estoque_reservado - ?, updatedAt = NOW()
+     WHERE id = ? AND estoque_reservado >= ?`,
+    [qtd, produtoId, qtd]
+  );
+  await registrarMovimentacao(conn, {
+    produto_id: produtoId,
+    pedido_id: pedidoId,
+    usuario_id: usuarioId,
+    tipo: TIPOS_MOVIMENTACAO.LIBERACAO_RESERVA,
+    quantidade: -qtd,
+    observacao: observacao || 'Liberação de reserva'
+  });
+}
+
+export async function ajustarReservasPedidoNaTransacao(conn, {
+  pedidoId,
+  itens = [],
+  usuarioId = null,
+  observacao = 'Ajuste de reservas do pedido'
+}) {
+  if (!pedidoId) throw new Error('Pedido inválido para ajuste de reservas.');
+
+  const desejadas = await necessidadesDeReserva(conn, itens);
+  const [atuais] = await conn.query(
+    `SELECT produto_id, SUM(quantidade) AS quantidade
+     FROM reservas_estoque
+     WHERE pedido_id = ? AND status = 'ATIVA'
+     GROUP BY produto_id FOR UPDATE`,
+    [pedidoId]
+  );
+  const mapaAtuais = new Map(atuais.map((item) => [Number(item.produto_id), Number(item.quantidade || 0)]));
+  const mapaDesejadas = new Map(desejadas.map((item) => [Number(item.produto_id), Number(item.quantidade || 0)]));
+  const produtos = new Set([...mapaAtuais.keys(), ...mapaDesejadas.keys()]);
+
+  for (const produtoId of produtos) {
+    const atual = mapaAtuais.get(produtoId) || 0;
+    const desejada = mapaDesejadas.get(produtoId) || 0;
+    const diferenca = desejada - atual;
+    if (diferenca > 0) {
+      await reservarItensPedido({
+        conn,
+        itens: [{ produto_id: produtoId, quantidade: desejada }],
+        pedidoId,
+        usuarioId
+      });
+    } else if (diferenca < 0) {
+      await liberarReservaNaTransacao(conn, {
+        produtoId,
+        quantidade: Math.abs(diferenca),
+        pedidoId,
+        usuarioId,
+        observacao
+      });
+    }
+  }
+
+  return desejadas;
+}
+
+export async function liberarReservasPedidoNaTransacao(conn, {
+  pedidoId,
+  usuarioId = null,
+  observacao = ''
+}) {
+  const [reservas] = await conn.query(
+    `SELECT produto_id, SUM(quantidade) AS quantidade
+     FROM reservas_estoque
+     WHERE pedido_id = ? AND status = 'ATIVA'
+     GROUP BY produto_id FOR UPDATE`,
+    [pedidoId]
+  );
+
+  for (const reserva of reservas) {
+    await liberarReservaNaTransacao(conn, {
+      produtoId: reserva.produto_id,
+      quantidade: reserva.quantidade,
+      pedidoId,
+      usuarioId,
+      observacao: observacao || `Cancelamento do pedido ${pedidoId}`
     });
   }
 
@@ -330,29 +578,10 @@ export async function liberarReserva({ produtoId, quantidade, pedidoId = null, u
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const produto = await buscarProduto(conn, produtoId);
+    const produto = await buscarProduto(conn, produtoId, true);
     if (!produto) throw new Error('Produto não encontrado.');
 
-    await conn.query(
-      `UPDATE produtos SET estoque_reservado = GREATEST(estoque_reservado - ?, 0), updatedAt = NOW() WHERE id = ?`,
-      [qtd, produtoId]
-    );
-
-    await conn.query(
-      `UPDATE reservas_estoque
-       SET status = 'LIBERADA', data_liberacao = NOW(), updatedAt = NOW()
-       WHERE produto_id = ? AND pedido_id = ? AND status = 'ATIVA' ORDER BY id DESC LIMIT 1`,
-      [produtoId, pedidoId]
-    );
-
-    await registrarMovimentacao(conn, {
-      produto_id: produtoId,
-      pedido_id: pedidoId,
-      usuario_id: usuarioId,
-      tipo: TIPOS_MOVIMENTACAO.LIBERACAO_RESERVA,
-      quantidade: -qtd,
-      observacao: observacao || 'Liberação de reserva'
-    });
+    await liberarReservaNaTransacao(conn, { produtoId, quantidade: qtd, pedidoId, usuarioId, observacao });
 
     await conn.commit();
     return { sucesso: true, quantidade: qtd };
@@ -524,37 +753,7 @@ export async function confirmarEntrega({ produtoId, quantidade, pedidoId = null,
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const produto = await buscarProduto(conn, produtoId);
-    if (!produto) throw new Error('Produto não encontrado.');
-
-    if (Number(produto.estoque_reservado || 0) < qtd) {
-      throw new Error('Quantidade reservada insuficiente para confirmar entrega.');
-    }
-
-    await conn.query(
-      `UPDATE produtos
-       SET estoque_reservado = GREATEST(estoque_reservado - ?, 0),
-           estoque_em_uso = estoque_em_uso + ?,
-           updatedAt = NOW()
-       WHERE id = ?`,
-      [qtd, qtd, produtoId]
-    );
-
-    await conn.query(
-      `UPDATE reservas_estoque
-       SET status = 'CONVERTIDA_USO', updatedAt = NOW()
-       WHERE produto_id = ? AND pedido_id = ? AND status = 'ATIVA' ORDER BY id DESC LIMIT 1`,
-      [produtoId, pedidoId]
-    );
-
-    await registrarMovimentacao(conn, {
-      produto_id: produtoId,
-      pedido_id: pedidoId,
-      usuario_id: usuarioId,
-      tipo: TIPOS_MOVIMENTACAO.ENTREGA,
-      quantidade: qtd,
-      observacao: observacao || 'Entrega confirmada'
-    });
+    await confirmarEntregaNaTransacao(conn, { produtoId, quantidade: qtd, pedidoId, usuarioId, observacao });
 
     await conn.commit();
     return { sucesso: true, quantidade: qtd };
@@ -563,6 +762,120 @@ export async function confirmarEntrega({ produtoId, quantidade, pedidoId = null,
     throw error;
   } finally {
     conn.release();
+  }
+}
+
+export async function confirmarEntregaNaTransacao(conn, {
+  produtoId,
+  quantidade,
+  pedidoId = null,
+  usuarioId = null,
+  observacao = ''
+}) {
+  const produto = await buscarProduto(conn, produtoId, true);
+  if (!produto) throw new Error('Produto não encontrado.');
+  if (Number(produto.estoque_reservado || 0) < quantidade) {
+    throw new Error('Quantidade reservada insuficiente para confirmar entrega.');
+  }
+
+  await conn.query(
+    `UPDATE produtos
+     SET estoque_reservado = estoque_reservado - ?,
+         estoque_em_uso = estoque_em_uso + ?,
+         updatedAt = NOW()
+     WHERE id = ?`,
+    [quantidade, quantidade, produtoId]
+  );
+  const [reservas] = await conn.query(
+    `SELECT id, quantidade FROM reservas_estoque
+     WHERE produto_id = ? AND pedido_id = ? AND status = 'ATIVA'
+     ORDER BY id ASC FOR UPDATE`,
+    [produtoId, pedidoId]
+  );
+  let restanteReserva = quantidade;
+  for (const reserva of reservas) {
+    if (restanteReserva <= 0) break;
+    const consumida = Math.min(restanteReserva, Number(reserva.quantidade || 0));
+    const saldo = Number(reserva.quantidade) - consumida;
+    await conn.query(
+      `UPDATE reservas_estoque
+       SET quantidade = ?, status = ?, updatedAt = NOW()
+       WHERE id = ?`,
+      [saldo, saldo === 0 ? 'CONVERTIDA_USO' : 'ATIVA', reserva.id]
+    );
+    restanteReserva -= consumida;
+  }
+  if (restanteReserva > 0) {
+    throw new Error('Reserva ativa insuficiente para confirmar entrega.');
+  }
+  await registrarMovimentacao(conn, {
+    produto_id: produtoId,
+    pedido_id: pedidoId,
+    usuario_id: usuarioId,
+    tipo: TIPOS_MOVIMENTACAO.ENTREGA,
+    quantidade,
+    observacao: observacao || 'Entrega confirmada'
+  });
+}
+
+export async function confirmarComponentesPedido({ pedidoItemId, pedidoId, usuarioId = null }) {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [componentes] = await conn.query(
+      `SELECT produto_id, quantidade_total
+       FROM pedido_item_componentes
+       WHERE pedido_item_id = ? FOR UPDATE`,
+      [pedidoItemId]
+    );
+    for (const componente of componentes) {
+      await confirmarEntregaNaTransacao(conn, {
+        produtoId: componente.produto_id,
+        quantidade: componente.quantidade_total,
+        pedidoId,
+        usuarioId,
+        observacao: 'Entrega de componente de combo'
+      });
+    }
+    await conn.commit();
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
+}
+
+export async function registrarDevolucaoComponentesNaTransacao(conn, {
+  pedidoItemId,
+  pedidoId,
+  quantidadeEntregue,
+  quantidadeBoa,
+  quantidadeDanificada,
+  quantidadePendente,
+  usuarioId = null,
+  observacao = ''
+}) {
+  const [componentes] = await conn.query(
+    `SELECT produto_id, quantidade_por_unidade, quantidade_total
+     FROM pedido_item_componentes WHERE pedido_item_id = ? FOR UPDATE`,
+    [pedidoItemId]
+  );
+  for (const componente of componentes) {
+    const fator = Number(componente.quantidade_por_unidade || 1);
+    const devolucoes = [
+      [quantidadeBoa * fator, 'BOA'],
+      [quantidadeDanificada * fator, 'DANIFICADA'],
+      [quantidadePendente * fator, 'PENDENTE']
+    ];
+    for (const [quantidade, tipo] of devolucoes) {
+      if (quantidade <= 0) continue;
+      await registrarDevolucaoNaTransacao(conn, {
+        produtoId: componente.produto_id,
+        quantidade,
+        tipo, pedidoId, usuarioId, observacao
+      });
+    }
   }
 }
 
@@ -596,60 +909,14 @@ export async function registrarDevolucao({ produtoId, quantidade, tipo = 'BOA', 
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const produto = await buscarProduto(conn, produtoId);
-    if (!produto) throw new Error('Produto não encontrado.');
-
-    if (Number(produto.estoque_em_uso || 0) < qtd) {
-      throw new Error('Quantidade em uso insuficiente para devolução.');
-    }
-
-    if (tipo === 'DANIFICADA') {
-      await conn.query(
-        `UPDATE produtos
-         SET estoque_em_uso = GREATEST(estoque_em_uso - ?, 0),
-             estoque_danificado = estoque_danificado + ?,
-             updatedAt = NOW()
-         WHERE id = ?`,
-        [qtd, qtd, produtoId]
-      );
-
-      await registrarMovimentacao(conn, {
-        produto_id: produtoId,
-        pedido_id: pedidoId,
-        usuario_id: usuarioId,
-        tipo: TIPOS_MOVIMENTACAO.DANIFICADO,
-        quantidade: qtd,
-        observacao: observacao || 'Produto devolvido danificado'
-      });
-    } else if (tipo === 'PENDENTE') {
-      await conn.query(
-        `UPDATE produtos SET estoque_em_uso = GREATEST(estoque_em_uso - ?, 0), updatedAt = NOW() WHERE id = ?`,
-        [qtd, produtoId]
-      );
-
-      await registrarMovimentacao(conn, {
-        produto_id: produtoId,
-        pedido_id: pedidoId,
-        usuario_id: usuarioId,
-        tipo: TIPOS_MOVIMENTACAO.PERDA,
-        quantidade: qtd,
-        observacao: observacao || 'Item pendente de devolução'
-      });
-    } else {
-      await conn.query(
-        `UPDATE produtos SET estoque_em_uso = GREATEST(estoque_em_uso - ?, 0), updatedAt = NOW() WHERE id = ?`,
-        [qtd, produtoId]
-      );
-
-      await registrarMovimentacao(conn, {
-        produto_id: produtoId,
-        pedido_id: pedidoId,
-        usuario_id: usuarioId,
-        tipo: TIPOS_MOVIMENTACAO.RETORNO,
-        quantidade: qtd,
-        observacao: observacao || 'Produto devolvido em boas condições'
-      });
-    }
+    await registrarDevolucaoNaTransacao(conn, {
+      produtoId,
+      quantidade: qtd,
+      tipo,
+      pedidoId,
+      usuarioId,
+      observacao
+    });
 
     await conn.commit();
     return { sucesso: true, quantidade: qtd, tipo };
@@ -659,6 +926,59 @@ export async function registrarDevolucao({ produtoId, quantidade, tipo = 'BOA', 
   } finally {
     conn.release();
   }
+}
+
+export async function registrarDevolucaoNaTransacao(conn, {
+  produtoId,
+  quantidade,
+  tipo,
+  pedidoId,
+  usuarioId,
+  observacao
+}) {
+  const produto = await buscarProduto(conn, produtoId, true);
+  if (!produto) throw new Error('Produto não encontrado.');
+  if (Number(produto.estoque_em_uso || 0) < quantidade) {
+    throw new Error('Quantidade em uso insuficiente para devolução.');
+  }
+
+  let movimento;
+  let observacaoPadrao;
+  if (tipo === 'DANIFICADA') {
+    await conn.query(
+      `UPDATE produtos
+       SET estoque_em_uso = estoque_em_uso - ?,
+           estoque_danificado = estoque_danificado + ?,
+           updatedAt = NOW()
+       WHERE id = ?`,
+      [quantidade, quantidade, produtoId]
+    );
+    movimento = TIPOS_MOVIMENTACAO.DANIFICADO;
+    observacaoPadrao = 'Produto devolvido danificado';
+  } else if (tipo === 'PENDENTE') {
+    await conn.query(
+      `UPDATE produtos SET estoque_em_uso = estoque_em_uso - ?, updatedAt = NOW() WHERE id = ?`,
+      [quantidade, produtoId]
+    );
+    movimento = TIPOS_MOVIMENTACAO.PERDA;
+    observacaoPadrao = 'Item pendente de devolução';
+  } else {
+    await conn.query(
+      `UPDATE produtos SET estoque_em_uso = estoque_em_uso - ?, updatedAt = NOW() WHERE id = ?`,
+      [quantidade, produtoId]
+    );
+    movimento = TIPOS_MOVIMENTACAO.RETORNO;
+    observacaoPadrao = 'Produto devolvido em boas condições';
+  }
+
+  await registrarMovimentacao(conn, {
+    produto_id: produtoId,
+    pedido_id: pedidoId,
+    usuario_id: usuarioId,
+    tipo: movimento,
+    quantidade,
+    observacao: observacao || observacaoPadrao
+  });
 }
 
 export async function registrarDevolucaoDetalhada({
@@ -708,7 +1028,7 @@ export async function registrarDevolucaoDetalhada({
     }
 
     if (boas > 0) {
-      await registrarDevolucao({
+      await registrarDevolucaoNaTransacao(conn, {
         produtoId,
         quantidade: boas,
         tipo: 'BOA',
@@ -719,7 +1039,7 @@ export async function registrarDevolucaoDetalhada({
     }
 
     if (danificadas > 0) {
-      await registrarDevolucao({
+      await registrarDevolucaoNaTransacao(conn, {
         produtoId,
         quantidade: danificadas,
         tipo: 'DANIFICADA',
@@ -730,7 +1050,7 @@ export async function registrarDevolucaoDetalhada({
     }
 
     if (pendentes > 0) {
-      await registrarDevolucao({
+      await registrarDevolucaoNaTransacao(conn, {
         produtoId,
         quantidade: pendentes,
         tipo: 'PENDENTE',
@@ -762,17 +1082,23 @@ export async function enviarParaManutencao({ produtoId, quantidade, usuarioId = 
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const produto = await buscarProduto(conn, produtoId);
+    const produto = await buscarProduto(conn, produtoId, true);
     if (!produto) throw new Error('Produto não encontrado.');
-    if (Number(produto.estoque_danificado || 0) < qtd) throw new Error('Quantidade danificada insuficiente.');
+    const disponivel = produtosDisponiveis(produto);
+    const danificado = Number(produto.estoque_danificado || 0);
+    if (disponivel + danificado < qtd) {
+      throw new Error('Quantidade disponível ou danificada insuficiente.');
+    }
+
+    const quantidadeDanificada = Math.min(danificado, qtd);
 
     await conn.query(
       `UPDATE produtos
-       SET estoque_danificado = GREATEST(estoque_danificado - ?, 0),
+       SET estoque_danificado = estoque_danificado - ?,
            estoque_manutencao = estoque_manutencao + ?,
            updatedAt = NOW()
        WHERE id = ?`,
-      [qtd, qtd, produtoId]
+      [quantidadeDanificada, qtd, produtoId]
     );
 
     await registrarMovimentacao(conn, {
@@ -800,18 +1126,17 @@ export async function finalizarManutencao({ produtoId, quantidade, status = 'REP
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const produto = await buscarProduto(conn, produtoId);
+    const produto = await buscarProduto(conn, produtoId, true);
     if (!produto) throw new Error('Produto não encontrado.');
     if (Number(produto.estoque_manutencao || 0) < qtd) throw new Error('Quantidade em manutenção insuficiente.');
 
     if (status === 'REPARADO') {
       await conn.query(
         `UPDATE produtos
-         SET estoque_manutencao = GREATEST(estoque_manutencao - ?, 0),
-             estoque = estoque + ?,
+         SET estoque_manutencao = estoque_manutencao - ?,
              updatedAt = NOW()
          WHERE id = ?`,
-        [qtd, qtd, produtoId]
+        [qtd, produtoId]
       );
 
       await registrarMovimentacao(conn, {
@@ -823,8 +1148,12 @@ export async function finalizarManutencao({ produtoId, quantidade, status = 'REP
       });
     } else {
       await conn.query(
-        `UPDATE produtos SET estoque_manutencao = GREATEST(estoque_manutencao - ?, 0), updatedAt = NOW() WHERE id = ?`,
-        [qtd, produtoId]
+        `UPDATE produtos
+         SET estoque_manutencao = estoque_manutencao - ?,
+             estoque = GREATEST(estoque - ?, 0),
+             updatedAt = NOW()
+         WHERE id = ?`,
+        [qtd, qtd, produtoId]
       );
 
       await registrarMovimentacao(conn, {
@@ -854,7 +1183,7 @@ export async function registrarAjuste({ produtoId, quantidade, usuarioId = null,
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const produto = await buscarProduto(conn, produtoId);
+    const produto = await buscarProduto(conn, produtoId, true);
     if (!produto) throw new Error('Produto não encontrado.');
 
     const novoEstoque = Number(produto.estoque || 0) + qtd;
@@ -890,26 +1219,7 @@ export async function registrarVenda({ produtoId, quantidade, pedidoId = null, u
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const produto = await buscarProduto(conn, produtoId);
-    if (!produto) throw new Error('Produto não encontrado.');
-
-    if (Number(produto.estoque || 0) < qtd) {
-      throw new Error('Estoque insuficiente para venda.');
-    }
-
-    await conn.query(
-      `UPDATE produtos SET estoque = estoque - ?, updatedAt = NOW() WHERE id = ?`,
-      [qtd, produtoId]
-    );
-
-    await registrarMovimentacao(conn, {
-      produto_id: produtoId,
-      pedido_id: pedidoId,
-      usuario_id: usuarioId,
-      tipo: TIPOS_MOVIMENTACAO.VENDA,
-      quantidade: -qtd,
-      observacao: observacao || 'Venda registrada'
-    });
+    await registrarVendaNaTransacao(conn, { produtoId, quantidade: qtd, pedidoId, usuarioId, observacao });
 
     await conn.commit();
     return { sucesso: true, quantidade: qtd };
@@ -919,6 +1229,35 @@ export async function registrarVenda({ produtoId, quantidade, pedidoId = null, u
   } finally {
     conn.release();
   }
+}
+
+export async function registrarVendaNaTransacao(conn, {
+  produtoId,
+  quantidade,
+  pedidoId = null,
+  usuarioId = null,
+  observacao = ''
+}) {
+  const produto = await buscarProduto(conn, produtoId, true);
+  if (!produto) throw new Error('Produto não encontrado.');
+
+  if (produtosDisponiveis(produto) < quantidade) {
+    throw new Error('Estoque disponível insuficiente para venda.');
+  }
+
+  await conn.query(
+    `UPDATE produtos SET estoque = estoque - ?, updatedAt = NOW() WHERE id = ?`,
+    [quantidade, produtoId]
+  );
+
+  await registrarMovimentacao(conn, {
+    produto_id: produtoId,
+    pedido_id: pedidoId,
+    usuario_id: usuarioId,
+    tipo: TIPOS_MOVIMENTACAO.VENDA,
+    quantidade: -quantidade,
+    observacao: observacao || 'Venda registrada'
+  });
 }
 
 export async function resumoEstoque() {

@@ -18,11 +18,11 @@ export async function converter(req, res) {
   try {
     const id = req.params.id;
     const sucesso = await service.converterParaPedido(id);
-    if (!sucesso) return res.status(400).json({ erro: 'Não foi possível converter' });
-    res.json({ sucesso: true });
+    if (!sucesso) return res.status(400).json({ success: false, message: 'Orçamento não encontrado ou já convertido.' });
+    res.json({ success: true, message: 'Orçamento convertido em pedido.', data: { id } });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ erro: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 }
 

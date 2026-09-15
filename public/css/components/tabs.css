@@ -14,9 +14,9 @@
 }
 
 .tabs button.active {
-  background: #14b8a6;
+  background: var(--color-primary);
   color: #fff;
-  border-color: #14b8a6;
+  border-color: var(--color-primary);
 }
 
 /* BADGE BASE */
@@ -36,4 +36,4 @@
 .badge-danger  { background: #fee2e2; color: #b91c1c; }
 .badge-info    { background: #dbeafe; color: #1d4ed8; }
 .badge-muted   { background: #f1f5f9; color: #475569; }
-.badge-purple  { background: #ede9fe; color: #6d28d9; }
+.badge-purple  { background: var(--color-primary-light); color: var(--color-primary-dark); }

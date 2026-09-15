@@ -5,7 +5,7 @@ const fmt = v => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
 const loadOrcamentos = async () => {
   const q = $o('q').value.trim();
   try {
-    const res = await fetch(`/orcamentos/list`);
+    const res = await fetch(`/orcamentos/list?search=${encodeURIComponent(q)}`);
     const data = await res.json();
 
     $o('orcamentos-tbody').innerHTML = data.map(o => `

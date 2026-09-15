@@ -183,7 +183,7 @@
       <section class="grid-2">
         <div class="card">
           <div class="card-title">
-            <h2>🥇 Ranking de clientes</h2>
+            <h2><i class="fa-solid fa-ranking-star"></i> Ranking de clientes</h2>
             <span class="count" id="cliCount">—</span>
           </div>
           <div class="toolbar" style="grid-template-columns:minmax(0,1fr) 190px">
@@ -672,31 +672,31 @@ function kpiCard(k) {
 function renderKPIs() {
   const s = State.data.summary;
   $('#kpiFin').innerHTML = [
-    { label:'Faturamento total', icon:'💵', color:'green', tint:'green', value:money(scale(s.revenue)),   sub:'vs. período anterior', trend:14.2 },
-    { label:'Valor recebido',    icon:'✅', color:'blue',  value:money(scale(s.received)),  sub:`${pct(s.received,s.revenue)}% do faturado`, trend:9.6 },
-    { label:'Valores pendentes', icon:'⏳', color:'amber', tint:'amber', value:money(scale(s.pending)),   sub:'a receber de 24 pedidos', trend:-4.1 },
-    { label:'Ticket médio',      icon:'🎯', color:'purple',value:money(s.avgTicket),        sub:'média por pedido fechado', trend:6.8 },
+    { label:'Faturamento total', icon:'<i class="fa-solid fa-money-bill-wave"></i>', color:'green', tint:'green', value:money(scale(s.revenue)),   sub:'vs. período anterior', trend:14.2 },
+    { label:'Valor recebido',    icon:'<i class="fa-solid fa-circle-check"></i>', color:'blue',  value:money(scale(s.received)),  sub:`${pct(s.received,s.revenue)}% do faturado`, trend:9.6 },
+    { label:'Valores pendentes', icon:'<i class="fa-solid fa-hourglass-half"></i>', color:'amber', tint:'amber', value:money(scale(s.pending)),   sub:'a receber de 24 pedidos', trend:-4.1 },
+    { label:'Ticket médio',      icon:'<i class="fa-solid fa-bullseye"></i>', color:'purple',value:money(s.avgTicket),        sub:'média por pedido fechado', trend:6.8 },
   ].map(kpiCard).join('');
 
   $('#kpiPed').innerHTML = [
-    { label:'Total de pedidos',    icon:'🧾', color:'slate', value:num(scale(s.orders)),      sub:'no período selecionado', trend:11.5 },
+    { label:'Total de pedidos',    icon:'<i class="fa-solid fa-receipt"></i>', color:'slate', value:num(scale(s.orders)),      sub:'no período selecionado', trend:11.5 },
     { label:'Em andamento',        icon:'fa-solid fa-rotate', color:'blue',  tint:'blue', value:num(scale(s.inProgress)),  sub:'aguardando entrega ou retorno' },
-    { label:'Finalizados',         icon:'🏁', color:'green', value:num(scale(s.finished)),    sub:`${pct(s.finished,s.orders)}% de conclusão`, trend:8.3 },
-    { label:'Orçamentos gerados',  icon:'📄', color:'orange',value:num(scale(s.quotes)),      sub:'32% convertidos em pedido', trend:-2.4 },
+    { label:'Finalizados',         icon:'<i class="fa-solid fa-flag-checkered"></i>', color:'green', value:num(scale(s.finished)),    sub:`${pct(s.finished,s.orders)}% de conclusão`, trend:8.3 },
+    { label:'Orçamentos gerados',  icon:'<i class="fa-solid fa-file-lines"></i>', color:'orange',value:num(scale(s.quotes)),      sub:'32% convertidos em pedido', trend:-2.4 },
   ].map(kpiCard).join('');
 
   $('#kpiCli').innerHTML = [
-    { label:'Total de clientes',   icon:'👥', color:'slate', value:num(s.clients),            sub:'base cadastrada' },
-    { label:'Novos no período',    icon:'✨', color:'purple',value:num(scale(s.newClients)),  sub:'primeiro pedido registrado', trend:18.9 },
-    { label:'Clientes recorrentes',icon:'🔁', color:'green', tint:'green', value:num(s.recurring), sub:`${pct(s.recurring,s.clients)}% da base ativa`, trend:5.2 },
-    { label:'Inativos há 90 dias', icon:'😴', color:'amber', value:num(41),                   sub:'oportunidade de reativação' },
+    { label:'Total de clientes',   icon:'<i class="fa-solid fa-users"></i>', color:'slate', value:num(s.clients),            sub:'base cadastrada' },
+    { label:'Novos no período',    icon:'<i class="fa-solid fa-sparkles"></i>', color:'purple',value:num(scale(s.newClients)),  sub:'primeiro pedido registrado', trend:18.9 },
+    { label:'Clientes recorrentes',icon:'<i class="fa-solid fa-repeat"></i>', color:'green', tint:'green', value:num(s.recurring), sub:`${pct(s.recurring,s.clients)}% da base ativa`, trend:5.2 },
+    { label:'Inativos há 90 dias', icon:'<i class="fa-solid fa-moon"></i>', color:'amber', value:num(41),                   sub:'oportunidade de reativação' },
   ].map(kpiCard).join('');
 
   $('#kpiEst').innerHTML = [
     { label:'Produtos em catálogo',   icon:'fa-solid fa-box', color:'slate', value:num(s.productsTotal),     sub:`${State.data.products.length} itens distintos` },
     { label:'Alugados atualmente',    icon:'fa-solid fa-truck', color:'blue',  tint:'blue', value:num(s.productsRented), sub:`${pct(s.productsRented,s.productsTotal)}% do estoque em uso` },
-    { label:'Disponíveis',            icon:'🟢', color:'green', value:num(s.productsAvailable), sub:'prontos para locação' },
-    { label:'Com estoque baixo',      icon:'⚠️', color:'red',   tint:'red', value:num(productRows().filter(p => p.low).length), sub:'abaixo do mínimo operacional' },
+    { label:'Disponíveis',            icon:'<i class="fa-solid fa-circle-check"></i>', color:'green', value:num(s.productsAvailable), sub:'prontos para locação' },
+    { label:'Com estoque baixo',      icon:'<i class="fa-solid fa-triangle-exclamation"></i>', color:'red',   tint:'red', value:num(productRows().filter(p => p.low).length), sub:'abaixo do mínimo operacional' },
   ].map(kpiCard).join('');
 }
 
@@ -758,13 +758,13 @@ function renderProducts() {
       <td>
         <div class="cellflex">
           <div class="thumb">${r.icon}</div>
-          <div><b>${esc(r.name)} ${r.top ? '<span class="tag t-purple" style="margin-left:4px">🔥 Top</span>' : ''}</b>
+          <div><b>${esc(r.name)} ${r.top ? '<span class="tag t-purple" style="margin-left:4px"><i class="fa-solid fa-fire"></i> Top</span>' : ''}</b>
           <small class="code">${r.id} · ${r.uses} locações</small></div>
         </div>
       </td>
       <td><span class="tag t-slate">${esc(r.cat)}</span></td>
       <td class="num">${num(r.total)}</td>
-      <td class="num ${r.low ? 'amber-t' : ''}">${num(r.available)} ${r.low ? '⚠️' : ''}</td>
+      <td class="num ${r.low ? 'amber-t' : ''}">${num(r.available)} ${r.low ? '<i class="fa-solid fa-triangle-exclamation"></i>' : ''}</td>
       <td class="num strong">${num(r.rented)}</td>
       <td class="num green-t">${money2(r.revenue)}</td>
     </tr>`).join('')
@@ -793,7 +793,7 @@ function renderClients() {
 function renderDeliveries() {
   const d = State.data.deliveries;
   const items = [
-    { label:'Entregas realizadas', v:scale(d.done),          icon:'✅', color:'green', tone:'green-t' },
+    { label:'Entregas realizadas', v:scale(d.done),          icon:'<i class="fa-solid fa-circle-check"></i>', color:'green', tone:'green-t' },
     { label:'Entregas pendentes',  v:scale(d.pending),       icon:'fa-solid fa-box', color:'amber', tone:'amber-t' },
     { label:'Retiradas pendentes', v:scale(d.pickupPending), icon:'↩️', color:'blue',  tone:'' },
     { label:'Atrasos',             v:scale(d.late),          icon:'⏰', color:'red',   tone:'red-t' },
@@ -817,11 +817,11 @@ function renderAlerts() {
   const overdue = financeRows().filter(r => r.status === 'Atrasado' || r.status === 'Pendente');
   const overdueSum = overdue.reduce((a,r) => a + r.due, 0);
   const alerts = [
-    { cls:'a-red', icon:'⚠️', ico:'red',
+    { cls:'a-red', icon:'<i class="fa-solid fa-triangle-exclamation"></i>', ico:'red',
       title:`${low.length} produto(s) com estoque baixo`,
       text: low.slice(0,3).map(p => `${p.name} (${p.available} disp.)`).join(' · ') || 'Nenhum item crítico.',
       action:'Ver estoque', target:'#prodTable', flag:['prodFlag','low'] },
-    { cls:'a-amber', icon:'💸', ico:'amber',
+    { cls:'a-amber', icon:'<i class="fa-solid fa-money-bill-transfer"></i>', ico:'amber',
       title:`${overdue.length} cliente(s) com pagamentos pendentes`,
       text:`Total em aberto de ${money2(overdueSum)}. Priorize os pedidos com mais de 20 dias.`,
       action:'Ver financeiro', target:'#finTable', flag:['finStatus','Pendente'] },
@@ -904,14 +904,14 @@ function bind() {
     $('#customRange').classList.toggle('show', State.period === 'custom');
     $('#periodLabel').textContent = PERIODS[State.period];
     renderAll();
-    toast(`📅 Período alterado: <b>${PERIODS[State.period]}</b>`);
+    toast(`<i class="fa-solid fa-calendar-days"></i> Período alterado: <b>${PERIODS[State.period]}</b>`);
   });
   $('#btnApplyRange').onclick = () => {
     const a = $('#dtIni').value, b = $('#dtFim').value;
-    if (!a || !b) return toast('⚠️ Informe as duas datas.');
+    if (!a || !b) return toast('<i class="fa-solid fa-triangle-exclamation"></i> Informe as duas datas.');
     State.filters.dtIni = a; State.filters.dtFim = b;
     $('#periodLabel').textContent = `${fmtDate(a)} a ${fmtDate(b)}`;
-    renderAll(); toast('✅ Período personalizado aplicado.');
+    renderAll(); toast('<i class="fa-solid fa-circle-check"></i> Período personalizado aplicado.');
   };
 
   /* Exportar / imprimir */
@@ -921,7 +921,7 @@ function bind() {
     toast('⏳ Gerando relatório consolidado...');
     const res = await API.exportReport('pdf', { period:State.period, ...State.filters });
     btn.disabled = false; btn.innerHTML = '⬇️ Exportar relatório';
-    toast(`✅ Relatório gerado: <b>${res.file}</b>`);
+    toast(`<i class="fa-solid fa-circle-check"></i> Relatório gerado: <b>${res.file}</b>`);
   };
   $('#btnPrint').onclick = () => window.print();
   $('#modalPrint').onclick = () => window.print();
@@ -945,13 +945,13 @@ function bind() {
     badge.style.display = n ? 'inline-flex' : 'none';
     badge.textContent = n;
     closeAllLayers(); renderAll();
-    toast(n ? `🔎 ${n} filtro(s) aplicado(s).` : '🔎 Filtros removidos.');
+    toast(n ? `<i class="fa-solid fa-magnifying-glass"></i> ${n} filtro(s) aplicado(s).` : '<i class="fa-solid fa-filter-circle-xmark"></i> Filtros removidos.');
   };
   $('#btnClearFilters').onclick = () => {
     ['fDtIni','fDtFim','fClient','fProduct','fType','fStatus','fPayment'].forEach(id => $('#' + id).value = '');
     State.filters = { dtIni:'', dtFim:'', client:'', product:'', type:'', status:'', payment:'' };
     $('#filterCount').style.display = 'none';
-    renderAll(); toast('🧹 Filtros limpos.');
+    renderAll(); toast('<i class="fa-solid fa-broom"></i> Filtros limpos.');
   };
 
   /* Tabela financeira */
@@ -1005,7 +1005,7 @@ function bind() {
   /* Navegação lateral simulada */
   $$('.nav-item').forEach(b => b.onclick = () => {
     if (b.classList.contains('active')) return;
-    toast(`🔗 Módulo <b>${b.textContent.trim()}</b> — navegação simulada.`);
+    toast(`<i class="fa-solid fa-link"></i> Módulo <b>${b.textContent.trim()}</b> — navegação simulada.`);
   });
 }
 

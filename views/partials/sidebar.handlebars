@@ -8,6 +8,9 @@
         <div class="brand-sub muted">Sistema de Gestão</div>
       </div>
     </div>
+    <button class="sidebar-toggle" type="button" aria-label="Recolher menu" aria-expanded="true">
+      <i class="fa-solid fa-bars"></i>
+    </button>
   </div>
 
   <nav class="sidebar-nav">
@@ -31,7 +34,7 @@
 
     <div class="sidebar-section">
       <div class="sidebar-section-title">Estoque</div>
-      <a class="nav-item" href="/estoque"><i class="fa-solid fa-boxes-packing ni"></i><span>Estoque</span></a>
+      <a class="nav-item" href="/estoque"><i class="fa-solid fa-boxes-packing ni"></i><span>Controle de Estoque</span></a>
       <a class="nav-item" href="/combos"><i class="fa-solid fa-puzzle-piece ni"></i><span>Combos</span></a>
     </div>
 
@@ -44,6 +47,13 @@
   </nav>
 
   <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <span class="sidebar-user-avatar"><i class="fa-solid fa-user"></i></span>
+      <span class="sidebar-user-copy">
+        <strong>{{#if user}}{{user.name}}{{else}}Usuário{{/if}}</strong>
+        <small>Conta ativa</small>
+      </span>
+    </div>
     <button class="nav-item logout" onclick="window.location.href='/logout'"><i class="fa-solid fa-right-from-bracket ni"></i><span>Sair</span></button>
     <div class="copyright">© 2026 Sistema de Festas</div>
   </div>
@@ -52,6 +62,15 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.querySelector('.sidebar-toggle');
+  if (sidebar && toggle) {
+    toggle.addEventListener('click', function(){
+      const collapsed = sidebar.classList.toggle('is-collapsed');
+      toggle.setAttribute('aria-expanded', String(!collapsed));
+      toggle.setAttribute('aria-label', collapsed ? 'Expandir menu' : 'Recolher menu');
+    });
+  }
   const links = document.querySelectorAll('.sidebar-nav .nav-item');
   const path = window.location.pathname.replace(/\/$/, '') || '/dashboard';
   links.forEach(link => {

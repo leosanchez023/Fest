@@ -10,7 +10,7 @@
   --blue:#2563eb;
   --amber:#d97706;
   --red:#dc2626;
-  --purple:#7c3aed;
+  --teal:#0f9f92;
   --pink:#db2777;
   --radius:14px;
   --shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
@@ -38,7 +38,7 @@ button{font-family:inherit}
 }
 .brand{display:flex;align-items:center;gap:11px;padding:6px 8px 18px}
 .brand .logo{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;font-size:19px;
-  background:linear-gradient(135deg,#7c3aed,#db2777)}
+  background:linear-gradient(135deg,#0f9f92,#087f79)}
 .brand b{color:#fff;font-size:15.5px;display:block;line-height:1.2;letter-spacing:-.2px}
 .brand small{color:#94a3b8;font-size:11px}
 .nav-label{font-size:10px;letter-spacing:.9px;text-transform:uppercase;color:#64748b;font-weight:700;padding:14px 10px 6px}

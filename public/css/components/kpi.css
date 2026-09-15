@@ -22,10 +22,10 @@
     font-weight: 700;
 }
 
-.g-primary { background: var(--grad-primary); }
-.g-warning { background: var(--grad-warning); }
-.g-danger  { background: var(--grad-danger); }
-.g-info    { background: var(--grad-info); }
+.g-primary { background: var(--color-primary); }
+.g-warning { background: var(--color-warning); }
+.g-danger  { background: var(--color-danger); }
+.g-info    { background: var(--color-info); }
 
 
 /* ===== KPI Cards ===== */

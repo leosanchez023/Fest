@@ -429,6 +429,7 @@ await service.deletar(
 
 
 
+  req.body.pedido_id || null
 res.json({
 
  sucesso:true,
@@ -577,13 +578,12 @@ export async function reservar(req,res){
 try{
 
 
-await service.reservar(
+  await service.reservar(
+    req.params.id,
+    req.body.quantidade,
+    req.body.pedido_id || null
+  );
 
- req.params.id,
-
- req.body.quantidade
-
-);
 
 
 

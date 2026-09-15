@@ -130,17 +130,17 @@
   --mp-border:#e6eaf0;
   --mp-text:#0f172a;
   --mp-muted:#64748b;
-  --mp-primary:#2563eb;
-  --mp-primary-dark:#1d4ed8;
-  --mp-green:#16a34a;
+  --mp-primary:var(--color-primary);
+  --mp-primary-dark:var(--color-primary-dark);
+  --mp-green:var(--color-success);
   --mp-green-soft:#dcfce7;
   --mp-red:#dc2626;
   --mp-red-soft:#fee2e2;
-  --mp-amber:#b45309;
+  --mp-amber:var(--color-warning);
   --mp-amber-soft:#fef3c7;
   --mp-blue-soft:#dbeafe;
   --mp-slate-soft:#e2e8f0;
-  --mp-dark:#1e293b;
+  --mp-dark:var(--color-sidebar);
   --mp-radius:16px;
   --mp-radius-sm:10px;
   --mp-shadow:0 24px 60px -12px rgba(15,23,42,.30), 0 8px 24px -8px rgba(15,23,42,.15);
@@ -255,7 +255,7 @@
 
 /* ---------- Resumo financeiro ---------- */
 .mp-summary{
-  background:linear-gradient(135deg,#0f172a,#1e3a8a);
+  background:var(--color-sidebar);
   color:#fff; border-radius:var(--mp-radius-sm); padding:20px;
 }
 .mp-fin-grid{ display:grid; grid-template-columns:1.2fr .9fr; gap:16px; align-items:start; }
@@ -328,7 +328,7 @@
 }
 
 /* Demo (fora do modal) */
-body{ font-family:var(--mp-font); background:#eef2f7; display:grid; place-items:center; min-height:100vh; margin:0; }
+body{ font-family:var(--mp-font); background:var(--color-background); display:block; min-height:100%; margin:0; }
 .demo-btn{ background:#2563eb; color:#fff; border:none; padding:14px 22px; border-radius:12px; font-size:1rem; cursor:pointer; }
 
 .cobranca-overlay {
@@ -409,4 +409,24 @@ body{ font-family:var(--mp-font); background:#eef2f7; display:grid; place-items:
 
     margin-top:25px;
 
+}
+
+/* Superfície compartilhada da página de pedidos e orçamentos */
+.container > .card{margin-bottom:16px}
+.container > .card > .card-title{padding-bottom:12px;border-bottom:1px solid var(--color-border)}
+.container .field{min-width:0}
+.container .btn-teal{background:var(--color-primary);color:#fff}
+.container .btn-blue{background:var(--color-info);color:#fff}
+.container .btn-green{background:var(--color-success);color:#fff}
+.container .btn-remove{width:30px;height:30px;border:1px solid #f2bfc5;border-radius:7px;background:#fdebed;color:#ae2735;cursor:pointer}
+.container .resumo{max-width:520px;margin-left:auto}
+.container .resumo-total{color:var(--color-text);border-top-color:var(--color-border)}
+.container .resumo-total span:last-child{color:var(--color-primary-dark);font-size:1.2rem}
+#q{max-width:420px}
+#btn-new{background:var(--color-primary);color:#fff}
+
+@media(max-width:700px){
+  .container .grid-3{grid-template-columns:1fr}
+  .container .resumo{max-width:none}
+  #q{max-width:none;width:100%!important}
 }

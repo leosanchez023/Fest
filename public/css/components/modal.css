@@ -20,7 +20,7 @@
   padding: 32px;
   width: 100%;
   max-width: 1100px;
-  background: #fff;
+  background: var(--color-card);
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
@@ -45,7 +45,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  background: var(--grad-primary);
+  background: var(--color-sidebar);
   color: #fff;
 }
 

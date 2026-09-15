@@ -39,13 +39,13 @@
 }
 
 .btn-secondary {
-    background: #f3f4f6;
-    color: var(--fg);
-    border: 1px solid #d0d5dd;
+    background: var(--color-background);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
 }
 
 .btn-secondary:hover {
-    background: #e5e7eb;
+    background: #e7eef1;
 }
 
 .btn-edit {
@@ -59,22 +59,22 @@
 }
 
 .btn-teal {
-    background: #14b8a6;
+    background: var(--color-primary);
     color: #fff;
 }
 
 .btn-blue {
-    background: #3b82f6;
+    background: var(--color-info);
     color: #fff;
 }
 
 .btn-green {
-    background: #22c55e;
+    background: var(--color-success);
     color: #fff;
 }
 
 .btn-gray {
-    background: #6b7280;
+    background: var(--color-text-muted);
     color: #fff;
 }
 
@@ -93,7 +93,7 @@
 }
 
 .btn-dashed:hover {
-    border-color: #14b8a6;
-    color: #14b8a6;
-    background: #ecfeff;
+    border-color: var(--color-primary);
+    color: var(--color-primary-dark);
+    background: var(--color-primary-light);
 }

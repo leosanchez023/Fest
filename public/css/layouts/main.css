@@ -1,10 +1,14 @@
 
 /* Main layout helpers */
 main, .page-content {
-    flex: 1; padding: 24px 20px; width:100%; max-width: none; box-sizing:border-box;
+    flex: 1; padding: 26px 28px 40px; width:100%; max-width: none; box-sizing:border-box;
 }
 
-.container {max-width: 1200px;margin:0 auto;padding:2rem 1rem}
+.container {max-width: 1400px;margin:0 auto;padding:0 0 24px}
 
 /* Cards/grid area should adapt to available width */
 .wrap{max-width:1320px;margin:0 auto}
+
+@media(max-width:900px){
+    main, .page-content{padding:20px 16px 32px}
+}

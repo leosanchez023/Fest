@@ -211,15 +211,18 @@ async function validarPedido(dados) {
   }
 
  
-  // PRODUTOS REPETIDOS
+  // Itens repetidos
   const ids = new Set();
 
   for (const item of dados.itens) {
-    if (ids.has(item.produto_id)) {
-      throw new Error("Produto repetido.");
+    const produtoId = item.produto_id ? Number(item.produto_id) : null;
+    const comboId = item.combo_id ? Number(item.combo_id) : null;
+    if ((produtoId && comboId) || (!produtoId && !comboId)) {
+      throw new Error("Cada item deve ser um produto ou um combo.");
     }
-
-    ids.add(item.produto_id);
+    const chave = `${comboId ? "combo" : "produto"}:${comboId || produtoId}`;
+    if (ids.has(chave)) throw new Error("Produto ou combo repetido.");
+    ids.add(chave);
   }
 
   // OBSERVAÇÕES
@@ -242,10 +245,9 @@ async function calcularItens(itens) {
   // Percorre todos os itens do pedido
   for (const item of itens) {
 
-    // Verifica se o ID do produto é válido
-    if (!Number.isInteger(Number(item.produto_id))) {
-      throw new Error("Produto inválido.");
-    }
+    const produtoId = item.produto_id ? Number(item.produto_id) : null;
+    const comboId = item.combo_id ? Number(item.combo_id) : null;
+    if ((produtoId && comboId) || (!produtoId && !comboId)) throw new Error("Item inválido.");
 
     // Verifica se a quantidade é um número inteiro
     if (!Number.isInteger(Number(item.quantidade))) {
@@ -262,22 +264,17 @@ async function calcularItens(itens) {
       throw new Error("Quantidade muito grande.");
     }
 
-    // Busca o produto no banco de dados
-    const produto =
-      await model.buscarProdutoPorId(item.produto_id);
-
-    // Verifica se o produto existe
-    if (!produto) {
-      throw new Error(`Produto ${item.produto_id} não encontrado.`);
+    const entidade = comboId
+      ? await model.buscarComboPorId(comboId)
+      : await model.buscarProdutoPorId(produtoId);
+    if (!entidade || Number(entidade.ativo ?? 1) !== 1) {
+      throw new Error(`${comboId ? "Combo" : "Produto"} não encontrado ou inativo.`);
+    }
+    if (comboId && Number(entidade.total_componentes || 0) <= 0) {
+      throw new Error(`Combo ${entidade.nome} não possui componentes.`);
     }
 
-    // Verifica se existe estoque suficiente
-    if (produto.quantidade < item.quantidade) {
-      throw new Error(`Estoque insuficiente para ${produto.nome}`);
-    }
-
-    // Obtém o preço do produto
-    const preco = Number(produto.preco_venda);
+    const preco = Number(comboId ? entidade.preco_aluguel : entidade.preco_venda);
 
     // Verifica se o preço é um número válido
     if (!Number.isFinite(preco)) {
@@ -291,7 +288,10 @@ async function calcularItens(itens) {
 
     // Adiciona o item calculado ao resultado
     resultado.push({
-      produto_id: produto.id,
+      produto_id: produtoId,
+      combo_id: comboId,
+      tipo_item: item.tipo_item,
+      nome: entidade.nome,
       quantidade: item.quantidade,
       preco_unitario: preco,
       subtotal: preco * item.quantidade
@@ -519,6 +519,7 @@ function sanitizarCobranca(dados) {
     valor: Number(dados.valor || 0),
     descricao,
     observacao: descricao,
+    tipo: String(dados.tipo || 'OUTRO').toUpperCase(),
     usuario_id: dados.usuario_id ? Number(dados.usuario_id) : null
   };
 }

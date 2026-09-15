@@ -74,7 +74,7 @@
   .ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;font-size:15px}
   .ico.slate{background:#f1f5f9}.ico.green{background:#dcfce7}.ico.blue{background:#dbeafe}
   .ico.amber{background:#fef3c7}.ico.red{background:#fee2e2}.ico.orange{background:#ffedd5}
-  .ico.purple{background:#ede9fe}
+  .ico.purple{background:var(--color-primary-light)}
   .stat.green{background:#f6fdf9}.stat.blue{background:#f5f9ff}
 
   /* Filters */

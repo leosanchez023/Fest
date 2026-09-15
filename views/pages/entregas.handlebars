@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/pages/entregas.css">
 
 
@@ -44,17 +43,15 @@
 </div>
   </div>
 
-  </div>
-
   <!-- ALERTAS -->
   <div class="card" style="padding:20px; margin-bottom:20px;">
-    <h2>🚨 Alertas</h2>
+    <h2><i class="fa-solid fa-triangle-exclamation icon-sm"></i> Alertas</h2>
     <div class="grid grid-3" id="alerts"></div>
   </div>
 
   <!-- FILTROS -->
   <div class="card" style="padding:18px; margin-bottom:20px;">
-    <h2>🔎 Filtros</h2>
+    <h2><i class="fa-solid fa-filter icon-sm"></i> Filtros</h2>
 
     <div class="grid grid-6">
 
@@ -136,20 +133,23 @@
       <span id="count-badge">0 pedidos</span>
     </div>
 
-    <div style="overflow-x:auto;">
+    <div class="delivery-table-wrap">
       <table>
         <thead>
               <tr>
                 <th style="width:40px"></th>
                 <th>Pedido</th>
                 <th>Cliente</th>
+                <th>Telefone</th>
+                <th>Endereço</th>
                 <th>Evento <button id="toggle-event-order" class="btn-ghost" title="Alternar ordem por data do evento">↕</button></th>
                 <th>Entrega</th>
                 <th>Retirada</th>
                 <th>Total</th>
                 <th>Pago</th>
+                <th>Saldo</th>
                 <th>Status</th>
-                <th></th>
+                <th>Ações</th>
               </tr>
         </thead>
         <tbody id="orders-tbody"></tbody>
@@ -173,10 +173,10 @@
         <select id="finance-forma-pagamento">
           <option value="">Selecione</option>
           <option value="PIX">PIX</option>
-          <option value="Dinheiro">Dinheiro</option>
-          <option value="Cartão">Cartão</option>
-          <option value="Transferência">Transferência</option>
-          <option value="Boleto">Boleto</option>
+          <option value="DINHEIRO">Dinheiro</option>
+          <option value="CARTAO_DEBITO">Cartão débito</option>
+          <option value="CARTAO_CREDITO">Cartão crédito</option>
+          <option value="TRANSFERENCIA">Transferência</option>
         </select>
       </div>
       <div>

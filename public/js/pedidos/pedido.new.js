@@ -120,7 +120,7 @@ function renderItens() {
       <td class="text-right">${fmt(item.preco)}</td>
       <td class="text-right">${fmt(item.preco * item.quantidade)}</td>
       <td class="text-center">
-        <button type="button" class="btn-remove" data-idx="${idx}">✕</button>
+        <button type="button" class="btn-remove" data-idx="${idx}" aria-label="Remover item"><i class="fa-solid fa-xmark"></i></button>
       </td>
     </tr>
   `).join("");

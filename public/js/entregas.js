@@ -9,9 +9,9 @@ const formatMoney = (value) =>
   });
 
 const formatDate = (value) => {
-  if (!value) return "-";
+  if (!value) return "—";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value).split("T")[0];
+    if (Number.isNaN(date.getTime())) return String(value).split("T")[0] || "—";
   return date.toLocaleDateString("pt-BR");
 };
 
@@ -36,7 +36,13 @@ const badgeClass = (type) => {
 };
 
 const renderBadge = (text, type) =>
-  `<span class="badge ${badgeClass(type)}">${text || "-"}</span>`;
+  `<span class="badge ${badgeClass(type)}">${text || "—"}</span>`;
+
+const formatAddress = (order) => {
+  const parts = [order.endereco_rua, order.endereco_numero, order.endereco_bairro, order.endereco_cidade]
+    .filter(Boolean);
+  return parts.length ? parts.join(", ") : "—";
+};
 
 const paymentStatus = (paid, total) => {
   if (paid <= 0) return "Não Pago";
@@ -46,39 +52,41 @@ const paymentStatus = (paid, total) => {
 
 const deliveryStatus = (status) => {
   return {
-    ORCAMENTO: "Aguardando Entrega",
-    CONFIRMADO: "Aguardando Entrega",
-    EM_PREPARO: "Em Rota",
+    ORCAMENTO: "Aguardando",
+    CONFIRMADO: "Aguardando",
+    EM_PREPARO: "Em preparo/rota",
     ENTREGUE: "Entregue",
-    RETIRADO: "Entregue",
+    RETIRADO: "Retirado",
     CONFERENCIA: "Em Conferência",
     PENDENTE: "Pendente",
-    FINALIZADO: "Entregue",
+    FINALIZADO: "Finalizado",
     CANCELADO: "Cancelado",
-  }[status] || "Aguardando Entrega";
+  }[status] || "Pendente";
 };
 
 const orderStatusBadge = (status) => {
+  const label = deliveryStatus(status);
   switch (status) {
     case "ORCAMENTO":
-      return renderBadge(status, "muted");
+      return renderBadge(label, "muted");
     case "CONFIRMADO":
-      return renderBadge(status, "info");
+      return renderBadge(label, "info");
     case "EM_PREPARO":
-      return renderBadge(status, "warning");
+      return renderBadge(label, "warning");
     case "ENTREGUE":
+      return renderBadge(label, "success");
     case "RETIRADO":
-      return renderBadge(status, "success");
+      return renderBadge(label, "info");
     case "CONFERENCIA":
-      return renderBadge(status, "info");
+      return renderBadge(label, "info");
     case "PENDENTE":
-      return renderBadge(status, "warning");
+      return renderBadge(label, "warning");
     case "FINALIZADO":
-      return renderBadge(status, "success");
+      return renderBadge(label, "muted");
     case "CANCELADO":
-      return renderBadge(status, "danger");
+      return renderBadge(label, "danger");
     default:
-      return renderBadge(status, "muted");
+      return renderBadge(label, "muted");
   }
 };
 
@@ -160,16 +168,18 @@ const renderTable = () => {
   tbody.innerHTML = filtered
     .map((o) => {
       const checked = selectedOrders.has(Number(o.id)) ? 'checked' : '';
-      const clienteTelefone = o.telefone ? `<div class="muted">${o.telefone}</div>` : '';
       const totalPercent = Math.min(100, Math.round((o.valor_pago / Math.max(1, o.valor_total)) * 100));
+      const saldo = Math.max(0, o.valor_total - o.valor_pago);
+      const canDeliver = ["CONFIRMADO", "EM_PREPARO"].includes(o.status);
       return `
         <tr>
           <td><input type="checkbox" class="select-order" data-id="${o.id}" ${checked} /></td>
           <td><strong>${o.id}</strong></td>
           <td>
             <div style="font-weight:600;">${o.cliente}</div>
-            ${clienteTelefone}
           </td>
+          <td>${o.telefone || "—"}</td>
+          <td>${formatAddress(o)}</td>
           <td>${formatDate(o.data_evento)}</td>
           <td>${formatDate(o.data_entrega)}</td>
           <td>${formatDate(o.data_retirada)}</td>
@@ -179,8 +189,17 @@ const renderTable = () => {
             <div class="muted">${paymentStatus(o.valor_pago, o.valor_total)}</div>
           </td>
           <td>${formatMoney(o.valor_pago)}</td>
+          <td>${formatMoney(saldo)}</td>
           <td>${orderStatusBadge(o.status)}</td>
-          <td><button class="btn" type="button" onclick="openModal(${o.id})">Ver</button></td>
+          <td>
+            <div class="delivery-actions">
+              <button class="iconbtn" type="button" data-delivery-action="view" data-id="${o.id}" title="Ver pedido" aria-label="Ver pedido"><i class="fa-solid fa-eye"></i></button>
+              <button class="iconbtn" type="button" data-delivery-action="payment" data-id="${o.id}" title="Registrar pagamento" aria-label="Registrar pagamento"><i class="fa-solid fa-money-bill"></i></button>
+              <button class="iconbtn" type="button" data-delivery-action="charge" data-id="${o.id}" title="Gerar cobrança" aria-label="Gerar cobrança"><i class="fa-solid fa-file-invoice-dollar"></i></button>
+              <button class="iconbtn" type="button" data-delivery-action="deliver" data-id="${o.id}" title="Marcar como entregue" aria-label="Marcar como entregue" ${canDeliver ? "" : "disabled"}><i class="fa-solid fa-truck"></i></button>
+              <a class="iconbtn" href="/pedidos?editar=${encodeURIComponent(o.id)}" title="Editar pedido" aria-label="Editar pedido"><i class="fa-solid fa-pen"></i></a>
+            </div>
+          </td>
         </tr>
       `;
     })
@@ -192,6 +211,17 @@ const renderTable = () => {
       const id = Number(cb.dataset.id);
       if (cb.checked) selectedOrders.add(id); else selectedOrders.delete(id);
       updateSelectedCount();
+    });
+  });
+
+  tbody.querySelectorAll('[data-delivery-action]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const id = Number(button.dataset.id);
+      const action = button.dataset.deliveryAction;
+      if (action === 'view') return openOrderModal(id);
+      if (action === 'deliver') return openOrderFinanceOrDelivery(id, 'delivery');
+      if (action === 'payment') return openOrderFinanceOrDelivery(id, 'payment');
+      if (action === 'charge') return openOrderFinanceOrDelivery(id, 'charge');
     });
   });
 };
@@ -240,7 +270,7 @@ const renderAlerts = () => {
     .map(
       (item) => `
         <div class="alert ${item.class}">
-          <i class="lucide lucide-${item.icon}"></i>
+          <i class="fa-solid fa-${item.icon}"></i>
           <div>
             <div class="title">${item.title}</div>
             <div class="desc">${item.desc}</div>
@@ -286,9 +316,8 @@ const renderTimeline = (order) => {
     .filter((payment) => Number(payment.valor || payment.valor_pago || 0) > 0)
     .sort((a, b) => new Date(a.data_pagamento || 0) - new Date(b.data_pagamento || 0))[0] || null;
 
-  const deliveredStatuses = ["ENTREGUE", "RETIRADO", "CONFERENCIA", "PENDENTE", "FINALIZADO"];
   // A entrega deve ser considerada concluída somente pelo status do pedido
-  const isDelivered = deliveredStatuses.includes(order.status);
+  const isDelivered = order.status === "ENTREGUE";
 
   const totalQty = itens.reduce((sum, item) => sum + Number(item.quantidade || 0), 0);
   const returnedQty = itens.reduce((sum, item) => sum + Number(item.quantidade_devolvida || 0), 0);
@@ -317,14 +346,14 @@ const renderTimeline = (order) => {
       title: "Pedido criado",
       state: "done",
       label: "Concluído",
-      icon: "✓",
+      icon: "fa-circle-check",
       meta: createdDate ? formatDateTime(createdDate) : "Data de criação não informada",
     },
     {
       title: "Primeiro pagamento",
       state: firstPayment ? "done" : "waiting",
       label: firstPayment ? "Concluído" : "Aguardando",
-      icon: firstPayment ? "✓" : "●",
+      icon: firstPayment ? "fa-circle-check" : "fa-circle",
       meta: firstPayment
         ? `${formatDateTime(firstPayment.data_pagamento)} • ${formatMoney(firstPayment.valor || 0)}`
         : "Ainda não há pagamento registrado",
@@ -333,7 +362,7 @@ const renderTimeline = (order) => {
       title: "Pedido entregue",
       state: isDelivered ? "done" : "waiting",
       label: isDelivered ? "Concluído" : "Aguardando",
-      icon: isDelivered ? "✓" : "●",
+      icon: isDelivered ? "fa-circle-check" : "fa-circle",
       meta: isDelivered
         ? `${order.responsavel_entrega || "Responsável não informado"} • ${formatDateTime(order.data_entrega || order.data_retirada || order.data_evento)}`
         : "Entrega ainda não confirmada",
@@ -343,7 +372,7 @@ const renderTimeline = (order) => {
       // marcada como concluída somente se houver devolução registrada e todos os itens devolvidos
       state: devolucoes.length > 0 && allItemsReturned ? "done" : devolucoes.length > 0 && pendingReturnQty > 0 ? "pending" : "waiting",
       label: devolucoes.length > 0 && allItemsReturned ? "Concluído" : devolucoes.length > 0 && pendingReturnQty > 0 ? "Pendência" : "Aguardando",
-      icon: devolucoes.length > 0 && allItemsReturned ? "✓" : devolucoes.length > 0 && pendingReturnQty > 0 ? "!" : "●",
+      icon: devolucoes.length > 0 && allItemsReturned ? "fa-circle-check" : devolucoes.length > 0 && pendingReturnQty > 0 ? "fa-triangle-exclamation" : "fa-circle",
       meta: devolucoes.length > 0 && allItemsReturned
         ? `${devolucoes[devolucoes.length - 1]?.responsavel || "Responsável não informado"} • ${formatDateTime(devolucoes[devolucoes.length - 1]?.data_devolucao || order.data_retirada)}`
         : devolucoes.length > 0 && pendingReturnQty > 0
@@ -354,7 +383,7 @@ const renderTimeline = (order) => {
       title: "Conferência",
       state: conferenceCompleted ? "done" : "waiting",
       label: conferenceCompleted ? "Concluído" : "Aguardando",
-      icon: conferenceCompleted ? "✓" : "●",
+      icon: conferenceCompleted ? "fa-circle-check" : "fa-circle",
       meta: conferenceCompleted
         ? "Conferência finalizada"
         : "Aguardando finalização da conferência",
@@ -363,7 +392,7 @@ const renderTimeline = (order) => {
       title: finalStepCompleted ? "Pedido finalizado" : "Pendências",
       state: finalStepCompleted ? "done" : "pending",
       label: finalStepCompleted ? "Concluído" : "Pendência",
-      icon: finalStepCompleted ? "✓" : "!",
+      icon: finalStepCompleted ? "fa-circle-check" : "fa-triangle-exclamation",
       meta: finalStepCompleted ? "Todos os critérios do aluguel foram concluídos" : pendingReasons.join(" • "),
     },
   ];
@@ -382,7 +411,7 @@ const renderTimeline = (order) => {
           return `
             <div style="display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border-radius:12px; border:${style.border}; background:${style.background};">
               <div style="width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; background:${style.dot}; flex-shrink:0;">
-                ${step.icon}
+                <i class="fa-solid ${step.icon}" aria-hidden="true"></i>
               </div>
               <div style="flex:1; min-width:0;">
                 <div style="display:flex; justify-content:space-between; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -407,8 +436,8 @@ const renderOrderPanels = (order) => {
     .map(
       (item) => `
         <tr>
-          <td>${item.produto_nome || item.nome || "-"}</td>
-          <td>${item.quantidade}</td>
+          <td>${item.combo_nome || item.produto_nome || item.nome || "—"}</td>
+          <td>${item.quantidade ?? "—"}</td>
           <td>${formatMoney(item.valor_unitario)}</td>
           <td>${formatMoney(item.subtotal)}</td>
         </tr>
@@ -473,7 +502,7 @@ const renderOrderPanels = (order) => {
     <div class="section-card">
       <div class="section-title">Situação financeira</div>
       <div class="field-row"><span class="l">Pagamento</span><span class="v">${renderBadge(pagamentoLabel, order.valor_pago < order.valor_total ? "warning" : "success")}</span></div>
-      <div class="field-row"><span class="l">Entrega</span><span class="v">${renderBadge(deliveryStatus(order.status), ["ENTREGUE", "RETIRADO", "FINALIZADO"].includes(order.status) ? "success" : "info")}</span></div>
+      <div class="field-row"><span class="l">Entrega</span><span class="v">${renderBadge(deliveryStatus(order.status), order.status === "ENTREGUE" ? "success" : "info")}</span></div>
     </div>
     <div class="section-card">
       <div class="section-title">Histórico de pagamentos</div>
@@ -521,7 +550,7 @@ const renderOrderPanels = (order) => {
       const danificada = 0;
       return `
         <tr>
-          <td>${item.produto_nome || item.nome || "-"}</td>
+          <td>${item.combo_nome || item.produto_nome || item.nome || "—"}</td>
           <td>${enviada}</td>
           <td>${entregue}</td>
           <td>${devolvida}</td>
@@ -604,13 +633,9 @@ const renderOrderPanels = (order) => {
 
   setTimeout(() => {
     const deliveryBtn = document.getElementById("show-delivery-modal");
-    if (deliveryBtn) {
-      deliveryBtn.addEventListener("click", () => openDeliveryModal(order));
-    }
+    if (deliveryBtn) deliveryBtn.onclick = () => openDeliveryModal(order);
     const returnBtn = document.getElementById("show-return-modal");
-    if (returnBtn) {
-      returnBtn.addEventListener("click", () => openReturnModal(order));
-    }
+    if (returnBtn) returnBtn.onclick = () => openReturnModal(order);
   }, 0);
 
   const openFinanceModal = (mode) => {
@@ -640,7 +665,7 @@ const renderOrderPanels = (order) => {
         return;
       }
 
-      if (!text) {
+      if (mode === "charge" && !text) {
         alert("Informe uma descrição ou observação.");
         return;
       }
@@ -681,28 +706,26 @@ const renderOrderPanels = (order) => {
     $("finance-modal").classList.remove("open");
   };
 
-  $("show-pay-form").addEventListener("click", () => openFinanceModal("payment"));
-  $("gen-charge").addEventListener("click", () => openFinanceModal("charge"));
-  $("finance-cancel-btn").addEventListener("click", closeFinanceModal);
-  $("finance-modal").addEventListener("click", (event) => {
+  $("show-pay-form").onclick = () => openFinanceModal("payment");
+  $("gen-charge").onclick = () => openFinanceModal("charge");
+  $("finance-cancel-btn").onclick = closeFinanceModal;
+  $("finance-modal").onclick = (event) => {
     if (event.target.id === "finance-modal") closeFinanceModal();
-  });
-  $("delivery-cancel-btn").addEventListener("click", closeDeliveryModal);
-  $("delivery-confirm-btn").addEventListener("click", markEntregue);
-  $("delivery-modal").addEventListener("click", (event) => {
+  };
+  $("delivery-cancel-btn").onclick = closeDeliveryModal;
+  $("delivery-confirm-btn").onclick = markEntregue;
+  $("delivery-modal").onclick = (event) => {
     if (event.target.id === "delivery-modal") closeDeliveryModal();
-  });
-  $("return-cancel-btn").addEventListener("click", closeReturnModal);
-  $("return-confirm-btn").addEventListener("click", submitReturn);
-  $("return-modal").addEventListener("click", (event) => {
+  };
+  $("return-cancel-btn").onclick = closeReturnModal;
+  $("return-confirm-btn").onclick = submitReturn;
+  $("return-modal").onclick = (event) => {
     if (event.target.id === "return-modal") closeReturnModal();
-  });
+  };
 
   setTimeout(() => {
     const returnBtn = document.getElementById("show-return-modal");
-    if (returnBtn) {
-      returnBtn.addEventListener("click", () => openReturnModal(order));
-    }
+    if (returnBtn) returnBtn.onclick = () => openReturnModal(order);
   }, 0);
 
   const occurrences = [];
@@ -715,7 +738,7 @@ const renderOrderPanels = (order) => {
         .map(
           (occ) => `
             <div class="alert a-warning" style="margin-bottom:12px;">
-              <i class="lucide lucide-alert-circle"></i>
+              <i class="fa-solid fa-triangle-exclamation"></i>
               <div>
                 <div class="title">${occ.type} • ${formatDate(occ.date)}</div>
                 <div class="desc">${occ.description}</div>
@@ -724,7 +747,7 @@ const renderOrderPanels = (order) => {
           `
         )
         .join("")
-    : `<div class="alert a-success"><i class="lucide lucide-check-circle"></i><div><div class="title">Sem ocorrências</div><div class="desc">Nenhuma anotação registrada para este pedido.</div></div></div>`;
+    : `<div class="alert a-success"><i class="fa-solid fa-circle-check"></i><div><div class="title">Sem ocorrências</div><div class="desc">Nenhuma anotação registrada para este pedido.</div></div></div>`;
 
   // adicionar formulário rápido de ocorrência
   const ocoForm = document.createElement('div');
@@ -752,6 +775,16 @@ const openDeliveryModal = (order) => {
 
 const closeDeliveryModal = () => {
   $("delivery-modal").classList.remove("open");
+};
+
+const openOrderFinanceOrDelivery = async (id, mode) => {
+  await openOrderModal(id);
+  const buttonId = mode === "delivery"
+    ? "show-delivery-modal"
+    : mode === "payment"
+      ? "show-pay-form"
+      : "gen-charge";
+  document.getElementById(buttonId)?.click();
 };
 
 const openReturnModal = (order) => {
@@ -1017,12 +1050,14 @@ const openOrderModal = async (id) => {
     const order = await res.json();
 
     const normalized = normalizeOrder(order);
+    currentOrderContext = normalized;
 
     renderOrderHeader(normalized);
     renderTimeline(normalized);
     renderOrderPanels(normalized);
 
     $("modal").classList.add("open");
+    return normalized;
   } catch (error) {
     console.error("openOrderModal error:", error);
     alert("Erro ao abrir o pedido: " + error.message);

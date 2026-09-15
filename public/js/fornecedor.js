@@ -457,11 +457,11 @@ function renderTable() {
                 <td>${fornecedor.status}</td>
                 <td style="text-align:center">
 
-                <button onclick="viewSupplier(${fornecedor.id})">👁</button>
+                <button class="iconbtn" title="Visualizar" aria-label="Visualizar" onclick="viewSupplier(${fornecedor.id})"><i class="fa-solid fa-eye"></i></button>
 
-                <button onclick="editSupplier(${fornecedor.id})">✏️</button>
+                <button class="iconbtn" title="Editar" aria-label="Editar" onclick="editSupplier(${fornecedor.id})"><i class="fa-solid fa-pen"></i></button>
 
-                <button onclick="deleteSupplier(${fornecedor.id})">🗑️</button>
+                <button class="iconbtn" title="Excluir" aria-label="Excluir" onclick="deleteSupplier(${fornecedor.id})"><i class="fa-solid fa-trash"></i></button>
             </td>
         </tr>`;
     });

@@ -84,8 +84,8 @@
   <section id="view-auditoria" class="hidden">
     <div class="panel" style="margin-top:0">
       <div class="panel-head">
-        <div><h3>🧾 Histórico de ações (Auditoria)</h3><div class="sub" id="auditCount">—</div></div>
-        <button class="btn btn-soft btn-sm" onclick="UI.simulateActivity()">⚡ Simular ação</button>
+        <div><h3><i class="fa-solid fa-receipt"></i> Histórico de ações (Auditoria)</h3><div class="sub" id="auditCount">—</div></div>
+        <button class="btn btn-soft btn-sm" onclick="UI.simulateActivity()"><i class="fa-solid fa-bolt"></i> Simular ação</button>
       </div>
       <div class="toolbar">
         <div class="field search"><label>Pesquisar</label><input type="text" id="aSearch" placeholder="Funcionário, ação ou módulo..." oninput="UI.renderAudit()"></div>
@@ -103,7 +103,7 @@
   <!-- ================= VIEW: SEGURANÇA ================= -->
   <section id="view-seguranca" class="hidden">
     <div class="panel" style="margin-top:0">
-      <div class="panel-head"><div><h3>🛡 Controle de segurança</h3><div class="sub">Sessões, acessos e tentativas de login por usuário</div></div></div>
+      <div class="panel-head"><div><h3><i class="fa-solid fa-shield-halved"></i> Controle de segurança</h3><div class="sub">Sessões, acessos e tentativas de login por usuário</div></div></div>
       <div class="table-wrap">
         <table style="min-width:940px">
           <thead><tr><th>Funcionário</th><th>Último login</th><th>Qtd. acessos</th><th>IP do último acesso</th><th>Tentativas falhas</th><th>Criado em</th><th>Situação</th></tr></thead>
@@ -119,13 +119,13 @@
   <div class="modal">
     <div class="modal-head">
       <div><h3 id="empTitle">Novo funcionário</h3><div class="sub">Dados pessoais, acesso e permissões por módulo</div></div>
-      <button class="close" onclick="UI.close('mdEmployee')">✕</button>
+      <button class="close" onclick="UI.close('mdEmployee')" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
       <form id="empForm" onsubmit="return false">
         <input type="hidden" id="empId">
 
-        <div class="section-title">👤 Dados pessoais</div>
+        <div class="section-title"><i class="fa-solid fa-user"></i> Dados pessoais</div>
         <div class="upload">
           <div class="avatar lg" id="empAvatar">SF</div>
           <div>
@@ -143,14 +143,14 @@
           <div class="field"><label>Cargo personalizado</label><input type="text" id="empCustomRole" placeholder="Usado quando o cargo for Personalizado"></div>
         </div>
 
-        <div class="section-title">🔑 Dados de acesso</div>
+        <div class="section-title"><i class="fa-solid fa-key"></i> Dados de acesso</div>
         <div class="grid g3">
           <div class="field"><label>Email de login *</label><input type="email" id="empEmail" placeholder="nome@servefesta.com.br"></div>
           <div class="field"><label>Senha</label><input type="password" id="empPass" placeholder="••••••••"></div>
           <div class="field"><label>Confirmar senha</label><input type="password" id="empPass2" placeholder="••••••••"></div>
         </div>
 
-        <div class="section-title">⚙ Status</div>
+        <div class="section-title"><i class="fa-solid fa-gear"></i> Status</div>
         <div class="grid g2">
           <label class="check"><input type="checkbox" id="empActive" checked> Usuário ativo</label>
           <label class="check"><input type="checkbox" id="empLogin" checked> Permitir login no sistema</label>
@@ -175,7 +175,7 @@
   <div class="modal">
     <div class="modal-head">
       <div><h3 id="permTitle">Alterar permissões</h3><div class="sub">Controle de acesso por módulo do ERP</div></div>
-      <button class="close" onclick="UI.close('mdPerms')">✕</button>
+      <button class="close" onclick="UI.close('mdPerms')" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
       <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
@@ -195,7 +195,7 @@
   <div class="modal">
     <div class="modal-head">
       <div><h3>Perfil do funcionário</h3><div class="sub">Dados, permissões atuais, segurança e atividade</div></div>
-      <button class="close" onclick="UI.close('mdProfile')">✕</button>
+      <button class="close" onclick="UI.close('mdProfile')" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body" id="profileBody"></div>
     <div class="modal-foot"><button class="btn btn-outline" onclick="UI.close('mdProfile')">Fechar</button></div>
@@ -536,7 +536,7 @@ const UI = {
         </div>
       </div>
 
-      <div class="section-title">📇 Dados cadastrais</div>
+      <div class="section-title"><i class="fa-solid fa-address-card"></i> Dados cadastrais</div>
       <div class="info-grid">
         <div class="info"><div class="k">CPF</div><div class="v">${e.cpf||"—"}</div></div>
         <div class="info"><div class="k">Nascimento</div><div class="v">${fmtDate(e.birth)}</div></div>
@@ -550,7 +550,7 @@ const UI = {
           <div class="perm-tags">${ACTION_KEYS.filter(k=>e.perms[m.id][k]).map(k=>`<span class="badge ok">${m.actions[k]}</span>`).join("")}</div>
         </div>`).join("")}</div>` : `<p style="color:var(--ink-3)">Nenhum módulo liberado para este usuário.</p>`}
 
-      <div class="section-title">🛡 Controle de segurança</div>
+      <div class="section-title"><i class="fa-solid fa-shield-halved"></i> Controle de segurança</div>
       <div class="info-grid">
         <div class="info"><div class="k">Último login</div><div class="v">${fmtDT(e.lastAccess)}</div></div>
         <div class="info"><div class="k">Quantidade de acessos</div><div class="v">${e.security.logins}</div></div>
@@ -559,7 +559,7 @@ const UI = {
         <div class="info"><div class="k">Data de criação</div><div class="v">${fmtDate(e.createdAt)}</div></div>
       </div>
 
-      <div class="section-title">🕘 Atividade recente</div>
+      <div class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Atividade recente</div>
       ${acts.length? `<ul class="timeline">${acts.map(a=>`
         <li><div style="font-weight:600">${a.action}</div><div class="t">${a.module} • ${fmtDate(a.at)} ${fmtTime(a.at)}</div></li>`).join("")}</ul>`
         : `<p style="color:var(--ink-3)">Nenhuma atividade registrada.</p>`}`;

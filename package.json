@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
-    "test": "node tests/estoque.regras.test.mjs"
+    "test": "node tests/estoque.regras.test.mjs && node tests/estoque.integracao.test.mjs",
+    "db:migrate": "node scripts/db/migrate.js",
+    "db:seed": "node scripts/db/seed.js"
   },
   "keywords": [],
   "author": "",

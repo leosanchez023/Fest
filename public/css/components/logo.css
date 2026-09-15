@@ -8,7 +8,7 @@
     width: 40px;
     height: 40px;
     border-radius: 12px;
-    background: #6366f1;
+    background: var(--grad-primary);
     color: #fff;
     display: flex;
     justify-content: center;
@@ -23,5 +23,5 @@
 
 .logo small {
     font-size: .75rem;
-    color: #64748b;
+    color: var(--color-text-muted);
 }

@@ -1,7 +1,7 @@
 .estoque-wrap {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 0 0 24px;
 }
 
 .estoque-header {
@@ -22,15 +22,15 @@
 .kpi-card {
   padding: 18px 16px;
   border-radius: 14px;
-  background: #f6f7fb;
-  border: 1px solid #e3e7ef;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .kpi-card span {
-  color: #5c6476;
+  color: var(--color-text-muted);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -38,15 +38,15 @@
 
 .kpi-card strong {
   font-size: 26px;
-  color: #1f2837;
+  color: var(--color-text);
 }
 
-.kpi-card.green { background: #ebfff3; border-color: #b7ecc9; }
-.kpi-card.blue { background: #edf6ff; border-color: #bfdcff; }
-.kpi-card.purple { background: #f5eeff; border-color: #d8c8ff; }
-.kpi-card.amber { background: #fff9ed; border-color: #f7df9a; }
-.kpi-card.red { background: #fff1f1; border-color: #ffc1c1; }
-.kpi-card.slate { background: #f0f3f9; border-color: #d7ddeb; }
+.kpi-card.green { background: #effaf4; border-color: #b6e7d0; }
+.kpi-card.blue { background: #eef6fb; border-color: #bfd9ec; }
+.kpi-card.purple { background: var(--color-primary-light); border-color: #a8ded8; }
+.kpi-card.amber { background: #fff8e9; border-color: #f1d18d; }
+.kpi-card.red { background: #fdebed; border-color: #f2bfc5; }
+.kpi-card.slate { background: #f1f5f6; border-color: #d3e0e4; }
 
 .estoque-panel {
   padding: 18px;
@@ -69,7 +69,19 @@
 .badge-success { background: #dff7ea; color: #1d7a46; }
 .badge-warning { background: #fff0d5; color: #a56600; }
 .badge-info { background: #dfeeff; color: #2359a8; }
-.badge-purple { background: #f0e8ff; color: #5e39b1; }
+.badge-purple { background: var(--color-primary-light); color: var(--color-primary-dark); }
 .badge-amber { background: #fff4db; color: #8b6900; }
 .badge-danger { background: #ffe2e2; color: #b42318; }
 .badge-muted { background: #eef1f5; color: #677187; }
+
+.estoque-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) 220px;gap:12px;margin:14px 0 18px}
+.estoque-header .page-meta{flex:1}
+.estoque-header .btn-primary{height:var(--control-height);padding:0 16px;border:0;border-radius:var(--control-radius);background:var(--color-primary);color:#fff;cursor:pointer}
+.estoque-panel h2{font-size:16px;color:var(--color-text)}
+.iconbtn{width:32px;height:32px;border:1px solid var(--color-border);border-radius:7px;background:var(--color-card);color:var(--color-primary-dark);cursor:pointer}
+.iconbtn:hover{background:var(--color-primary-light)}
+
+@media(max-width:700px){
+  .estoque-header{align-items:flex-start;flex-direction:column}
+  .estoque-toolbar{grid-template-columns:1fr}
+}

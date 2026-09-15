@@ -8,6 +8,7 @@ import session from "express-session";
 import flash from "connect-flash";
 import passport from 'passport';
 import auth from "./src/config/auth.js";
+import { protegerAplicacao } from "./src/config/access.js";
 
 
 const app = express();
@@ -22,15 +23,26 @@ const __dirname = path.dirname(__filename);
 
 //Configuraçoes
     // SESSION
+        const sessionSecret = process.env.SESSION_SECRET;
+        if (!sessionSecret) {
+            throw new Error("SESSION_SECRET não configurado.");
+        }
         app.use(session({
-        secret: "segredoqualquer",
+        secret: sessionSecret,
         resave: false,
-        saveUninitialized: true
+        saveUninitialized: false,
+        cookie: {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 1000 * 60 * 60 * 8
+        }
         }));
         auth(passport);             
         app.use(passport.initialize());
         app.use(passport.session());
         app.use(flash());
+        app.use(protegerAplicacao);
     //Middleware
         app.use((req, res, next) => {
         res.locals.success_msg = req.flash("success_msg");

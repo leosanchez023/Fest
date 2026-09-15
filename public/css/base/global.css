@@ -20,7 +20,7 @@ h2 {
 
 .subtitle {
     font-size: .9rem;
-    color: #6b7394;
+    color: var(--color-text-muted);
     margin-top: .25rem;
 }
 .muted {

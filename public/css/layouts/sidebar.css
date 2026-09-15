@@ -8,28 +8,31 @@
     left: 0;
     top: 0;
     bottom: 0;
-    background: var(--card);
+    background: var(--color-sidebar);
+    color: #e7f3f5;
     border-right: 1px solid var(--border);
-    padding: 18px 12px;
+    background: var(--color-sidebar);
+    padding: 20px 14px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     z-index: 40;
 }
 
-.sidebar .sidebar-header{display:flex;align-items:center;padding:6px 4px}
+.sidebar .sidebar-header{display:flex;align-items:center;padding:4px 6px 18px;border-bottom:1px solid rgba(231,243,245,.12)}
 .sidebar .sidebar-brand{display:flex;align-items:center;gap:10px}
-.brand-logo{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:var(--grad-primary);color:var(--primary-fg);font-size:18px}
-.brand-title{font-weight:800;font-size:16px}
-.brand-sub{font-size:12px;color:var(--muted)}
+.sidebar-toggle{display:none;margin-left:auto;width:32px;height:32px;border:1px solid rgba(231,243,245,.2);border-radius:7px;background:transparent;color:#c4d6db;cursor:pointer}
+.brand-logo{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:var(--grad-primary);color:var(--primary-fg);font-size:17px;box-shadow:0 8px 18px rgba(15,159,146,.22)}
+.brand-title{font-weight:800;font-size:16px;color:#ffffff}
+.brand-sub{font-size:11px;color:#a9c1c8;margin-top:2px}
 
 .sidebar-nav{
-    padding: 6px 4px;
+    padding: 12px 0 6px;
     display:flex;flex-direction:column;gap:6px;overflow:auto;
 }
 
-.sidebar-section{padding-top:6px}
-.sidebar-section-title{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;padding:8px 10px}
+.sidebar-section{padding-top:12px}
+.sidebar-section-title{font-size:10px;color:#8eabb4;font-weight:800;text-transform:uppercase;letter-spacing:.09em;padding:8px 12px}
 
 /* ==========================================
    NAV ITEM
@@ -45,25 +48,42 @@
     padding: 10px 12px;
     border-radius: 8px;
     font-size: 14px;
-    color: var(--muted);
+    color: #c4d6db;
     transition: background .12s, color .12s, transform .12s;
 }
 
-.nav-item .ni{width:20px;text-align:center}
+.nav-item .ni{width:20px;text-align:center;color:#91b1ba;font-size:14px}
 .nav-item span{flex:1}
 
 /* separator for footer */
-.sidebar-footer{margin-top:auto;padding:12px 8px;display:flex;flex-direction:column;gap:8px}
-.sidebar-footer .copyright{font-size:12px;color:var(--muted)}
+.sidebar-footer{margin-top:auto;padding:14px 0 2px;display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(231,243,245,.12)}
+.sidebar-user{display:flex;align-items:center;gap:10px;padding:4px 10px 8px}
+.sidebar-user-avatar{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:rgba(15,159,146,.2);color:#8de0d6;font-size:13px}
+.sidebar-user-copy{display:flex;flex-direction:column;min-width:0;gap:2px}
+.sidebar-user-copy strong{font-size:12px;color:#f4fbfc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user-copy small{font-size:10px;color:#91b1ba}
+.sidebar-footer .copyright{font-size:10px;color:#7898a2;padding:0 10px}
 
 
 /* HOVER */
-.nav-item:hover {background: rgba(15,23,42,.03);color:var(--fg);}
-.nav-item.active {background: rgba(99,102,241,.08);color:var(--primary);font-weight:700}
+.nav-item:hover {background: var(--color-sidebar-hover);color:#ffffff;}
+.nav-item:hover .ni,.nav-item.active .ni {color:#ffffff}
+.nav-item.active {background: var(--color-primary);color:#ffffff;font-weight:700;box-shadow:0 8px 16px rgba(15,159,146,.16)}
 
 /* responsive: mobile collapsed */
 @media(max-width:900px){
-    .sidebar{position:relative;width:100%;height:auto;border-right:0}
+    .sidebar{position:fixed;width:250px;height:100vh;border-right:1px solid rgba(231,243,245,.12);transform:translateX(0);transition:transform .2s ease}
+    .sidebar-toggle{display:grid;place-items:center}
+    .sidebar.is-collapsed{transform:translateX(calc(-100% + 54px))}
+    .sidebar.is-collapsed .brand-info,
+    .sidebar.is-collapsed .sidebar-section-title,
+    .sidebar.is-collapsed .nav-item span,
+    .sidebar.is-collapsed .sidebar-user-copy,
+    .sidebar.is-collapsed .copyright{display:none}
+    .sidebar.is-collapsed .sidebar-header{justify-content:flex-end}
+    .sidebar.is-collapsed .sidebar-brand{display:none}
+    .sidebar.is-collapsed .nav-item{justify-content:center;padding-left:0;padding-right:0}
+    .sidebar.is-collapsed .sidebar-user{justify-content:center;padding-left:0;padding-right:0}
     .app-main{margin-left:0}
 }
 

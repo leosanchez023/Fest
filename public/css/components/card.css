@@ -1,18 +1,28 @@
 .card {
-    background: #fff;
-    padding: 1.5rem;
-    border: 1px solid #e5e7ee;
-    border-radius: 14px; 
-    margin-top: 1.2rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    background: var(--color-card);
+    padding: 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    margin-top: 1rem;
+    box-shadow: var(--shadow);
 }
 
 .card-title {
     font-size: 1rem;
     font-weight: 600;
     margin-bottom: 1rem;
+    color: var(--color-text);
 }
 .card h2 {
     font-size: 16px;
     margin-bottom: 16px;
 }
+
+/* Superfície de cadastro e listagem de combos */
+#combo-busca,
+#combo-status{min-width:0}
+#combo-table-body td{vertical-align:middle}
+#combo-modal-title{font-size:18px;font-weight:750}
+#combo-close{width:32px;height:32px;border-radius:7px}
+#combo-close:hover{background:rgba(255,255,255,.12)}
+#combo-itens{padding-top:2px}

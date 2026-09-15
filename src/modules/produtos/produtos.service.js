@@ -1,4 +1,5 @@
 import * as model from "./produtos.model.js";
+import * as estoqueService from "../estoque/estoque.service.js";
 
 
 // ======================================
@@ -88,6 +89,24 @@ export async function atualizar(id, dados) {
 
   }
 
+
+  const produtoAtual = await model.buscarPorId(id);
+  if (!produtoAtual) throw new Error("Produto não encontrado.");
+
+  const estoqueAtual = Number(produtoAtual.estoque || 0);
+  const estoqueDesejado = Number(dados.estoque || 0);
+  if (!Number.isFinite(estoqueDesejado) || estoqueDesejado < 0) {
+    throw new Error("Estoque inválido.");
+  }
+
+  if (estoqueDesejado !== estoqueAtual) {
+    await estoqueService.registrarAjuste({
+      produtoId: Number(id),
+      quantidade: estoqueDesejado - estoqueAtual,
+      usuarioId: dados.usuario_id || null,
+      observacao: "Ajuste de estoque na edição do produto"
+    });
+  }
 
   return await model.atualizar(
     id,
@@ -186,15 +205,12 @@ export async function entradaEstoque(id, dados) {
   }
 
 
-  return await model.entradaEstoque(
-
-    id,
-
+  return await estoqueService.registrarEntrada({
+    produtoId: Number(id),
     quantidade,
-
-    dados.observacao || ""
-
-  );
+    usuarioId: dados.usuario_id || null,
+    observacao: dados.observacao || ''
+  });
 
 
 }
@@ -222,15 +238,12 @@ export async function saidaEstoque(id, dados) {
   }
 
 
-  return await model.saidaEstoque(
-
-    id,
-
+  return await estoqueService.registrarSaida({
+    produtoId: Number(id),
     quantidade,
-
-    dados.observacao || ""
-
-  );
+    usuarioId: dados.usuario_id || null,
+    observacao: dados.observacao || ''
+  });
 
 
 }
@@ -241,7 +254,7 @@ export async function saidaEstoque(id, dados) {
 // RESERVAR PRODUTO
 // ======================================
 
-export async function reservar(id, quantidade) {
+export async function reservar(id, quantidade, pedidoId = null) {
 
 
   quantidade =
@@ -258,13 +271,13 @@ export async function reservar(id, quantidade) {
   }
 
 
-  return await model.reservar(
-
-    id,
-
-    quantidade
-
-  );
+  return await estoqueService.reservarEstoque({
+    produtoId: Number(id),
+    quantidade,
+    pedidoId: pedidoId || null,
+    usuarioId: null,
+    observacao: 'Reserva via produtos módulo'
+  });
 
 
 }
@@ -292,13 +305,14 @@ export async function devolver(id, quantidade) {
   }
 
 
-  return await model.devolver(
-
-    id,
-
-    quantidade
-
-  );
+  return await estoqueService.registrarDevolucao({
+    produtoId: Number(id),
+    quantidade,
+    tipo: 'BOA',
+    pedidoId: null,
+    usuarioId: null,
+    observacao: 'Devolução via produtos módulo'
+  });
 
 
 }
@@ -311,8 +325,12 @@ export async function devolver(id, quantidade) {
 
 export async function manutencao(id) {
 
-
-  return await model.manutencao(id);
+  return await estoqueService.enviarParaManutencao({
+    produtoId: Number(id),
+    quantidade: 1,
+    usuarioId: null,
+    observacao: 'Envio para manutenção via produtos módulo'
+  });
 
 
 }
@@ -325,8 +343,13 @@ export async function manutencao(id) {
 
 export async function finalizarManutencao(id) {
 
-
-  return await model.finalizarManutencao(id);
+  return await estoqueService.finalizarManutencao({
+    produtoId: Number(id),
+    quantidade: 1,
+    status: 'REPARADO',
+    usuarioId: null,
+    observacao: 'Finalizar manutenção via produtos módulo'
+  });
 
 
 }

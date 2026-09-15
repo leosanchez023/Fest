@@ -4,6 +4,15 @@
 -- Evita destruição de dados e respeita estruturas existentes.
 
 -- Produtos: campos de estoque profissional
+ALTER TABLE user_permissions
+  ADD COLUMN IF NOT EXISTS estoque TINYINT(1) NOT NULL DEFAULT 0 AFTER pagamentos;
+
+ALTER TABLE pedido_itens
+  ADD COLUMN IF NOT EXISTS tipo_item VARCHAR(10) NOT NULL DEFAULT 'ALUGUEL' AFTER produto_id;
+
+ALTER TABLE pedido_itens
+  ADD COLUMN IF NOT EXISTS combo_id INT NULL AFTER tipo_item;
+
 ALTER TABLE produtos
   ADD COLUMN IF NOT EXISTS estoque_em_uso INT NOT NULL DEFAULT 0 AFTER estoque_reservado,
   ADD COLUMN IF NOT EXISTS estoque_minimo INT NOT NULL DEFAULT 0 AFTER estoque_danificado,
