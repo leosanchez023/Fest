@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="/css/pages/produtos.css">
+<link rel="stylesheet" href="/css/pages/estoque.css">
 
 {{#if error_msg}}
 <div style="color:red; margin-bottom:10px;">
@@ -42,7 +43,7 @@
 
             <div class="stat">
                 <div class="top">
-                    <div class="label">Total de produtos</div>
+                    <div class="label">Total</div>
                     <div class="ico slate"><i class="fa-solid fa-box icon-md"></i></div>
                 </div>
 
@@ -58,7 +59,7 @@
                 </div>
 
                 <div
-                    id="kpi-disponiveis"
+                    id="kpi-disponivel"
                     class="value"
                 >
                     0
@@ -367,43 +368,6 @@
 
 
 <link rel="stylesheet" href="/css/pages/estoque.css">
-
-<div class="estoque-wrap">
-  <div class="estoque-header card">
-    <div class="page-meta" data-title="Controle de Estoque" data-subtitle="Gerencie produtos, estoque, movimentações e disponibilidade"></div>
-    <button type="button" class="btn-primary" onclick="carregarResumo()"><i class="fa-solid fa-rotate icon-sm"></i> Atualizar</button>
-  </div>
-
-  <div class="kpis">
-    <div class="kpi-card">
-      <span>Produtos</span>
-      <strong id="kpi-total">0</strong>
-    </div>
-    <div class="kpi-card green">
-      <span>Físico</span>
-      <strong id="kpi-fisico">0</strong>
-    </div>
-    <div class="kpi-card blue">
-      <span>Reservado</span>
-      <strong id="kpi-reservado">0</strong>
-    </div>
-    <div class="kpi-card purple">
-      <span>Em uso</span>
-      <strong id="kpi-uso">0</strong>
-    </div>
-    <div class="kpi-card amber">
-      <span>Manutenção</span>
-      <strong id="kpi-manutencao">0</strong>
-    </div>
-    <div class="kpi-card red">
-      <span>Danificado</span>
-      <strong id="kpi-danificado">0</strong>
-    </div>
-    <div class="kpi-card slate">
-      <span>Disponível</span>
-      <strong id="kpi-disponivel">0</strong>
-    </div>
-  </div>
 
   <div class="card estoque-panel">
     <h2>Resumo por produto</h2>

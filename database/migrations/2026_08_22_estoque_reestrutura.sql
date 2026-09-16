@@ -138,3 +138,11 @@ ALTER TABLE movimentacao_estoque
   ADD CONSTRAINT fk_mov_estoque_usuario
   FOREIGN KEY (usuario_id) REFERENCES usuario(id)
   ON DELETE SET NULL;
+
+-- =====================================================
+-- PRODUTOS - CONTROLE PROFISSIONAL DE ESTOQUE
+-- =====================================================
+
+ALTER TABLE produtos
+    ADD COLUMN IF NOT EXISTS estoque_em_uso INT NOT NULL DEFAULT 0 AFTER estoque_reservado,
+    ADD COLUMN IF NOT EXISTS estoque_minimo INT NOT NULL DEFAULT 0 AFTER estoque_em_uso;
