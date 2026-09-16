@@ -1,6 +1,6 @@
 import * as model from './orcamentos.model.js';
 import db from '../../../database/connection.js';
-import { reservarItensPedido, reservarComponentesCombos, registrarVendaNaTransacao } from '../estoque/estoque.service.js';
+import { reservarItensPedidoComCombos, registrarVendaItensPedidoNaTransacao } from '../estoque/estoque.service.js';
 
 export async function buscarOrcamentos(query) {
   return await model.buscarOrcamentos(query);
@@ -29,26 +29,15 @@ export async function converterParaPedido(id) {
     );
     if (!itens.length) throw new Error('O orçamento precisa ter ao menos um produto.');
 
-    const itensVenda = itens.filter((item) => (item.tipo_item || pedido.tipo_pedido || 'ALUGUEL').toUpperCase() === 'VENDA');
     const itensAluguel = itens.filter((item) => (item.tipo_item || pedido.tipo_pedido || 'ALUGUEL').toUpperCase() !== 'VENDA');
 
-    for (const item of itensVenda) {
-      await registrarVendaNaTransacao(conn, {
-        produtoId: item.produto_id,
-        quantidade: Number(item.quantidade),
-        pedidoId: id,
-        usuarioId: pedido.usuario_id,
-        observacao: 'Venda confirmada na conversão do orçamento'
-      });
-    }
-
-    await reservarItensPedido({
-      conn,
-      itens: itensAluguel.filter((item) => !item.combo_id),
+    await registrarVendaItensPedidoNaTransacao(conn, {
+      itens,
       pedidoId: id,
-      usuarioId: pedido.usuario_id
+      usuarioId: pedido.usuario_id,
+      observacao: 'Venda confirmada na conversão do orçamento'
     });
-    await reservarComponentesCombos({
+    await reservarItensPedidoComCombos({
       conn,
       itens: itensAluguel,
       pedidoId: id,

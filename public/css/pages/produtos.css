@@ -112,6 +112,10 @@
   .b-dam{background:#fef2f2;color:#dc2626}
   .b-ok{background:#ecfdf5;color:#047857}
   .actions{display:flex;gap:6px;justify-content:flex-end}
+  .product-actions{position:relative}
+  .product-menu{position:absolute;right:0;top:36px;z-index:10;min-width:150px;padding:5px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 20px rgba(15,23,42,.12)}
+  .product-menu button{display:block;width:100%;padding:8px 10px;border:0;background:transparent;text-align:left;color:var(--text);cursor:pointer;font-size:13px}
+  .product-menu button:hover{background:#f8fafc}
   .iconbtn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:#fff;color:#475569;
            cursor:pointer;display:grid;place-items:center;font-size:13px}
   .iconbtn:hover{background:#f8fafc}

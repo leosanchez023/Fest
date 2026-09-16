@@ -14,11 +14,11 @@
 {{/if}}
 
 <div class="tabs">
-    <button class="tab active" data-tab="produtos">
+    <button type="button" class="tab active" data-tab="produtos">
         <i class="fa-solid fa-clipboard icon-sm"></i> Produtos Cadastrados
     </button>
 
-    <button class="tab" data-tab="cadastro">
+    <button type="button" class="tab" data-tab="cadastro">
         <i class="fa-solid fa-box icon-sm"></i> Cadastro de Produtos
     </button>
 </div>
@@ -354,7 +354,7 @@
                             <th class="num">Locação</th>
                             <th class="num">Venda</th>
                             <th>Status</th>
-                            <th></th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
 
@@ -395,8 +395,8 @@
             <th>Danificado</th>
             <th>Disponível</th>
             <th>Mínimo</th>
-            <th>Status</th>
-            <th>Ações</th>
+                        <th>Status</th>
+                        <th></th>
           </tr>
         </thead>
         <tbody id="estoque-tbody"></tbody>
@@ -476,6 +476,16 @@
                 <div class="form-grid">
 
                     <div>
+                        <label>Código do Produto</label>
+                        <input
+                            name="codigo"
+                            placeholder="Ex: MES-001"
+                            value="{{produto.codigo}}"
+                            maxlength="50"
+                        >
+                    </div>
+
+                    <div>
                         <label>Nome do Produto</label>
                         <input
                             name="nome"
@@ -514,6 +524,30 @@
                     </div>
 
                     <div>
+                        <label>Fornecedor</label>
+                        <input
+                            id="produto-fornecedor"
+                            name="fornecedor_nome"
+                            list="fornecedores-list"
+                            placeholder="Digite para pesquisar"
+                            value="{{produto.fornecedor}}"
+                            autocomplete="off"
+                        >
+                        <input type="hidden" id="produto-fornecedor-id" name="fornecedor_id" value="{{produto.fornecedor_id}}">
+                        <datalist id="fornecedores-list">
+                            {{#each fornecedores}}
+                                <option value="{{this.nome}}" data-id="{{this.id}}"></option>
+                            {{/each}}
+                        </datalist>
+                        <a href="/fornecedores" target="_blank" rel="noopener">Cadastrar novo fornecedor</a>
+                    </div>
+
+                    <div>
+                        <label>Localização</label>
+                        <input name="localizacao" value="{{produto.localizacao}}" placeholder="Ex: Galpão A">
+                    </div>
+
+                    <div>
                         <label>Estoque</label>
 
                         <input
@@ -546,6 +580,11 @@
                             step="0.01"
                             value="{{produto.preco_aluguel}}"
                         >
+                    </div>
+
+                    <div>
+                        <label>Estoque mínimo</label>
+                        <input name="estoque_minimo" type="number" min="0" value="{{produto.estoque_minimo}}">
                     </div>
 
                 </div>
@@ -686,48 +725,6 @@ const brl = v =>
     });
 
 
-// ==========================================
-// RENDER PRODUTOS
-// ==========================================
-
-function renderProdutos(lista) {
-
-    const tbody = document.getElementById("tbody");
-
-
-    if (!lista.length) {
-
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="12" style="text-align:center">
-                    Nenhum produto encontrado.
-                </td>
-            </tr>
-        `;
-
-        document.getElementById("resultados").textContent = 0;
-
-        return;
-    }
-
-
-
-    tbody.innerHTML = lista.map(p => `
-
-        <tr>
-
-
-            <td>
-
-                <div class="thumb">
-
-                    ${
-                        p.imagem
-                        ?
-                        `<img src="${p.imagem}" alt="${p.nome}">`
-                        :
-                        "<i class=\"fa-solid fa-box icon-md\"></i>"
-                    }
 
                 </div>
 
@@ -831,37 +828,15 @@ function renderProdutos(lista) {
 
             <td>
 
-                <div class="actions">
-
-
-                    <button class="iconbtn" onclick="visualizarProduto(${p.id})"><i class="fa-solid fa-eye"></i></button>
-
-
-
-                    <button class="iconbtn" onclick="editarProduto(${p.id})"><i class="fa-solid fa-pen"></i></button>
-
-
-
-                    <button
-                        class="iconbtn"
-                        onclick="duplicarProduto(${p.id})">
-
-                        ⧉
-
+                <div class="actions product-actions">
+                    <button class="iconbtn" type="button" title="Ações" aria-label="Ações do produto" onclick="alternarMenuProduto(${p.id})">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
-
-
-
-                    <button
-                        class="iconbtn"
-                        onclick="baixarEstoque(${p.id})">
-
-                        ⤓
-
-                    </button>
-
-
-
+                    <div class="product-menu" id="menu-produto-${p.id}" hidden>
+                        <button type="button" onclick="visualizarProduto(${p.id})">Visualizar</button>
+                        <button type="button" onclick="editarProduto(${p.id})">Editar</button>
+                        <button type="button" onclick="alterarPrecoProduto(${p.id})">Alterar preço</button>
+                    </div>
                 </div>
 
             </td>
@@ -890,9 +865,17 @@ async function carregarProdutos(){
     try{
 
 
-        const resposta = await fetch(
-            "/produtos/api"
-        );
+        const params = new URLSearchParams();
+        const busca = document.getElementById("busca")?.value || "";
+        const categoria = document.getElementById("filtro-categoria")?.value || "";
+        const fornecedor = document.getElementById("filtro-fornecedor")?.value || "";
+        const status = document.getElementById("filtro-status")?.value || "";
+        if (busca) params.set("busca", busca);
+        if (categoria) params.set("categoria", categoria);
+        if (fornecedor) params.set("fornecedor", fornecedor);
+        if (status) params.set("status", status);
+
+        const resposta = await fetch(`/produtos/api?${params}`);
 
 
         const produtos = await resposta.json();
@@ -938,14 +921,14 @@ async function carregarDashboard(){
 
 
         document.getElementById(
-            "kpi-total-produtos"
+            "kpi-total"
         ).textContent =
             dados.total || 0;
 
 
 
         document.getElementById(
-            "kpi-disponiveis"
+            "kpi-disponivel"
         ).textContent =
             dados.disponiveis || 0;
 
@@ -1014,23 +997,91 @@ document
 
 
 
-    const resposta = await fetch(
-
-        `/produtos/api?busca=${encodeURIComponent(busca)}`
-
-    );
-
-
-
-    const produtos = await resposta.json();
-
-
-
-    renderProdutos(produtos);
+    await carregarProdutos();
 
 
 
 });
+
+document.querySelectorAll("#filtro-categoria, #filtro-fornecedor, #filtro-status")
+    .forEach((filtro) => filtro.addEventListener("change", carregarProdutos));
+
+async function carregarFornecedores() {
+    const select = document.getElementById("filtro-fornecedor");
+    const resposta = await fetch("/fornecedores/data");
+    const fornecedores = await resposta.json();
+    if (select) select.innerHTML = '<option value="">Todos os fornecedores</option>' + fornecedores
+        .filter((fornecedor) => fornecedor.status === "Ativo")
+        .map((fornecedor) => `<option value="${fornecedor.id}">${fornecedor.nome}</option>`)
+        .join("");
+
+    const lista = document.getElementById("fornecedores-list");
+    if (lista) {
+        lista.innerHTML = fornecedores
+            .filter((fornecedor) => fornecedor.status === "Ativo")
+            .map((fornecedor) => `<option value="${fornecedor.nome}" data-id="${fornecedor.id}"></option>`)
+            .join("");
+    }
+}
+
+function configurarFornecedor() {
+    const campo = document.getElementById("produto-fornecedor");
+    const id = document.getElementById("produto-fornecedor-id");
+    const lista = document.getElementById("fornecedores-list");
+    if (!campo || !id || !lista) return;
+
+    const atualizarId = () => {
+        const opcao = Array.from(lista.options).find((item) => item.value === campo.value.trim());
+        id.value = opcao?.dataset.id || "";
+    };
+    campo.addEventListener("input", atualizarId);
+    campo.addEventListener("change", atualizarId);
+}
+
+function alternarMenuProduto(id) {
+    document.querySelectorAll(".product-menu").forEach((menu) => {
+        if (menu.id !== `menu-produto-${id}`) menu.hidden = true;
+    });
+    const menu = document.getElementById(`menu-produto-${id}`);
+    if (menu) menu.hidden = !menu.hidden;
+}
+
+function editarProduto(id) {
+    window.location.href = `/produtos/editar/${id}`;
+}
+
+async function visualizarProduto(id) {
+    const resposta = await fetch(`/produtos/api/${id}`);
+    const produto = await resposta.json();
+    if (!resposta.ok) return alert(produto.erro || "Produto não encontrado.");
+    alert(`${produto.nome}\nCategoria: ${produto.categoria || "-"}\nFornecedor: ${produto.fornecedor || "-"}\nEstoque: ${produto.estoque || 0}`);
+}
+
+async function alterarPrecoProduto(id) {
+    const resposta = await fetch(`/produtos/api/${id}`);
+    const produto = await resposta.json();
+    if (!resposta.ok) return alert(produto.erro || "Produto não encontrado.");
+    const preco = prompt("Novo preço de locação:", produto.preco_aluguel || 0);
+    if (preco === null) return;
+    const dados = new URLSearchParams({
+        nome: produto.nome,
+        codigo: produto.codigo || "",
+        categoria: produto.categoria || "",
+        tipo: produto.tipo || "",
+        fornecedor_id: produto.fornecedor_id || "",
+        estoque: produto.estoque || 0,
+        precoVenda: produto.preco_venda || 0,
+        precoAluguel: preco,
+        estoque_minimo: produto.estoque_minimo || 0
+    });
+    const atualizacao = await fetch(`/produtos/editar/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: dados
+    });
+    if (atualizacao.ok) window.location.reload();
+    else alert("Não foi possível alterar o preço.");
+}
 
 
 
@@ -1159,17 +1210,11 @@ async function baixarEstoque(id){
 // ==========================================
 
 
-const btnProdutos =
-document.querySelector(
-    '[data-tab="produtos"]'
-);
+const btnProdutos = document.querySelector('[data-tab="produtos"]');
 
 
 
-const btnCadastro =
-document.querySelector(
-    '[data-tab="cadastro"]'
-);
+const btnCadastro = document.querySelector('[data-tab="cadastro"]');
 
 
 
@@ -1188,57 +1233,15 @@ document.getElementById(
 
 
 
-btnProdutos.addEventListener(
-"click",
-()=>{
+function abrirAba(nome) {
+    const cadastro = nome === "cadastro";
+    document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === nome));
+    if (abaProdutos) abaProdutos.style.display = cadastro ? "none" : "block";
+    if (abaCadastro) abaCadastro.style.display = cadastro ? "block" : "none";
+}
 
-
-    document
-    .querySelectorAll(".tab")
-    .forEach(t =>
-        t.classList.remove("active")
-    );
-
-
-
-    btnProdutos.classList.add("active");
-
-
-
-    abaProdutos.style.display="block";
-
-    abaCadastro.style.display="none";
-
-
-});
-
-
-
-
-
-btnCadastro.addEventListener(
-"click",
-()=>{
-
-
-    document
-    .querySelectorAll(".tab")
-    .forEach(t =>
-        t.classList.remove("active")
-    );
-
-
-
-    btnCadastro.classList.add("active");
-
-
-
-    abaProdutos.style.display="none";
-
-    abaCadastro.style.display="block";
-
-
-});
+if (btnProdutos) btnProdutos.addEventListener("click", () => abrirAba("produtos"));
+if (btnCadastro) btnCadastro.addEventListener("click", () => abrirAba("cadastro"));
 
 
 
@@ -1253,6 +1256,9 @@ btnCadastro.addEventListener(
 carregarProdutos();
 
 carregarDashboard();
+
+carregarFornecedores();
+configurarFornecedor();
 
 
 </script>

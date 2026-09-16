@@ -108,7 +108,7 @@ export async function adicionarPagamento(req, res) {
     return res.json({ sucesso: true });
   } catch (err) {
     console.error('Erro adicionarPagamento:', err);
-    return res.status(500).json({ message: 'Erro ao adicionar pagamento' });
+    return res.status(500).json({ message: err.message });
   }
 }
 

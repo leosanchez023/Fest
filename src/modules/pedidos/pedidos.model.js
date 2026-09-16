@@ -1,8 +1,7 @@
 import db from "../../../database/connection.js";
 import {
-  reservarItensPedido,
-  reservarComponentesCombos,
-  registrarVendaNaTransacao,
+  reservarItensPedidoComCombos,
+  registrarVendaItensPedidoNaTransacao,
   ajustarReservasPedidoNaTransacao,
   liberarReservasPedidoNaTransacao
 } from "../estoque/estoque.service.js";
@@ -89,6 +88,23 @@ export async function buscarProdutos(termo) {
     [`%${termo}%`]
   );
 
+  return rows;
+}
+
+export async function buscarItens(termo) {
+  const busca = `%${String(termo || "").trim()}%`;
+  const [rows] = await db.query(
+    `SELECT id, nome, preco_venda, preco_aluguel, 'PRODUTO' AS origem
+     FROM produtos
+     WHERE ativo = 1 AND (nome LIKE ? OR codigo LIKE ?)
+     UNION ALL
+     SELECT id, nome, preco_venda, preco_aluguel, 'COMBO' AS origem
+     FROM combos
+     WHERE ativo = 1 AND (nome LIKE ? OR codigo LIKE ?)
+     ORDER BY nome
+     LIMIT 30`,
+    [busca, busca, busca, busca]
+  );
   return rows;
 }
 
@@ -195,26 +211,14 @@ export async function criarPedido(dados) {
     }
 
     if ((dados.status || '').toUpperCase() === 'CONFIRMADO' || (dados.status || '').toUpperCase() === 'PEDIDO') {
-      const itensVenda = itensPedido.filter((item) => (item.tipo_item || dados.tipo_pedido || 'ALUGUEL').toUpperCase() === 'VENDA');
       const itensAluguel = itensPedido.filter((item) => (item.tipo_item || dados.tipo_pedido || 'ALUGUEL').toUpperCase() !== 'VENDA');
 
-      for (const item of itensVenda) {
-        await registrarVendaNaTransacao(conn, {
-          produtoId: item.produto_id,
-          quantidade: Number(item.quantidade),
-          pedidoId,
-          usuarioId: dados.usuario_id || null,
-          observacao: 'Venda confirmada no pedido'
-        });
-      }
-
-      await reservarItensPedido({
-        conn,
-        itens: itensAluguel.filter((item) => !item.combo_id),
+      await registrarVendaItensPedidoNaTransacao(conn, {
+        itens: itensPedido,
         pedidoId,
         usuarioId: dados.usuario_id || null
       });
-      await reservarComponentesCombos({
+      await reservarItensPedidoComCombos({
         conn,
         itens: itensAluguel,
         pedidoId,
@@ -287,6 +291,11 @@ export async function buscarEnderecos(f) {
     params.push(`%${f.cidade.trim()}%`);
   }
 
+  if (f.referencia) {
+    filtros.push("e.referencia LIKE ?");
+    params.push(`%${f.referencia.trim()}%`);
+  }
+
   const where = filtros.length ? `WHERE ${filtros.join(" AND ")}` : "";
 
   const [rows] = await db.query(
@@ -297,7 +306,8 @@ export async function buscarEnderecos(f) {
       e.numero,
       e.bairro,
       e.cidade,
-      e.estado
+      e.estado,
+      e.referencia
     FROM endereco e
     ${where}
     ORDER BY e.rua
@@ -314,12 +324,13 @@ export async function criarEndereco(dados) {
   const bairro = dados.bairro?.trim();
   const cidade = dados.cidade?.trim();
   const estado = dados.estado?.trim();
+  const referencia = dados.referencia?.trim();
 
   const [existe] = await db.query(
     `SELECT id FROM endereco
-     WHERE rua = ? AND numero = ? AND cidade = ? AND estado = ?
+     WHERE rua = ? AND numero = ? AND cidade = ? AND estado = ? AND referencia <=> ?
      LIMIT 1`,
-    [rua, numero, cidade, estado]
+    [rua, numero, cidade, estado, referencia || null]
   );
 
   if (existe.length) {
@@ -327,9 +338,9 @@ export async function criarEndereco(dados) {
   }
 
   const [result] = await db.query(
-    `INSERT INTO endereco (rua, numero, bairro, cidade, estado)
-     VALUES (?, ?, ?, ?, ?)`,
-    [rua, numero, bairro, cidade, estado]
+    `INSERT INTO endereco (rua, numero, bairro, cidade, estado, referencia)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [rua, numero, bairro, cidade, estado, referencia || null]
   );
 
   return { id: result.insertId, criado: true };
@@ -337,7 +348,7 @@ export async function criarEndereco(dados) {
 export async function buscarPedidoPorId(id) {
   const [rows] = await db.query(
     `SELECT p.*, c.nome as cliente_nome, c.telefone as cliente_telefone, c.email as cliente_email, c.cpf as cliente_cpf,
-            e.rua as endereco_rua, e.numero as endereco_numero, e.bairro as endereco_bairro, e.cidade as endereco_cidade, e.estado as endereco_estado
+            e.rua as endereco_rua, e.numero as endereco_numero, e.bairro as endereco_bairro, e.cidade as endereco_cidade, e.estado as endereco_estado, e.referencia as endereco_referencia
      FROM pedidos p
      LEFT JOIN cliente c ON c.id = p.cliente_id
      LEFT JOIN endereco e ON e.id = p.endereco_id
@@ -367,7 +378,8 @@ export async function buscarPedidoPorId(id) {
     numero: pedido.endereco_numero || null,
     bairro: pedido.endereco_bairro || null,
     cidade: pedido.endereco_cidade || null,
-    estado: pedido.endereco_estado || null
+    estado: pedido.endereco_estado || null,
+    referencia: pedido.endereco_referencia || null
   };
 
   return {

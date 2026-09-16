@@ -3,6 +3,7 @@ export const state = {
   enderecoSelecionado: null,
   prodSel: null,
   comboSel: null,
+  itemSel: null,
   tipoItem: "PRODUTO",
   itens: [],
   tabAtiva: "buscar",

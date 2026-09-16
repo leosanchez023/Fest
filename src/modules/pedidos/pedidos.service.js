@@ -407,6 +407,10 @@ export async function buscarProdutos(termo) {
   return await model.buscarProdutos(termo);
 }
 
+export async function buscarItens(termo) {
+  return await model.buscarItens(termo);
+}
+
 export async function cancelarPedido(id, dados = {}) {
   return await model.cancelarPedido(id, dados);
 }
@@ -433,7 +437,8 @@ export async function buscarEnderecos(filtros) {
     numero: (filtros.numero || "").trim(),
     bairro: (filtros.bairro || "").trim(),
     cidade: (filtros.cidade || "").trim(),
-    estado: (filtros.estado || "").trim()
+    estado: (filtros.estado || "").trim(),
+    referencia: (filtros.referencia || "").trim()
   };
 
   return await model.buscarEnderecos(f);
@@ -453,6 +458,7 @@ export async function criarEndereco(dados) {
   const bairro = e.bairro?.trim();
   const cidade = e.cidade?.trim();
   const estado = e.estado?.trim();
+  const referencia = e.referencia?.trim();
 
   // Validação obrigatória
   if (!rua || !cidade) {
@@ -465,7 +471,8 @@ export async function criarEndereco(dados) {
     numero,
     bairro,
     cidade,
-    estado
+    estado,
+    referencia
   });
 }
 

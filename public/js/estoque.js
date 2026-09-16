@@ -49,15 +49,6 @@ function renderProdutosEstoque(produtos){
         <td>${disponivel}</td>
         <td>${produto.estoque_minimo || 0}</td>
         <td><span class="badge ${badge}">${status}</span></td>
-        <td>
-          <button class="iconbtn" onclick="visualizarProduto(${produto.id})"><i class="fa-solid fa-eye"></i></button>
-          <button class="iconbtn" title="Registrar entrada" onclick="entradaEstoque(${produto.id})"><i class="fa-solid fa-arrow-up"></i></button>
-          <button class="iconbtn" onclick="baixarEstoque(${produto.id})">⤓</button>
-          <button class="iconbtn" onclick="reservarProduto(${produto.id})"><i class="fa-solid fa-lock"></i></button>
-          <button class="iconbtn" title="Devolver reserva" onclick="devolverReserva(${produto.id})"><i class="fa-solid fa-unlock"></i></button>
-          <button class="iconbtn" onclick="enviarManutencao(${produto.id})"><i class="fa-solid fa-screwdriver-wrench"></i></button>
-          <button class="iconbtn" title="Finalizar manutenção" onclick="finalizarManutencao(${produto.id})"><i class="fa-solid fa-check"></i></button>
-        </td>
       </tr>
     `;
   }).join('');

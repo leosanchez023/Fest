@@ -433,6 +433,29 @@ export async function registrarDevolucao(pedidoId, dados) {
           `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE id = ?`,
           [totalDevolvido, item.id]
         );
+
+        const [componentes] = await conn.query(
+          `SELECT produto_id, quantidade_por_unidade
+           FROM pedido_item_componentes
+           WHERE pedido_item_id = ?`,
+          [item.id]
+        );
+        for (const componente of componentes) {
+          const fator = Number(componente.quantidade_por_unidade || 1);
+          await conn.query(
+            `INSERT INTO devolucao_itens
+              (devolucao_id, produto_id, quantidade_recebida, quantidade_faltando, quantidade_danificada, observacao)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+              devolucaoId,
+              componente.produto_id,
+              quantidadeBoa * fator,
+              quantidadePendente * fator,
+              quantidadeDanificada * fator,
+              item.observacao || null
+            ]
+          );
+        }
         continue;
       }
 

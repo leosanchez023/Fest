@@ -4,6 +4,7 @@ export async function findAll(filtros = {}) {
   const { busca = "", categoria = "", status = "", fornecedor = "" } = filtros;
   let sql = `
     SELECT p.*, f.nome AS fornecedor,
+      p.estoque_reservado AS reservado,
       (COALESCE(p.estoque, 0) - COALESCE(p.estoque_reservado, 0)
        - COALESCE(p.estoque_em_uso, 0) - COALESCE(p.estoque_manutencao, 0)
        - COALESCE(p.estoque_danificado, 0)) AS disponivel,
@@ -23,8 +24,8 @@ export async function findAll(filtros = {}) {
   const params = [];
 
   if (busca) {
-    sql += " AND (p.nome LIKE ? OR p.codigo LIKE ? OR p.categoria LIKE ?)";
-    params.push(`%${busca}%`, `%${busca}%`, `%${busca}%`);
+    sql += " AND (p.nome LIKE ? OR p.codigo LIKE ? OR p.categoria LIKE ? OR f.nome LIKE ?)";
+    params.push(`%${busca}%`, `%${busca}%`, `%${busca}%`, `%${busca}%`);
   }
   if (categoria) {
     sql += " AND p.categoria = ?";
@@ -116,7 +117,8 @@ export async function dashboard() {
       COALESCE(SUM(estoque_em_uso), 0) AS em_uso,
       COALESCE(SUM(estoque_manutencao), 0) AS manutencao,
       COALESCE(SUM(estoque_danificado), 0) AS danificados,
-      COALESCE(SUM(CASE WHEN estoque <= COALESCE(estoque_minimo, 0) THEN 1 ELSE 0 END), 0) AS baixo_estoque
+      COALESCE(SUM(CASE WHEN estoque <= COALESCE(estoque_minimo, 0) THEN 1 ELSE 0 END), 0) AS baixo_estoque,
+      COALESCE(SUM(estoque * COALESCE(preco_venda, 0)), 0) AS valor_estoque
     FROM produtos
     WHERE ativo = 1
   `);

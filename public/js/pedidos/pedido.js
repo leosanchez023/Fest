@@ -7,22 +7,22 @@ export function adicionarItem() {
   const prodList = $("prod-list");
   const prodQtd = $("prod-qtd");
 
-  const selecionado = state.tipoItem === "COMBO" ? state.comboSel : state.prodSel;
+  const selecionado = state.itemSel;
   if (!selecionado) {
     alert("Selecione um item da lista.");
     return;
   }
 
   const qtd = Math.max(1, Number(prodQtd?.value) || 1);
-  const chave = state.tipoItem === "COMBO" ? `c:${selecionado.id}` : `p:${selecionado.id}`;
+  const chave = selecionado.origem === "COMBO" ? `c:${selecionado.id}` : `p:${selecionado.id}`;
   const existente = state.itens.findIndex((item) => item.chave === chave);
 
   if (existente >= 0) {
     state.itens[existente].quantidade += qtd;
   } else {
     state.itens.push({
-      produto_id: state.tipoItem === "COMBO" ? null : selecionado.id,
-      combo_id: state.tipoItem === "COMBO" ? selecionado.id : null,
+      produto_id: selecionado.origem === "COMBO" ? null : selecionado.id,
+      combo_id: selecionado.origem === "COMBO" ? selecionado.id : null,
       chave,
       nome: selecionado.nome,
       preco: selecionado.preco,
@@ -32,6 +32,7 @@ export function adicionarItem() {
 
   state.prodSel = null;
   state.comboSel = null;
+  state.itemSel = null;
   if (prodQuery) prodQuery.value = "";
   if (prodQtd) prodQtd.value = "1";
   if (prodList) prodList.style.display = "none";
@@ -63,6 +64,7 @@ export function montarPedido() {
     bairro: $("end-bairro")?.value || "",
     cidade: $("end-cidade")?.value || "",
     estado: $("end-estado")?.value || ""
+    ,referencia: $("end-referencia")?.value || ""
   },
     telefone_contato: $("tel-contato")?.value.trim() || "",
     tipo_pedido: $("tipo-pedido")?.value || "ALUGUEL",
@@ -185,6 +187,7 @@ async function carregarPedidoParaEdicao(id) {
     if ($("data-entrega")) $("data-entrega").value = pedido.data_entrega ? pedido.data_entrega.split('T')[0] : "";
     if ($("data-retirada")) $("data-retirada").value = pedido.data_retirada ? pedido.data_retirada.split('T')[0] : "";
     if ($("tipo-pedido")) $("tipo-pedido").value = pedido.tipo_pedido || "ALUGUEL";
+    if ($("distancia-km")) $("distancia-km").value = pedido.distancia_km || 0;
     if ($("frete")) $("frete").value = pedido.valor_frete || 0;
     if ($("desconto")) $("desconto").value = pedido.valor_desconto || 0;
     if ($("pago")) $("pago").value = pedido.valor_pago || 0;
@@ -278,6 +281,7 @@ function preencherEndereco(endereco) {
   if ($("end-bairro")) $("end-bairro").value = endereco?.bairro || "";
   if ($("end-cidade")) $("end-cidade").value = endereco?.cidade || "";
   if ($("end-estado")) $("end-estado").value = endereco?.estado || "";
+  if ($("end-referencia")) $("end-referencia").value = endereco?.referencia || "";
 
   const painel = $("painel-endereco");
   if (painel) painel.style.display = "none";
@@ -290,6 +294,7 @@ async function buscarEnderecos() {
     bairro: $("end-bairro")?.value.trim() || "",
     cidade: $("end-cidade")?.value.trim() || "",
     estado: $("end-estado")?.value.trim() || ""
+    ,referencia: $("end-referencia")?.value.trim() || ""
   };
 
   const query = Object.values(filtros).filter(Boolean).join(" ");
@@ -467,14 +472,6 @@ function validarFormulario() {
 
 }
 export function inicializarPedido() {
-
-  const btnAdd = $("btn-add-item");
-
-  if (btnAdd) {
-    btnAdd.addEventListener("click", adicionarItem);
-  }
-
-
   const btnSalvarTela = $("btn-salvar-pedido");
 
 if (btnSalvarTela) {

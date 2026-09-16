@@ -42,6 +42,15 @@ export async function buscarProdutos(req, res) {
   res.json(dados);
 }
 
+export async function buscarItens(req, res) {
+  try {
+    const dados = await service.buscarItens(req.query.q || "");
+    res.json(dados);
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+}
+
 /* Cria um novo pedido.*/
 export async function criar(req, res) {
   try {
@@ -65,6 +74,7 @@ export async function buscarEnderecos(req, res) {
       bairro: (req.query.bairro || "").trim(),
       cidade: (req.query.cidade || "").trim(),
       estado: (req.query.estado || "").trim(),
+      referencia: (req.query.referencia || "").trim(),
     };
 
     const dados = await service.buscarEnderecos(filtros);

@@ -98,6 +98,14 @@ app.use("/orcamentos", orcamentosRoutes)
 app.use("/relatorios", relatoriosRoutes)
 app.use("/estoque", estoqueRoutes)
 app.use("/combos", combosRoutes)
+
+app.get("/logout", (req, res, next) => {
+    req.logout((erro) => {
+        if (erro) return next(erro);
+        req.session.destroy(() => res.redirect("/"));
+    });
+});
+
 //outros
 app.listen(3000, () => {
     console.log("servidor rodando na porta 3000");

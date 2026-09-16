@@ -92,3 +92,19 @@ SET @sql_fk_componente_pedido := IF(
 PREPARE stmt_fk_componente_pedido FROM @sql_fk_componente_pedido;
 EXECUTE stmt_fk_componente_pedido;
 DEALLOCATE PREPARE stmt_fk_componente_pedido;
+
+SET @column_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'endereco'
+    AND COLUMN_NAME = 'referencia'
+);
+SET @sql_referencia := IF(
+  @column_exists = 0,
+  "ALTER TABLE endereco ADD COLUMN referencia VARCHAR(150) NULL AFTER cep",
+  'SELECT 1'
+);
+PREPARE stmt_referencia FROM @sql_referencia;
+EXECUTE stmt_referencia;
+DEALLOCATE PREPARE stmt_referencia;

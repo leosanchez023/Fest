@@ -51,6 +51,8 @@ export async function criar(dados) {
     tipo: dados.tipo || null,
     tipo_produto: dados.tipo_produto || 'PRODUTO',
 
+    localizacao: dados.localizacao || null,
+
     fornecedor_id:
       dados.fornecedor_id || null,
 
@@ -120,6 +122,8 @@ export async function atualizar(id, dados) {
 
       tipo: dados.tipo || null,
       tipo_produto: dados.tipo_produto || 'PRODUTO',
+
+      localizacao: dados.localizacao || null,
 
 
       fornecedor_id:

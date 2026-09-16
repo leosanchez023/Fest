@@ -15,3 +15,24 @@ async function deletarProduto(id) {
     console.error(err);
   }
 }
+
+function abrirAbaProdutos(nome) {
+  const abaProdutos = document.getElementById("aba-produtos");
+  const abaCadastro = document.getElementById("aba-cadastro");
+  const cadastroAtivo = nome === "cadastro";
+
+  document.querySelectorAll(".tab").forEach((tab) => {
+    tab.classList.toggle("active", tab.dataset.tab === nome);
+  });
+
+  if (abaProdutos) abaProdutos.style.display = cadastroAtivo ? "none" : "block";
+  if (abaCadastro) abaCadastro.style.display = cadastroAtivo ? "block" : "none";
+}
+
+window.abrirAba = abrirAbaProdutos;
+
+const abaProdutosBtn = document.querySelector('[data-tab="produtos"]');
+const abaCadastroBtn = document.querySelector('[data-tab="cadastro"]');
+
+abaProdutosBtn?.addEventListener("click", () => abrirAbaProdutos("produtos"));
+abaCadastroBtn?.addEventListener("click", () => abrirAbaProdutos("cadastro"));

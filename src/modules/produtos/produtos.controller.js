@@ -1,4 +1,12 @@
 import * as service from "./produtos.service.js";
+import * as fornecedoresService from "../fornecedores/fornecedores.service.js";
+
+async function dadosDoFormulario() {
+  const produtos = await service.listar();
+  const fornecedores = await fornecedoresService.listar({ status: "Ativo" });
+  const categorias = [...new Set(produtos.map((produto) => produto.categoria).filter(Boolean))].sort();
+  return { fornecedores, categorias };
+}
 
 
 // ===============================
@@ -27,11 +35,15 @@ export async function listar(req, res) {
     const historico = await service.historico();
     console.log("Histórico:", historico);
 
+    const { fornecedores, categorias } = await dadosDoFormulario();
+
     res.render("pages/produtos/index", {
       produtos,
       dashboard,
       historico,
-      filtros
+      filtros,
+      fornecedores,
+      categorias
     });
 
   } catch (err) {
@@ -319,6 +331,8 @@ const dashboard =
 const historico =
  await service.historico();
 
+const { fornecedores, categorias } = await dadosDoFormulario();
+
 
 
 
@@ -332,7 +346,9 @@ res.render(
 
   dashboard,
 
-  historico
+  historico,
+  fornecedores,
+  categorias
 
  }
 

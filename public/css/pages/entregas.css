@@ -236,7 +236,7 @@
 .container .grid-6{gap:12px}
 .container .grid-6 > div{min-width:0}
 .container #count-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:var(--color-primary-light);color:var(--color-primary-dark);font-size:12px;font-weight:700}
-.finance-modal-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto;background:rgba(16,42,67,.55)!important}
+.finance-modal-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto;background:rgba(16,42,67,.55)!important}
 .finance-modal-overlay.open{display:flex}
 .finance-modal-card{width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:24px;background:var(--color-card);border:1px solid var(--color-border)!important;border-radius:12px!important;box-shadow:var(--shadow-lg)!important}
 .finance-modal-card h3{margin:0 0 18px;color:var(--color-text)}

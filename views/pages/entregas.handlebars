@@ -142,7 +142,7 @@
                 <th>Cliente</th>
                 <th>Telefone</th>
                 <th>Endereço</th>
-                <th>Evento <button id="toggle-event-order" class="btn-ghost" title="Alternar ordem por data do evento">↕</button></th>
+                <th>Eventos <button id="toggle-event-order" class="btn-ghost" title="Mais recentes para mais antigos" aria-label="Ordenação: mais recentes para mais antigos">↓</button></th>
                 <th>Entrega</th>
                 <th>Retirada</th>
                 <th>Total</th>
@@ -167,6 +167,7 @@
       <div>
         <label>Valor</label>
         <input id="finance-valor" type="number" min="0" step="0.01" placeholder="0,00" />
+        <div id="finance-available" class="muted" style="margin-top:6px;"></div>
       </div>
       <div id="finance-method-group" style="display:none;">
         <label>Forma de pagamento</label>

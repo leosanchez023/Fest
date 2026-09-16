@@ -95,15 +95,7 @@
     <div class="grid-3" style="align-items:end">
 
       <div class="field">
-        <label>Tipo</label>
-        <select id="tipo-item" class="input">
-          <option value="PRODUTO">Produto</option>
-          <option value="COMBO">Combo</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label id="item-label">Produto</label>
+        <label>Produto ou combo</label>
         <div class="autocomplete-wrap">
           <input id="prod-query" class="input" autocomplete="off">
           <div id="prod-list" class="autocomplete-list"></div>
@@ -166,7 +158,13 @@
       <input id="end-estado" class="input" maxlength="2">
     </div>
 
+    <div class="field">
+      <label>Referência / nominativo</label>
+      <input id="end-referencia" class="input" placeholder="Ex.: Salão do João" maxlength="150">
+    </div>
+
       <button class="btn" type="button" id="btn-endereco"><i class="fa-solid fa-magnifying-glass icon-sm"></i> Buscar endereço</button>
+      <button class="btn" type="button" id="btn-cadastrar-endereco"><i class="fa-solid fa-location-dot icon-sm"></i> Salvar endereço</button>
 
     <div class="grid-3" style="margin-top:1rem; align-items:end">
 

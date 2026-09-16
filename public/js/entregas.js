@@ -193,11 +193,11 @@ const renderTable = () => {
           <td>${orderStatusBadge(o.status)}</td>
           <td>
             <div class="delivery-actions">
-              <button class="iconbtn" type="button" data-delivery-action="view" data-id="${o.id}" title="Ver pedido" aria-label="Ver pedido"><i class="fa-solid fa-eye"></i></button>
+              <button class="iconbtn" type="button" data-delivery-action="view" data-id="${o.id}" title="Visualizar pedido" aria-label="Visualizar pedido"><i class="fa-solid fa-eye"></i></button>
               <button class="iconbtn" type="button" data-delivery-action="payment" data-id="${o.id}" title="Registrar pagamento" aria-label="Registrar pagamento"><i class="fa-solid fa-money-bill"></i></button>
               <button class="iconbtn" type="button" data-delivery-action="charge" data-id="${o.id}" title="Gerar cobrança" aria-label="Gerar cobrança"><i class="fa-solid fa-file-invoice-dollar"></i></button>
               <button class="iconbtn" type="button" data-delivery-action="deliver" data-id="${o.id}" title="Marcar como entregue" aria-label="Marcar como entregue" ${canDeliver ? "" : "disabled"}><i class="fa-solid fa-truck"></i></button>
-              <a class="iconbtn" href="/pedidos?editar=${encodeURIComponent(o.id)}" title="Editar pedido" aria-label="Editar pedido"><i class="fa-solid fa-pen"></i></a>
+              ${o.status === "ENTREGUE" ? `<button class="iconbtn" type="button" data-delivery-action="return" data-id="${o.id}" title="Recolher" aria-label="Recolher"><i class="fa-solid fa-box-archive"></i></button>` : ""}
             </div>
           </td>
         </tr>
@@ -222,8 +222,10 @@ const renderTable = () => {
       if (action === 'deliver') return openOrderFinanceOrDelivery(id, 'delivery');
       if (action === 'payment') return openOrderFinanceOrDelivery(id, 'payment');
       if (action === 'charge') return openOrderFinanceOrDelivery(id, 'charge');
+      if (action === 'return') return openOrderFinanceOrDelivery(id, 'return');
     });
   });
+
 };
 
 const updateSelectedCount = () => {
@@ -627,6 +629,7 @@ const renderOrderPanels = (order) => {
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="btn-primary btn" id="show-pay-form" type="button">Registrar Pagamento</button>
       <button class="btn btn" id="gen-charge" type="button">Gerar Cobrança</button>
+      <button class="btn btn" id="show-refund-form" type="button">Fazer Restituição</button>
     </div>
   `;
   $("m-fin").appendChild(finActions);
@@ -643,15 +646,31 @@ const renderOrderPanels = (order) => {
     const title = $("finance-modal-title");
     const valor = $("finance-valor");
     const descricao = $("finance-descricao");
+    const availableEl = $("finance-available");
     const confirmBtn = $("finance-confirm-btn");
     const formaPagamentoSelect = $("finance-forma-pagamento");
     const methodGroup = $("finance-method-group");
 
-    title.textContent = mode === "payment" ? "Registrar pagamento" : "Gerar cobrança";
+    title.textContent = mode === "payment" ? "Registrar pagamento" : mode === "refund" ? "Fazer restituição" : "Gerar cobrança";
     valor.value = "";
     descricao.value = "";
     formaPagamentoSelect.value = "";
-    methodGroup.style.display = mode === "payment" ? "block" : "none";
+    const recebido = (order.pagamentos || []).reduce((total, pagamento) => {
+      const valor = Number(pagamento.valor || 0);
+      return total + (valor > 0 ? valor : 0);
+    }, 0);
+    const restituido = (order.pagamentos || []).reduce((total, pagamento) => {
+      const valor = Number(pagamento.valor || 0);
+      return total + (valor < 0 ? Math.abs(valor) : 0);
+    }, 0);
+    const disponivel = Math.max(0, recebido - restituido);
+    if (availableEl) {
+      availableEl.textContent = mode === "refund"
+        ? `Pago: ${formatMoney(recebido)} | Já restituído: ${formatMoney(restituido)} | Disponível: ${formatMoney(disponivel)}`
+        : "";
+    }
+    valor.max = mode === "refund" ? disponivel.toFixed(2) : "";
+    methodGroup.style.display = mode === "payment" || mode === "refund" ? "block" : "none";
     modal.dataset.mode = mode;
     modal.classList.add("open");
     valor.focus();
@@ -662,6 +681,11 @@ const renderOrderPanels = (order) => {
 
       if (!value || value <= 0) {
         alert("Informe um valor válido.");
+        return;
+      }
+
+      if (mode === "refund" && value > disponivel) {
+        alert(`O valor máximo disponível para restituição é ${formatMoney(disponivel)}.`);
         return;
       }
 
@@ -683,21 +707,42 @@ const renderOrderPanels = (order) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ valor: value, forma_pagamento: metodo, observacao: text })
           });
-          if (!res.ok) throw new Error("Falha ao salvar pagamento");
+          if (!res.ok) {
+            const erro = await res.json().catch(() => ({}));
+            throw new Error(erro.message || "Falha ao salvar pagamento");
+          }
+        } else if (mode === "refund") {
+          const metodo = (formaPagamentoSelect.value || "").trim();
+          if (!metodo) {
+            alert("Selecione a forma de restituição.");
+            return;
+          }
+          const res = await fetch(`/entregas/pedidos/${order.id}/reembolso`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ valor: value, forma_pagamento: metodo, observacao: text })
+          });
+          if (!res.ok) {
+            const erro = await res.json().catch(() => ({}));
+            throw new Error(erro.message || "Falha ao registrar restituição");
+          }
         } else {
           const res = await fetch(`/entregas/pedidos/${order.id}/ocorrencias`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ tipo: "COBRANCA", descricao: text, valor: value })
           });
-          if (!res.ok) throw new Error("Falha ao gerar cobrança");
+          if (!res.ok) {
+            const erro = await res.json().catch(() => ({}));
+            throw new Error(erro.message || "Falha ao gerar cobrança");
+          }
         }
 
         closeFinanceModal();
         openOrderModal(order.id);
       } catch (err) {
         console.error(err);
-        alert(mode === "payment" ? "Erro ao registrar pagamento" : "Erro ao gerar cobrança");
+        alert(`Erro ao ${mode === "payment" ? "registrar pagamento" : mode === "refund" ? "registrar restituição" : "gerar cobrança"}: ${err.message}`);
       }
     };
   };
@@ -708,6 +753,7 @@ const renderOrderPanels = (order) => {
 
   $("show-pay-form").onclick = () => openFinanceModal("payment");
   $("gen-charge").onclick = () => openFinanceModal("charge");
+  $("show-refund-form").onclick = () => openFinanceModal("refund");
   $("finance-cancel-btn").onclick = closeFinanceModal;
   $("finance-modal").onclick = (event) => {
     if (event.target.id === "finance-modal") closeFinanceModal();
@@ -783,7 +829,9 @@ const openOrderFinanceOrDelivery = async (id, mode) => {
     ? "show-delivery-modal"
     : mode === "payment"
       ? "show-pay-form"
-      : "gen-charge";
+      : mode === "return"
+        ? "show-return-modal"
+        : "gen-charge";
   document.getElementById(buttonId)?.click();
 };
 
@@ -791,11 +839,13 @@ const openReturnModal = (order) => {
   currentOrderContext = order;
   currentReturnItems = (order.itens || []).map((item) => ({
     produto_id: item.produto_id,
-    nome: item.produto_nome || item.nome || "Produto",
-    quantidade: Number(item.quantidade || 0),
+    nome: item.combo_nome || item.produto_nome || item.nome || "Produto",
+    quantidade: Number(item.quantidade_entregue || item.quantidade || 0),
+    combo_id: item.combo_id || null,
+    item_id: item.id,
     quantidade_devolvida: Number(item.quantidade_devolvida || 0),
     valor_unitario: Number(item.valor_unitario || item.valor_unitario || 0),
-    quantidade_pendente: Math.max(0, Number(item.quantidade || 0) - Number(item.quantidade_devolvida || 0)),
+    quantidade_pendente: Math.max(0, Number(item.quantidade_entregue || item.quantidade || 0) - Number(item.quantidade_devolvida || 0)),
   })).filter((item) => item.quantidade_pendente > 0);
 
   const body = $("return-modal-body");
@@ -888,13 +938,16 @@ const markEntregue = async () => {
       headers: { 'Content-Type':'application/json' },
       body: JSON.stringify({ data_entrega: datetime, responsavel_entrega: responsavel, observacao_entrega: observacao, usuario_id: 1 })
     });
-    if (!res.ok) throw new Error('Falha ao marcar entregue');
+    if (!res.ok) {
+      const erro = await res.json().catch(() => ({}));
+      throw new Error(erro.message || 'Falha ao marcar entregue');
+    }
     closeDeliveryModal();
     await openOrderModal(order.id);
     await loadOrders();
   } catch (err) {
     console.error(err);
-    alert('Erro ao marcar entregue');
+    alert(`Erro ao marcar entregue: ${err.message}`);
   }
 };
 
@@ -908,7 +961,10 @@ const submitReturn = async () => {
     const item = currentReturnItems[index];
     const qtd = Number(input.value || 0);
     return {
+      id: item.item_id,
       produto_id: item.produto_id,
+      combo_id: item.combo_id,
+      quantidade_entregue: item.quantidade,
       quantidade_devolvida: qtd,
       observacao: "",
     };
@@ -933,35 +989,11 @@ const submitReturn = async () => {
       headers: { 'Content-Type':'application/json' },
       body: JSON.stringify({ itens, observacao, responsavel, usuario_id: 1 })
     });
-    if (!res.ok) throw new Error('Falha ao registrar devolução');
-    closeReturnModal();
-    // calcular valor do reembolso sugerido
-    let refundAmount = 0;
-    itens.forEach((it) => {
-      const found = currentReturnItems.find((ci) => Number(ci.produto_id) === Number(it.produto_id));
-      if (found) refundAmount += Number(it.quantidade_devolvida || 0) * Number(found.valor_unitario || 0);
-    });
-
-    // perguntar ao usuário se deseja registrar reembolso
-    if (refundAmount > 0) {
-      const confirmRe = confirm(`Produtos devolvidos registrados. Deseja registrar reembolso de ${formatMoney(refundAmount)}?`);
-      if (confirmRe) {
-        const forma = prompt('Informe a forma de reembolso (PIX, DINHEIRO, CARTAO_DEBITO, CARTAO_CREDITO, TRANSFERENCIA):', 'PIX') || 'PIX';
-        try {
-          const r = await fetch(`/entregas/pedidos/${order.id}/reembolso`, {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json' },
-            body: JSON.stringify({ valor: refundAmount, forma_pagamento: forma, observacao: 'Reembolso automático após devolução', usuario_id: 1 })
-          });
-          if (!r.ok) throw new Error('Falha ao registrar reembolso');
-          alert('Reembolso registrado com sucesso');
-        } catch (err) {
-          console.error('Erro ao registrar reembolso:', err);
-          alert('Erro ao registrar reembolso');
-        }
-      }
+    if (!res.ok) {
+      const erro = await res.json().catch(() => ({}));
+      throw new Error(erro.message || erro.sql || 'Falha ao registrar devolução');
     }
-
+    closeReturnModal();
     await openOrderModal(order.id);
     await loadOrders();
   } catch (err) {
@@ -1076,6 +1108,17 @@ const filterByKpi = (filter) => {
   renderTable();
 };
 
+const updateEventOrderIndicator = () => {
+  const button = document.getElementById("toggle-event-order");
+  if (!button) return;
+  const recentesPrimeiro = eventOrder === "desc";
+  button.textContent = recentesPrimeiro ? "↓" : "↑";
+  button.title = recentesPrimeiro
+    ? "Mais recentes para mais antigos"
+    : "Mais antigos para mais recentes";
+  button.setAttribute("aria-label", `Ordenação: ${button.title.toLowerCase()}`);
+};
+
 const activateTabs = () => {
   document.querySelectorAll(".tab").forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -1107,10 +1150,10 @@ const init = () => {
   // Alternar ordem por evento
   const toggleBtn = document.getElementById('toggle-event-order');
   if (toggleBtn) {
+    updateEventOrderIndicator();
     toggleBtn.addEventListener('click', () => {
       eventOrder = eventOrder === 'desc' ? 'asc' : 'desc';
-      // atualizar visual do botão (simples)
-      toggleBtn.textContent = eventOrder === 'desc' ? '↕' : '↕';
+      updateEventOrderIndicator();
       loadOrders();
     });
   }

@@ -12,6 +12,7 @@ router.post("/criarCliente", controller.criarCliente);
 
 // Produtos
 router.get("/buscar-produtos", controller.buscarProdutos);
+router.get("/buscar-itens", controller.buscarItens);
 
 // Pedidos
 router.post("/criar", controller.criar);

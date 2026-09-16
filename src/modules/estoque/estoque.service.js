@@ -410,6 +410,50 @@ export async function reservarComponentesCombos({ conn, itens = [], pedidoId = n
   return reservas;
 }
 
+export async function reservarItensPedidoComCombos({ conn, itens = [], pedidoId = null, usuarioId = null }) {
+  const desejadas = await necessidadesDeReserva(conn, itens);
+  const reservas = await reservarItensPedido({ conn, itens: desejadas, pedidoId, usuarioId });
+
+  for (const item of itens.filter((pedidoItem) => pedidoItem.combo_id)) {
+    const [componentes] = await conn.query(
+      `SELECT produto_id, quantidade
+       FROM combo_itens
+       WHERE combo_id = ?`,
+      [item.combo_id]
+    );
+    for (const componente of componentes) {
+      const pedidoItemId = item.pedido_item_id || item.id;
+      const quantidadeTotal = Number(componente.quantidade) * Number(item.quantidade || 0);
+      const [existentes] = await conn.query(
+        `SELECT id
+         FROM pedido_item_componentes
+         WHERE pedido_item_id = ? AND produto_id = ?
+         LIMIT 1
+         FOR UPDATE`,
+        [pedidoItemId, componente.produto_id]
+      );
+
+      if (existentes.length) {
+        await conn.query(
+          `UPDATE pedido_item_componentes
+           SET pedido_id = ?, quantidade_por_unidade = ?, quantidade_total = ?
+           WHERE id = ?`,
+          [pedidoId, componente.quantidade, quantidadeTotal, existentes[0].id]
+        );
+      } else {
+        await conn.query(
+          `INSERT INTO pedido_item_componentes
+            (pedido_item_id, pedido_id, produto_id, quantidade_por_unidade, quantidade_total)
+           VALUES (?, ?, ?, ?, ?)`,
+          [pedidoItemId, pedidoId, componente.produto_id, componente.quantidade, quantidadeTotal]
+        );
+      }
+    }
+  }
+
+  return reservas;
+}
+
 async function necessidadesDeReserva(conn, itens = []) {
   const agregados = new Map();
 
@@ -1258,6 +1302,48 @@ export async function registrarVendaNaTransacao(conn, {
     quantidade: -quantidade,
     observacao: observacao || 'Venda registrada'
   });
+}
+
+export async function registrarVendaItensPedidoNaTransacao(conn, {
+  itens = [],
+  pedidoId = null,
+  usuarioId = null,
+  observacao = 'Venda confirmada no pedido'
+}) {
+  const agregados = new Map();
+
+  for (const item of itens) {
+    const quantidade = Number(item.quantidade || 0);
+    if (quantidade <= 0 || (item.tipo_item || '').toUpperCase() !== 'VENDA') continue;
+
+    if (item.combo_id) {
+      const [componentes] = await conn.query(
+        `SELECT produto_id, quantidade
+         FROM combo_itens
+         WHERE combo_id = ?
+         FOR UPDATE`,
+        [item.combo_id]
+      );
+      if (!componentes.length) throw new Error(`Combo ${item.combo_id} não possui componentes.`);
+      for (const componente of componentes) {
+        const atual = agregados.get(Number(componente.produto_id)) || 0;
+        agregados.set(Number(componente.produto_id), atual + Number(componente.quantidade) * quantidade);
+      }
+    } else if (item.produto_id) {
+      const produtoId = Number(item.produto_id);
+      agregados.set(produtoId, (agregados.get(produtoId) || 0) + quantidade);
+    }
+  }
+
+  for (const [produtoId, quantidade] of agregados) {
+    await registrarVendaNaTransacao(conn, {
+      produtoId,
+      quantidade,
+      pedidoId,
+      usuarioId,
+      observacao
+    });
+  }
 }
 
 export async function resumoEstoque() {

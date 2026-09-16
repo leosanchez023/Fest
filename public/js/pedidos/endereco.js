@@ -9,6 +9,7 @@ function selecionarEndereco(endereco) {
   if ($("end-bairro")) $("end-bairro").value = endereco?.bairro || "";
   if ($("end-cidade")) $("end-cidade").value = endereco?.cidade || "";
   if ($("end-estado")) $("end-estado").value = endereco?.estado || "";
+  if ($("end-referencia")) $("end-referencia").value = endereco?.referencia || "";
 
   const painel = $("painel-endereco");
   if (painel) painel.style.display = "none";
@@ -21,6 +22,7 @@ async function buscarEndereco() {
     bairro: $("end-bairro")?.value.trim() || "",
     cidade: $("end-cidade")?.value.trim() || "",
     estado: $("end-estado")?.value.trim() || ""
+    ,referencia: $("end-referencia")?.value.trim() || ""
   };
 
   const query = Object.values(filtros).filter(Boolean).join(" ");
@@ -72,6 +74,7 @@ async function cadastrarEndereco() {
     bairro: $("end-bairro")?.value.trim() || "",
     cidade: $("end-cidade")?.value.trim() || "",
     estado: $("end-estado")?.value.trim() || ""
+    ,referencia: $("end-referencia")?.value.trim() || ""
   };
 
   try {
