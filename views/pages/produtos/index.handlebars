@@ -1,6 +1,7 @@
 <link rel="stylesheet" href="/css/pages/produtos.css">
 <link rel="stylesheet" href="/css/pages/estoque.css">
 
+
 {{#if error_msg}}
 <div style="color:red; margin-bottom:10px;">
     {{error_msg}}
@@ -251,38 +252,6 @@
 
                 </select>
 
-                <select id="filtro-status">
-
-                    <option value="">
-                        Todos os status
-                    </option>
-
-                    <option value="DISPONIVEL">
-                        Disponível
-                    </option>
-
-                    <option value="RESERVADO">
-                        Reservado
-                    </option>
-
-                    <option value="BAIXO_ESTOQUE">
-                        Baixo Estoque
-                    </option>
-
-                    <option value="MANUTENCAO">
-                        Em manutenção
-                    </option>
-
-                    <option value="DANIFICADO">
-                        Danificado
-                    </option>
-
-                    <option value="INATIVO">
-                        Inativo
-                    </option>
-
-                </select>
-
                 <input
                     id="filtro-minimo"
                     type="number"
@@ -326,63 +295,10 @@
 
         </div>
 
-        <!-- PRODUTOS -->
-        <div class="card">
-
-            <div class="card-title">
-                <h2>Produtos Cadastrados</h2>
-
-                <div class="count">
-                    <span id="resultados">6</span> resultado(s)
-                </div>
-            </div>
-
-            <div class="scroll">
-
-                <table>
-
-                    <thead>
-                        <tr>
-                            <th>Imagem</th>
-                            <th>Código</th>
-                            <th>Produto</th>
-                            <th>Categoria</th>
-                            <th>Fornecedor</th>
-                            <th class="num">Qtd.</th>
-                            <th class="num">Disp.</th>
-                            <th class="num">Reserv.</th>
-                            <th class="num">Locação</th>
-                            <th class="num">Venda</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="tbody"></tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-
-<link rel="stylesheet" href="/css/pages/estoque.css">
+        
 
   <div class="card estoque-panel">
-    <h2>Resumo por produto</h2>
-    <div class="estoque-toolbar">
-      <input id="estoque-busca" type="search" placeholder="Pesquisar produto..." aria-label="Pesquisar produto">
-      <select id="estoque-status" aria-label="Filtrar por status">
-        <option value="">Todos os status</option>
-        <option value="NORMAL">Normal</option>
-        <option value="BAIXO">Estoque baixo</option>
-        <option value="RESERVADO">Reservado</option>
-        <option value="EM_USO">Em uso</option>
-        <option value="MANUTENCAO">Manutenção</option>
-        <option value="DANIFICADO">Danificado</option>
-      </select>
-    </div>
+        <h2>Resumo por Produto</h2>
     <div class="table-wrap">
       <table>
         <thead>
@@ -404,26 +320,9 @@
     </div>
   </div>
 
-  <div class="card estoque-panel">
-    <h2>Histórico de movimentações</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Produto</th>
-            <th>Tipo</th>
-            <th>Quantidade</th>
-            <th>Observação</th>
-          </tr>
-        </thead>
-        <tbody id="estoque-historico-tbody"></tbody>
-      </table>
-    </div>
-  </div>
 </div>
 
-<script src="/js/estoque.js"></script>
+
 
 
         <!-- HISTÓRICO -->
@@ -431,6 +330,23 @@
 
             <div class="card-title">
                 <h2><i class="fa-solid fa-clock-rotate-left icon-sm"></i> Histórico de Movimentação</h2>
+            </div>
+
+            <div class="historico-filtros">
+                <input id="historico-produto" type="search" placeholder="Produto ou código">
+                <select id="historico-tipo">
+                    <option value="">Todos</option>
+                    <option value="ENTRADA">Entradas</option>
+                    <option value="SAIDA">Saídas</option>
+                    <option value="RESERVA">Reservas</option>
+                    <option value="LIBERACAO_RESERVA">Liberações</option>
+                    <option value="ENTREGA">Entregas</option>
+                    <option value="RETORNO">Devoluções</option>
+                    <option value="AJUSTE">Ajustes</option>
+                </select>
+                <input id="historico-de" type="date" aria-label="Data inicial">
+                <input id="historico-ate" type="date" aria-label="Data final">
+                <button id="historico-limpar" type="button" class="btn btn-secondary">Todos</button>
             </div>
 
             <div class="scroll">
@@ -713,10 +629,9 @@
 </div>
 
 
-
 <script src="/js/produtos.js"></script>
 
-<script>
+<script type="text/plain" aria-hidden="true">
 
 const brl = v =>
     "R$ " + Number(v || 0).toLocaleString("pt-BR", {
@@ -1262,3 +1177,4 @@ configurarFornecedor();
 
 
 </script>
+<script src="/js/produtos-controle.js"></script>

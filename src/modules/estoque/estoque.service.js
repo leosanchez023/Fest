@@ -1350,12 +1350,22 @@ export async function resumoEstoque() {
   const [rows] = await db.query(`
     SELECT
       COUNT(*) AS total_produtos,
-      COALESCE(SUM(estoque), 0) AS estoque_fisico,
-      COALESCE(SUM(estoque_reservado), 0) AS estoque_reservado,
-      COALESCE(SUM(estoque_em_uso), 0) AS estoque_em_uso,
-      COALESCE(SUM(estoque_manutencao), 0) AS estoque_manutencao,
-      COALESCE(SUM(estoque_danificado), 0) AS estoque_danificado,
-      COALESCE(SUM(estoque - estoque_reservado - estoque_em_uso - estoque_manutencao - estoque_danificado), 0) AS disponivel
+      COALESCE(SUM(COALESCE(estoque, 0)), 0) AS estoque_fisico,
+      COALESCE(SUM(COALESCE(estoque_reservado, 0)), 0) AS estoque_reservado,
+      COALESCE(SUM(COALESCE(estoque_em_uso, 0)), 0) AS estoque_em_uso,
+      COALESCE(SUM(COALESCE(estoque_manutencao, 0)), 0) AS estoque_manutencao,
+      COALESCE(SUM(COALESCE(estoque_danificado, 0)), 0) AS estoque_danificado,
+      COALESCE(SUM(
+        COALESCE(estoque, 0) - COALESCE(estoque_reservado, 0)
+        - COALESCE(estoque_em_uso, 0) - COALESCE(estoque_manutencao, 0)
+        - COALESCE(estoque_danificado, 0)
+      ), 0) AS disponivel,
+      COALESCE(SUM(CASE WHEN (
+        COALESCE(estoque, 0) - COALESCE(estoque_reservado, 0)
+        - COALESCE(estoque_em_uso, 0) - COALESCE(estoque_manutencao, 0)
+        - COALESCE(estoque_danificado, 0)
+      ) <= COALESCE(estoque_minimo, 0) THEN 1 ELSE 0 END), 0) AS baixo_estoque,
+      COALESCE(SUM(COALESCE(estoque, 0) * COALESCE(preco_venda, 0)), 0) AS valor_estoque
     FROM produtos
     WHERE ativo = 1
   `);
@@ -1367,6 +1377,46 @@ export async function resumoEstoque() {
     estoque_em_uso: 0,
     estoque_manutencao: 0,
     estoque_danificado: 0,
-    disponivel: 0
+    disponivel: 0,
+    baixo_estoque: 0,
+    valor_estoque: 0
   };
+}
+
+export async function historicoMovimentacoes(filtros = {}) {
+  const { tipo = '', produto = '', usuario = '', de = '', ate = '' } = filtros;
+  const params = [];
+  let sql = `
+    SELECT m.data_movimentacao, m.produto_id, p.nome AS produto_nome,
+           m.tipo, m.quantidade, m.observacao, u.nome AS usuario_nome
+    FROM movimentacao_estoque m
+    INNER JOIN produtos p ON p.id = m.produto_id
+    LEFT JOIN usuario u ON u.id = m.usuario_id
+    WHERE 1 = 1
+  `;
+
+  if (tipo) {
+    sql += ' AND m.tipo = ?';
+    params.push(tipo);
+  }
+  if (produto) {
+    sql += ' AND (p.nome LIKE ? OR p.codigo LIKE ?)';
+    params.push(`%${produto}%`, `%${produto}%`);
+  }
+  if (usuario) {
+    sql += ' AND m.usuario_id = ?';
+    params.push(usuario);
+  }
+  if (de) {
+    sql += ' AND m.data_movimentacao >= ?';
+    params.push(`${de} 00:00:00`);
+  }
+  if (ate) {
+    sql += ' AND m.data_movimentacao < DATE_ADD(?, INTERVAL 1 DAY)';
+    params.push(ate);
+  }
+
+  sql += ' ORDER BY m.data_movimentacao DESC, m.id DESC LIMIT 200';
+  const [rows] = await db.query(sql, params);
+  return rows;
 }

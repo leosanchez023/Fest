@@ -1,93 +1,88 @@
-{{!-- Relatório de entregas (conteúdo) --}}
-<link rel="stylesheet" href="/css/pages/relatorio_entregas.css">
-<div class="no-print" style="display:flex; gap:8px; margin-bottom:12px;">
-  <button onclick="window.print()">Imprimir</button>
-  <button onclick="window.close()">Fechar</button>
-</div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Romaneio de Entrega</title>
+  <link rel="stylesheet" href="/css/pages/relatorio_entregas.css">
+</head>
+<body class="romaneio-page">
+  <nav class="romaneio-actions no-print" aria-label="Ações do romaneio">
+    <a href="/entregas" class="action-button secondary">Voltar para Entregas</a>
+    <button type="button" class="action-button primary" onclick="window.print()">Imprimir Romaneio</button>
+    <span class="selection-note">{{pedidos.length}} pedido(s) selecionado(s) para esta rota</span>
+  </nav>
 
-  <div class="page-meta" data-title="Relatório de Entregas" data-subtitle="Relatório detalhado de rotas e entregas"></div>
-  <div style="display:flex; gap:20px; justify-content:space-between; align-items:center;">
-    <div>
-      <div>Data da rota: <strong>{{data_rota}}</strong></div>
-      <div>Entregador: ______________________________</div>
-    </div>
-    <div style="text-align:right;">
-      <div>Quantidade de entregas: <strong>{{pedidos.length}}</strong></div>
-    </div>
-  </div>
+  <main class="romaneio-document">
+    <header class="romaneio-header">
+      <div>
+        <p class="brand">FESTGEST</p>
+        <h1>ROMANEIO DE ENTREGA</h1>
+      </div>
+      <div class="route-fields">
+        <div><strong>Data da rota:</strong> {{data_rota}}</div>
+        <div><strong>Entregador:</strong> {{#if entregador_rota}}{{entregador_rota}}{{else}}____________________{{/if}}</div>
+        <div><strong>Veículo:</strong> {{#if veiculo_rota}}{{veiculo_rota}}{{else}}____________________{{/if}}</div>
+        <div><strong>Saída:</strong> ______:______ &nbsp; <strong>Retorno:</strong> ______:______</div>
+      </div>
+    </header>
 
-  {{#each pedidos}}
-  <div class="pedido">
-    <h3>PARADA {{this.pos}} — PEDIDO #{{this.pedido.id}}</h3>
-    <div><strong>Cliente:</strong> {{this.pedido.cliente}}</div>
-    <div><strong>Telefone para contato:</strong> <span class="telefone">{{this.telefone_contato}}</span></div>
-    <div class="compact-block">
-      <span><strong>Evento:</strong> {{this.data_evento_formatada}}</span>
-      <span><strong>Entrega:</strong> {{this.data_entrega_formatada}}</span>
-      <span><strong>Retirada:</strong> {{this.data_retirada_formatada}}</span>
-    </div>
-    <div class="compact-block">
-      <span><strong>Status:</strong> {{this.pedido.status}}</span>
-      <span><strong>Total:</strong> {{this.valor_total_formatado}}</span>
-      <span><strong>Pago:</strong> {{this.valor_pago_formatado}}</span>
-    </div>
-
-    <div class="compact-block">
-      <span><strong>Frete:</strong> {{this.valor_frete_formatado}}</span>
-      <span><strong>Desconto:</strong> {{this.valor_desconto_formatado}}</span>
-    </div>
-
-    <div style="margin-top:6px; font-size:11px;"><strong>ENDEREÇO:</strong></div>
-    <div>Rua: {{this.pedido.endereco_rua}}</div>
-    <div>Número: {{this.pedido.endereco_numero}}</div>
-    <div>Bairro: {{this.pedido.endereco_bairro}}</div>
-    <div>Cidade: {{this.pedido.endereco_cidade}} - {{this.pedido.endereco_estado}}</div>
-    <div>CEP: {{this.pedido.endereco_cep}}</div>
-
-    <div style="margin-top:6px; font-size:11px;"><strong>OBSERVAÇÕES:</strong></div>
-    <div>{{this.observacoes_entrega}}</div>
-
-    <div class="produtos">
-      <div><strong>PRODUTOS:</strong></div>
-      <table>
-        <thead><tr><th>Quantidade</th><th>Produto</th></tr></thead>
+    {{#each pedidos}}
+    <section class="stop">
+      <div class="stop-heading">
+        <h2>PARADA {{this.pos}} <span>|</span> PEDIDO #{{this.id}}</h2>
+      </div>
+      <div class="customer-line">
+        {{this.cliente}} <span>TEL: {{this.telefone}}</span> <span>TEL. CONTATO: {{this.telefone_contato}}</span>
+      </div>
+      <div class="address-block"><strong>ENDEREÇO:</strong> {{this.endereco}}</div>
+      <div class="dates-row">
+        <span><strong>ENTREGA:</strong> {{this.data_entrega}}</span>
+        <span><strong>EVENTO:</strong> {{this.data_evento}}</span>
+        <span><strong>RETIRADA:</strong> {{this.data_retirada}}</span>
+      </div>
+      <table class="items-table">
+        <thead><tr><th>QTD.</th><th>PRODUTO</th><th>ENTREG.</th><th>RECOLH.</th><th>FALTA</th></tr></thead>
         <tbody>
           {{#each this.itens}}
-            <tr><td>{{this.quantidade}}</td><td>{{this.produto_nome}}</td></tr>
+          <tr><td>{{this.quantidade}}</td><td>{{this.produto}}</td><td></td><td></td><td></td></tr>
           {{/each}}
         </tbody>
       </table>
-    </div>
+      <div class="money-row">
+        <span><strong>TOTAL:</strong> {{this.total_formatado}}</span>
+        <span><strong>JÁ PAGO:</strong> {{this.pago_formatado}}</span>
+        <span><strong>A RECEBER:</strong> {{this.receber_formatado}}</span>
+      </div>
+      {{#if this.observacao}}
+      <p class="existing-note"><strong>Observação do pedido:</strong> {{this.observacao}}</p>
+      {{/if}}
+      <div class="handwriting-block">
+        <strong>OBSERVAÇÕES:</strong>
+        <div class="writing-lines"><span></span><span></span></div>
+      </div>
+      <div class="signature-block"><strong>ASSINATURA / CONFIRMAÇÃO:</strong><span></span></div>
+    </section>
+    {{/each}}
 
-    <div class="checkbox-area">
-    <div><i class="fa-regular fa-square"></i> ENTREGA REALIZADA</div>
-      <div>Horário: ______ : ______</div>
-      <div>Observação do entregador:</div>
-      <div style="min-height:40px; border:1px dashed #ccc; margin-top:6px; padding:6px"></div>
-    </div>
-  </div>
-  {{/each}}
-
-  <div class="rota-resumo">
-    <h3>CONTROLE DA ROTA</h3>
-    <table>
-      <thead><tr><th>Parada</th><th>Pedido</th><th>Cliente</th><th>Entregue</th></tr></thead>
-      <tbody>
-        {{#each pedidos}}
-          <tr><td>{{this.pos}}</td><td>#{{this.pedido.id}}</td><td>{{this.pedido.cliente}}</td><td><i class="fa-regular fa-square"></i></td></tr>
-        {{/each}}
-      </tbody>
-    </table>
-
-    <div style="margin-top:12px;">Total de pedidos: ______</div>
-    <div>Entregas realizadas: ______</div>
-    <div>Entregas não realizadas: ______</div>
-    <div style="margin-top:12px;">Observações gerais da rota:</div>
-    <div style="min-height:60px; border:1px dashed #ccc; margin-top:6px; padding:6px"></div>
-
-    <div style="margin-top:18px;">Assinatura do entregador: ________________________</div>
-  </div>
-
-  <script>
-    // helper to number from 1
-  </script>
+    <section class="route-control">
+      <h2>CONTROLE DA ROTA</h2>
+      <table>
+        <thead><tr><th>PARADA</th><th>PEDIDO</th><th>CLIENTE</th><th>SITUAÇÃO</th></tr></thead>
+        <tbody>
+          {{#each pedidos}}
+          <tr><td>{{this.pos}}</td><td>#{{this.id}}</td><td>{{this.cliente}}</td><td>☐ OK &nbsp; ☐ PARCIAL</td></tr>
+          {{/each}}
+        </tbody>
+      </table>
+      <div class="route-counts">
+        <span>ENTREGAS COMPLETAS: ______</span>
+        <span>ENTREGAS PARCIAIS: ______</span>
+        <span>ENTREGAS NÃO REALIZADAS: ______</span>
+      </div>
+      <div class="general-notes"><strong>OBSERVAÇÕES GERAIS DA ROTA</strong><span></span><span></span><span></span></div>
+      <div class="driver-signature"><strong>ASSINATURA DO ENTREGADOR:</strong><span></span></div>
+    </section>
+  </main>
+</body>
+</html>

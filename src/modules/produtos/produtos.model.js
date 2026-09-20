@@ -110,28 +110,21 @@ export async function excluir(id) {
 }
 
 export async function dashboard() {
-  const [rows] = await db.query(`
-    SELECT COUNT(*) AS total,
-      COALESCE(SUM(estoque - estoque_reservado - estoque_em_uso - estoque_manutencao - estoque_danificado), 0) AS disponiveis,
-      COALESCE(SUM(estoque_reservado), 0) AS reservados,
-      COALESCE(SUM(estoque_em_uso), 0) AS em_uso,
-      COALESCE(SUM(estoque_manutencao), 0) AS manutencao,
-      COALESCE(SUM(estoque_danificado), 0) AS danificados,
-      COALESCE(SUM(CASE WHEN estoque <= COALESCE(estoque_minimo, 0) THEN 1 ELSE 0 END), 0) AS baixo_estoque,
-      COALESCE(SUM(estoque * COALESCE(preco_venda, 0)), 0) AS valor_estoque
-    FROM produtos
-    WHERE ativo = 1
-  `);
-  return rows[0];
+  const { resumoEstoque } = await import('../estoque/estoque.service.js');
+  const resumo = await resumoEstoque();
+  return {
+    total: resumo.total_produtos,
+    disponiveis: resumo.disponivel,
+    reservados: resumo.estoque_reservado,
+    em_uso: resumo.estoque_em_uso,
+    manutencao: resumo.estoque_manutencao,
+    danificados: resumo.estoque_danificado,
+    baixo_estoque: resumo.baixo_estoque,
+    valor_estoque: resumo.valor_estoque
+  };
 }
 
 export async function historico() {
-  const [rows] = await db.query(`
-    SELECT m.*, p.nome AS produto
-    FROM movimentacao_estoque m
-    INNER JOIN produtos p ON p.id = m.produto_id
-    ORDER BY m.data_movimentacao DESC
-    LIMIT 100
-  `);
-  return rows;
+  const { historicoMovimentacoes } = await import('../estoque/estoque.service.js');
+  return historicoMovimentacoes();
 }

@@ -29,18 +29,10 @@ export async function listar(req, res) {
     const produtos = await service.listar(filtros);
     console.log("Produtos:", produtos.length);
 
-    const dashboard = await service.dashboard();
-    console.log("Dashboard:", dashboard);
-
-    const historico = await service.historico();
-    console.log("Histórico:", historico);
-
     const { fornecedores, categorias } = await dadosDoFormulario();
 
     res.render("pages/produtos/index", {
       produtos,
-      dashboard,
-      historico,
       filtros,
       fornecedores,
       categorias
@@ -228,8 +220,13 @@ export async function historico(req,res){
   try{
 
 
-    const dados =
-      await service.historico();
+    const dados = await service.historico({
+      tipo: req.query.tipo || '',
+      produto: req.query.produto || '',
+      usuario: req.query.usuario || '',
+      de: req.query.de || '',
+      ate: req.query.ate || ''
+    });
 
 
 
@@ -323,14 +320,6 @@ const produtos =
 
 
 
-const dashboard =
- await service.dashboard();
-
-
-
-const historico =
- await service.historico();
-
 const { fornecedores, categorias } = await dadosDoFormulario();
 
 
@@ -344,9 +333,6 @@ res.render(
 
   produtos,
 
-  dashboard,
-
-  historico,
   fornecedores,
   categorias
 

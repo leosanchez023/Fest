@@ -88,4 +88,4 @@
 }
 
 /* ensure main area leaves space for sidebar */
-.app-main{margin-left:260px;min-height:100vh}
+.app-main{margin-left:260px}

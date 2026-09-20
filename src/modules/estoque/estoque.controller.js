@@ -44,6 +44,21 @@ export async function resumo(req, res) {
   }
 }
 
+export async function historico(req, res) {
+  try {
+    const dados = await service.historicoMovimentacoes({
+      tipo: req.query.tipo || '',
+      produto: req.query.produto || '',
+      usuario: req.query.usuario || '',
+      de: req.query.de || '',
+      ate: req.query.ate || ''
+    });
+    res.json({ success: true, data: dados });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
 export async function ajustar(req, res) {
   try {
     const resultado = await service.registrarAjuste({

@@ -34,55 +34,71 @@ export async function buscarPedido(req, res) {
 export async function relatorio(req, res) {
   try {
     const idsParam = req.query.ids || '';
-    const ids = idsParam.split(',').map((s) => Number(s)).filter(Boolean);
+    const rawIds = idsParam.split(',').map((value) => value.trim()).filter(Boolean);
+    const ids = [...new Set(rawIds.map((value) => Number(value)))];
+    if (!ids.length || ids.length > 100 || ids.some((id) => !Number.isInteger(id) || id <= 0)) {
+      return res.status(400).send('Seleção de pedidos inválida.');
+    }
+
     const results = [];
     let pos = 1;
     for (const id of ids) {
       const pedido = await service.buscarPedido(id);
       if (pedido) {
-        const telefone_contato =
-          pedido.telefone_contato?.trim() ||
-          pedido.telefone?.trim() ||
-          pedido.telefone_cliente?.trim() ||
-          pedido.cliente?.telefone?.trim() ||
-          "Não informado";
-        const formatMoney = (value) =>
-          typeof value === "number"
-            ? value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-            : value || "-";
-
-        const data_evento_formatada = pedido.data_evento
-          ? new Date(pedido.data_evento).toLocaleDateString("pt-BR")
-          : "Não informado";
-        const data_entrega_formatada = pedido.data_entrega
-          ? new Date(pedido.data_entrega).toLocaleDateString("pt-BR")
-          : "Não informado";
-        const data_retirada_formatada = pedido.data_retirada
-          ? new Date(pedido.data_retirada).toLocaleDateString("pt-BR")
-          : "Não informado";
-        const observacoes_entrega = pedido.observacao_entrega?.trim() || pedido.observacoes?.trim() || "-";
+        const total = Number(pedido.valor_total || 0);
+        const pago = Number(pedido.valor_pago || 0);
+        const formatMoney = (value) => Number(value || 0).toLocaleString("pt-BR", {
+          style: "currency", currency: "BRL"
+        });
+        const formatDate = (value) => {
+          if (!value) return '____/____/______';
+          const isoDate = value instanceof Date
+            ? value.toISOString().slice(0, 10)
+            : String(value).slice(0, 10);
+          return isoDate.split('-').reverse().join('/');
+        };
+        const endereco = [
+          [pedido.endereco_rua, pedido.endereco_numero].filter(Boolean).join(', '),
+          pedido.endereco_bairro,
+          [pedido.endereco_cidade, pedido.endereco_estado].filter(Boolean).join(' - '),
+          pedido.endereco_cep ? `CEP ${pedido.endereco_cep}` : ''
+        ].filter(Boolean).join(' - ');
 
         results.push({
           pos,
-          pedido,
-          itens: pedido.itens || [],
-          telefone_contato,
-          data_evento_formatada,
-          data_entrega_formatada,
-          data_retirada_formatada,
-          observacoes_entrega,
-          valor_total_formatado: formatMoney(Number(pedido.valor_total || 0)),
-          valor_frete_formatado: formatMoney(Number(pedido.valor_frete || 0)),
-          valor_desconto_formatado: formatMoney(Number(pedido.valor_desconto || 0)),
-          valor_pago_formatado: formatMoney(Number(pedido.valor_pago || 0)),
+          id: pedido.id,
+          cliente: pedido.cliente || 'Não informado',
+          telefone: pedido.telefone || '—',
+          telefone_contato: pedido.telefone_contato || '—',
+          entregador: pedido.responsavel_entrega || '',
+          veiculo: pedido.veiculo || pedido.motorista || '',
+          endereco: endereco || 'Não informado',
+          data_entrega: formatDate(pedido.data_entrega),
+          data_evento: formatDate(pedido.data_evento),
+          data_retirada: formatDate(pedido.data_retirada),
+          itens: (pedido.itens || []).map((item) => ({
+            quantidade: Number(item.quantidade || 0),
+            produto: item.produto_nome || item.combo_nome || 'Item do pedido'
+          })),
+          total_formatado: formatMoney(total),
+          pago_formatado: formatMoney(pago),
+          receber_formatado: formatMoney(Math.max(total - pago, 0)),
+          observacao: pedido.observacao_entrega?.trim() || pedido.observacoes?.trim() || ''
         });
         pos++;
       }
     }
+
+    if (results.length !== ids.length) {
+      return res.status(404).send('Um ou mais pedidos selecionados não foram encontrados.');
+    }
+
     return res.render("pages/relatorio_entregas", {
       layout: false,
       pedidos: results,
-      data_rota: new Date().toISOString().slice(0, 10),
+      data_rota: new Date().toLocaleDateString('pt-BR'),
+      entregador_rota: results.find((pedido) => pedido.entregador)?.entregador || '',
+      veiculo_rota: results.find((pedido) => pedido.veiculo)?.veiculo || '',
     });
   } catch (err) {
     console.error("Erro relatorio:", err);

@@ -180,9 +180,9 @@ export async function dashboard() {
 // HISTÓRICO
 // ======================================
 
-export async function historico() {
+export async function historico(filtros = {}) {
 
-  return await model.historico();
+  return await estoqueService.historicoMovimentacoes(filtros);
 
 }
 
