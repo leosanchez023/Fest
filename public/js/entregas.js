@@ -1136,6 +1136,10 @@ const init = () => {
   window.filterByKpi = filterByKpi;
 
   loadOrders();
+  const pedidoParam = new URLSearchParams(window.location.search).get("pedido");
+  if (pedidoParam && Number.isInteger(Number(pedidoParam))) {
+    openOrderModal(Number(pedidoParam));
+  }
   activateTabs();
 
   ["f-from", "f-to", "f-status", "f-pay", "f-deliv"].forEach((id) => {

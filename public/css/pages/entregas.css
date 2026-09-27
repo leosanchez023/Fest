@@ -2,6 +2,28 @@
    CLIENTE BOX
 ========================= */
 
+.delivery-orders-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.delivery-orders-card > div:first-child {
+  padding: 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.delivery-table-header {
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.delivery-table-header h2 {
+  margin: 0;
+}
+
 .cliente-box {
     display: flex;
     justify-content: space-between;

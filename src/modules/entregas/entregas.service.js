@@ -1,13 +1,21 @@
 import * as model from "./entregas.model.js";
 
+const normalizarStatus = (pedido) => ({
+  ...pedido,
+  status: pedido?.status ? String(pedido.status).trim().toUpperCase() : pedido?.status
+});
+
 export async function listarPedidos(filtros) {
   // Já vem agregado por pedido (sem duplicação de JOIN)
-  return await model.buscarPedidos(filtros);
+  const pedidos = await model.buscarPedidos(filtros);
+  return pedidos.map(normalizarStatus);
 }
 
 export async function buscarPedido(id) {
   const pedido = await model.buscarPedidoPorId(id);
   if (!pedido) return null;
+
+  pedido.status = normalizarStatus(pedido).status;
 
   pedido.itens       = await model.itensDoPedido(id);
   pedido.pagamentos  = await model.pagamentosDoPedido(id);

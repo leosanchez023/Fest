@@ -11,7 +11,8 @@ const permissionByPath = [
   ["/orcamentos", "pedidos"],
   ["/estoque", "produtos"],
   ["/combos", "produtos"],
-  ["/relatorios", "relatorios"]
+  ["/relatorios", "relatorios"],
+  ["/devedores", "relatorios"]
 ];
 
 function isPublicRequest(req) {
@@ -26,9 +27,20 @@ export async function protegerAplicacao(req, res, next) {
   }
 
   const entrada = permissionByPath.find(([prefix]) => req.path === prefix || req.path.startsWith(`${prefix}/`));
-  if (!entrada) return next();
 
   try {
+    const [permissionRows] = await db.query(
+      `SELECT dashboard, clientes, produtos, pedidos, entregas, relatorios,
+              funcionarios, fornecedor, cadastro_admin
+       FROM user_permissions
+       WHERE usuario_id = ?
+       LIMIT 1`,
+      [req.user.id]
+    );
+    res.locals.userPermissions = permissionRows[0] || {};
+
+    if (!entrada) return next();
+
     const [rows] = await db.query(
       `SELECT ?? AS permitido FROM user_permissions WHERE usuario_id = ? LIMIT 1`,
       [entrada[1], req.user.id]

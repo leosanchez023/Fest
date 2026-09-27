@@ -1,0 +1,50 @@
+<link rel="stylesheet" href="/css/pages/devedores.css">
+
+<div class="container debtors-page">
+	<div class="page-meta" data-title="Clientes Devedores" data-subtitle="Gerencie pagamentos pendentes e cobranças"></div>
+
+	<section class="kpi-grid debtors-kpis" aria-label="Resumo de devedores">
+		<div class="kpi-card debtors-kpi-card"><span class="debtors-kpi-icon debtors-kpi-icon--money" aria-hidden="true">$</span><div><span class="kpi-label">Total a Receber</span><strong class="kpi-value" id="debtors-open">R$ 0,00</strong></div></div>
+		<div class="kpi-card debtors-kpi-card"><span class="debtors-kpi-icon debtors-kpi-icon--clients" aria-hidden="true"><i class="fa-solid fa-users"></i></span><div><span class="kpi-label">Clientes Devedores</span><strong class="kpi-value" id="debtors-clients">0</strong></div></div>
+		<div class="kpi-card debtors-kpi-card"><span class="debtors-kpi-icon debtors-kpi-icon--alert" aria-hidden="true"><i class="fa-solid fa-triangle-exclamation"></i></span><div><span class="kpi-label">Valor em Atraso</span><strong class="kpi-value debtors-danger" id="debtors-overdue-value">R$ 0,00</strong></div></div>
+	</section>
+
+	<section class="card debtors-panel">
+		<div class="debtors-panel-header">
+			<div>
+				<h2>Filtros</h2>
+				<p class="muted">A data do evento é usada como vencimento porque o banco não possui uma data de vencimento separada.</p>
+		</div>
+			<button class="btn" id="debtors-export" type="button"><i class="fa-solid fa-file-export icon-sm"></i> Exportar CSV</button>
+		</div>
+		<div class="debtors-filters">
+			<div class="debtors-client-filter"><label for="debtor-client">Cliente</label><div class="debtors-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="debtor-client" type="search" placeholder="Buscar cliente..."></div></div>
+			<div><label for="debtor-period">Período</label><select id="debtor-period"><option value="all">Todos</option><option value="current_month">Mês atual</option><option value="last_month">Mês anterior</option><option value="last_3_months">Últimos 3 meses</option></select></div>
+			<div><label for="debtor-overdue">Atraso</label><select id="debtor-overdue"><option value="all">Todos</option><option value="1">1+ dias</option><option value="7">7+ dias</option><option value="15">15+ dias</option><option value="30">30+ dias</option><option value="60">60+ dias</option><option value="90">90+ dias</option></select></div>
+			<div class="debtors-filter-action"><button class="debtors-clear" id="debtor-clear" type="button"><i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i> Limpar</button></div>
+		</div>
+	</section>
+
+	<section class="card debtors-panel">
+		<div class="debtors-table-header"><h2>Clientes Devedores</h2><span class="muted" id="debtors-count">0 registros</span></div>
+		<div class="table-wrap debtors-table-wrap">
+			<table>
+				<thead><tr><th>Pedido</th><th>Cliente</th><th>Telefone</th><th>Data evento</th><th>Valor total</th><th>Valor pago</th><th>Pendente</th><th>Atraso</th><th>Ações</th></tr></thead>
+				<tbody id="debtors-body"><tr><td colspan="9" class="debtors-empty">Carregando...</td></tr></tbody>
+			</table>
+		</div>
+	</section>
+</div>
+
+<div class="modal-overlay" id="debtor-payment-modal" aria-hidden="true">
+	<div class="modal debtor-payment-modal" role="dialog" aria-modal="true" aria-labelledby="debtor-payment-title">
+		<div class="modal-header"><div><h2 id="debtor-payment-title">Registrar pagamento</h2><span id="debtor-payment-order"></span></div><button class="iconbtn" id="debtor-payment-close" type="button" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button></div>
+		<div class="modal-body">
+			<p id="debtor-payment-balance" class="muted"></p>
+			<div class="debtors-payment-form"><label for="debtor-payment-value">Valor</label><input id="debtor-payment-value" type="number" min="0.01" step="0.01"><label for="debtor-payment-method">Forma de pagamento</label><select id="debtor-payment-method"><option value="">Selecione</option><option value="PIX">PIX</option><option value="DINHEIRO">Dinheiro</option><option value="CARTAO_DEBITO">Cartão débito</option><option value="CARTAO_CREDITO">Cartão crédito</option><option value="TRANSFERENCIA">Transferência</option></select><label for="debtor-payment-note">Observação</label><textarea id="debtor-payment-note" rows="3"></textarea></div>
+			<div class="form-actions"><button class="btn" id="debtor-payment-cancel" type="button">Cancelar</button><button class="btn-primary btn" id="debtor-payment-submit" type="button">Registrar pagamento</button></div>
+		</div>
+	</div>
+</div>
+
+<script src="/js/devedores.js"></script>

@@ -1,0 +1,199 @@
+.debtors-page {
+  max-width: 1230px;
+  padding: 24px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.debtors-kpis {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+
+.debtors-kpi-card {
+  min-height: 90px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+}
+
+.debtors-kpi-card .kpi-label {
+  display: block;
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.debtors-kpi-card .kpi-value {
+  display: block;
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.debtors-kpi-card .debtors-danger { color: #dc2626; }
+
+.debtors-kpi-icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.debtors-kpi-icon--money { background: #eaf3ff; color: #2563eb; }
+.debtors-kpi-icon--clients { background: #fff6dc; color: #d97706; font-size: 16px; }
+.debtors-kpi-icon--alert { background: #feecec; color: #dc2626; font-size: 16px; }
+
+.debtors-panel {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid #dfe3e8;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+}
+
+.debtors-panel-header,
+.debtors-table-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.debtors-panel h2,
+.debtors-table-header h2 { margin: 0; }
+.debtors-panel-header p { margin: 6px 0 0; font-size: 12px; }
+
+.debtors-filters {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) 160px 160px auto;
+  gap: 16px;
+  align-items: end;
+  margin-top: 16px;
+}
+
+.debtors-filters label {
+  display: block;
+  margin-bottom: 6px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.debtors-filters input,
+.debtors-filters select {
+  height: 40px;
+  border: 1px solid #d9dee5;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.debtors-search { position: relative; }
+.debtors-search i { position: absolute; left: 13px; top: 12px; color: #94a3b8; font-size: 14px; }
+.debtors-search input { padding-left: 36px; }
+
+.debtors-filter-action { display: flex; justify-content: flex-end; }
+.debtors-clear {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: #0f172a;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.debtors-clear:hover { color: var(--color-primary-dark); }
+
+.debtors-table-header { align-items: center; margin-bottom: 14px; }
+.debtors-table-header h2 { font-size: 16px; }
+.debtors-table-wrap { overflow-x: auto; border: 0; border-radius: 8px; }
+.debtors-table-wrap table { min-width: 980px; }
+.debtors-table-wrap th {
+  height: 48px;
+  padding: 0 14px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+.debtors-table-wrap td {
+  height: 64px;
+  padding: 12px 14px;
+  color: #111827;
+  font-size: 13px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.debtors-table-wrap tbody tr { border-left: 3px solid transparent; }
+.debtors-table-wrap tbody tr.debtors-row--moderate { border-left-color: #f59e0b; background: #fffbf2; }
+.debtors-table-wrap tbody tr.debtors-row--high { border-left-color: #ef4444; background: #fff7f7; }
+.debtors-table-wrap tbody tr:hover { filter: brightness(.985); }
+.debtors-table-wrap td strong { font-weight: 500; }
+.debtors-table-wrap td.debtors-paid { color: #15803d; }
+.debtors-table-wrap td.debtors-pending { color: #dc2626; font-weight: 600; }
+.debtors-empty { padding: 44px 16px !important; text-align: center; color: #64748b !important; }
+
+.debtors-delay-badge {
+  display: inline-flex;
+  align-items: center;
+  min-width: 58px;
+  justify-content: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+.debtors-delay-badge--moderate { background: #fff0c7; color: #b45309; }
+.debtors-delay-badge--high { background: #fee2e2; color: #dc2626; }
+
+.debtors-actions { display: flex; gap: 4px; }
+.debtors-actions .iconbtn {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #64748b;
+}
+.debtors-actions .iconbtn:hover { background: #f1f5f9; color: #0f172a; }
+
+.debtors-payment-modal { max-width: 560px; padding: 0; }
+.debtors-payment-modal .modal-header h2 { margin: 0 0 4px; font-size: 18px; }
+.debtors-payment-modal .modal-header button { color: #fff; border-color: rgba(255,255,255,.3); background: transparent; }
+.debtors-payment-form { display: grid; gap: 8px; }
+.debtors-payment-form textarea { height: auto; padding: 10px 12px; }
+
+@media (max-width: 900px) {
+  .debtors-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .debtors-filters { grid-template-columns: minmax(220px, 1fr) 1fr 1fr; }
+  .debtors-filter-action { justify-content: flex-start; }
+}
+
+@media (max-width: 560px) {
+  .debtors-page { padding: 20px 14px 32px; }
+  .debtors-kpis { grid-template-columns: 1fr; }
+  .debtors-panel-header { flex-direction: column; }
+  .debtors-filters { grid-template-columns: 1fr; }
+}

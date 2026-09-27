@@ -15,33 +15,50 @@
 
   <nav class="sidebar-nav">
 
-    <a class="nav-item" href="/dashboard"><i class="fa-solid fa-chart-simple ni"></i><span>Dashboard</span></a>
+    {{#if userPermissions.dashboard}}
+      <a class="nav-item" href="/dashboard"><i class="fa-solid fa-chart-simple ni"></i><span>Dashboard</span></a>
+    {{/if}}
 
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">Pedidos</div>
-      <a class="nav-item" href="/pedidos"><i class="fa-solid fa-cart-shopping ni"></i><span>Pedidos</span></a>
-      <a class="nav-item" href="/orcamentos"><i class="fa-solid fa-file-invoice-dollar ni"></i><span>Orçamentos</span></a>
-      <a class="nav-item" href="/entregas"><i class="fa-solid fa-truck ni"></i><span>Entregas</span></a>
+    <div class="sidebar-section" data-sidebar-group="pedidos">
+      <button class="sidebar-group-toggle" type="button" aria-expanded="false" aria-controls="sidebar-pedidos">
+        <i class="fa-solid fa-cart-shopping ni"></i><span>Pedidos</span><i class="fa-solid fa-chevron-right group-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="sidebar-submenu" id="sidebar-pedidos">
+        {{#if userPermissions.pedidos}}<a class="nav-item" href="/pedidos"><i class="fa-solid fa-cart-shopping ni"></i><span>Pedidos</span></a>{{/if}}
+        {{#if userPermissions.pedidos}}<a class="nav-item" href="/orcamentos"><i class="fa-solid fa-file-invoice-dollar ni"></i><span>Orçamentos</span></a>{{/if}}
+        {{#if userPermissions.entregas}}<a class="nav-item" href="/entregas"><i class="fa-solid fa-truck ni"></i><span>Entregas</span></a>{{/if}}
+      </div>
     </div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">Cadastros</div>
-      <a class="nav-item" href="/clientes"><i class="fa-solid fa-users ni"></i><span>Clientes</span></a>
-      <a class="nav-item" href="/produtos"><i class="fa-solid fa-box-open ni"></i><span>Produtos</span></a>
-      <a class="nav-item" href="/fornecedores"><i class="fa-solid fa-industry ni"></i><span>Fornecedores</span></a>
-      <a class="nav-item" href="/usuarios"><i class="fa-solid fa-user-gear ni"></i><span>Funcionários</span></a>
+    <div class="sidebar-section" data-sidebar-group="cadastros">
+      <button class="sidebar-group-toggle" type="button" aria-expanded="false" aria-controls="sidebar-cadastros">
+        <i class="fa-solid fa-users ni"></i><span>Cadastros</span><i class="fa-solid fa-chevron-right group-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="sidebar-submenu" id="sidebar-cadastros">
+        {{#if userPermissions.clientes}}<a class="nav-item" href="/clientes"><i class="fa-solid fa-users ni"></i><span>Clientes</span></a>{{/if}}
+        {{#if userPermissions.fornecedor}}<a class="nav-item" href="/fornecedores"><i class="fa-solid fa-industry ni"></i><span>Fornecedores</span></a>{{/if}}
+        {{#if userPermissions.cadastro_admin}}<a class="nav-item" href="/usuarios"><i class="fa-solid fa-user-gear ni"></i><span>Funcionários</span></a>{{/if}}
+      </div>
     </div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">Estoque</div>
-      <a class="nav-item" href="/estoque"><i class="fa-solid fa-boxes-packing ni"></i><span>Controle de Estoque</span></a>
-      <a class="nav-item" href="/combos"><i class="fa-solid fa-puzzle-piece ni"></i><span>Combos</span></a>
+    <div class="sidebar-section" data-sidebar-group="estoque">
+      <button class="sidebar-group-toggle" type="button" aria-expanded="false" aria-controls="sidebar-estoque">
+        <i class="fa-solid fa-boxes-packing ni"></i><span>Estoque</span><i class="fa-solid fa-chevron-right group-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="sidebar-submenu" id="sidebar-estoque">
+        {{#if userPermissions.produtos}}<a class="nav-item" href="/produtos"><i class="fa-solid fa-box-open ni"></i><span>Produtos</span></a>{{/if}}
+        {{#if userPermissions.produtos}}<a class="nav-item" href="/combos"><i class="fa-solid fa-puzzle-piece ni"></i><span>Combos</span></a>{{/if}}
+      </div>
     </div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">Relatórios</div>
-      <a class="nav-item" href="/relatorios"><i class="fa-solid fa-chart-line ni"></i><span>Relatórios</span></a>
-      <a class="nav-item" href="/devedores"><i class="fa-solid fa-user-clock ni"></i><span>Devedores</span></a>
+    <div class="sidebar-section" data-sidebar-group="relatorios">
+      <button class="sidebar-group-toggle" type="button" aria-expanded="false" aria-controls="sidebar-relatorios">
+        <i class="fa-solid fa-chart-line ni"></i><span>Relatórios</span><i class="fa-solid fa-chevron-right group-chevron" aria-hidden="true"></i>
+      </button>
+      <div class="sidebar-submenu" id="sidebar-relatorios">
+        {{#if userPermissions.relatorios}}<a class="nav-item" href="/relatorios"><i class="fa-solid fa-chart-line ni"></i><span>Relatórios</span></a>{{/if}}
+        {{#if userPermissions.relatorios}}<a class="nav-item" href="/devedores"><i class="fa-solid fa-user-clock ni"></i><span>Devedores</span></a>{{/if}}
+      </div>
     </div>
 
   </nav>
@@ -71,17 +88,37 @@ document.addEventListener('DOMContentLoaded', function(){
       toggle.setAttribute('aria-label', collapsed ? 'Expandir menu' : 'Recolher menu');
     });
   }
-  const links = document.querySelectorAll('.sidebar-nav .nav-item');
+  const groups = document.querySelectorAll('[data-sidebar-group]');
+  const links = document.querySelectorAll('.sidebar-submenu .nav-item');
   const path = window.location.pathname.replace(/\/$/, '') || '/dashboard';
+
+  const setGroup = (group, open) => {
+    group.classList.toggle('open', open);
+    const toggle = group.querySelector('.sidebar-group-toggle');
+    if (toggle) toggle.setAttribute('aria-expanded', String(open));
+  };
+
+  groups.forEach(group => {
+    const toggle = group.querySelector('.sidebar-group-toggle');
+    const submenu = group.querySelector('.sidebar-submenu');
+    if (!toggle || !submenu || !submenu.children.length) {
+      group.remove();
+      return;
+    }
+    toggle.addEventListener('click', () => {
+      const willOpen = !group.classList.contains('open');
+      groups.forEach(other => setGroup(other, other === group && willOpen));
+    });
+  });
+
   links.forEach(link => {
     const href = link.getAttribute('href') || link.dataset.href || '';
     if(!href) return;
     // marca ativo se for igual ou prefixo (ex: /produtos/123)
     if(path === href || path.indexOf(href) === 0) {
       link.classList.add('active');
-      // marcar a seção pai se necessário
-      const section = link.closest('.sidebar-section');
-      if(section) section.classList.add('open');
+      const section = link.closest('[data-sidebar-group]');
+      if(section) setGroup(section, true);
     }
   });
 });

@@ -85,6 +85,7 @@ import relatoriosRoutes from "./src/modules/relatorios/relatorios.routes.js"
 import orcamentosRoutes from "./src/modules/orcamentos/orcamentos.routes.js"
 import estoqueRoutes from "./src/modules/estoque/estoque.routes.js"
 import combosRoutes from "./src/modules/combos/combos.routes.js"
+import devedoresRoutes from "./src/modules/devedores/devedores.routes.js"
 
 app.use("/", loginRoutes)
 app.use("/usuarios", usuariosRoutes)
@@ -98,6 +99,7 @@ app.use("/orcamentos", orcamentosRoutes)
 app.use("/relatorios", relatoriosRoutes)
 app.use("/estoque", estoqueRoutes)
 app.use("/combos", combosRoutes)
+app.use("/devedores", devedoresRoutes)
 
 app.get("/logout", (req, res, next) => {
     req.logout((erro) => {

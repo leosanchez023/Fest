@@ -31,8 +31,33 @@
     display:flex;flex-direction:column;gap:6px;overflow:auto;
 }
 
-.sidebar-section{padding-top:12px}
-.sidebar-section-title{font-size:10px;color:#8eabb4;font-weight:800;text-transform:uppercase;letter-spacing:.09em;padding:8px 12px}
+.sidebar-section{padding-top:4px}
+.sidebar-group-toggle{
+    all:unset;
+    width:100%;
+    box-sizing:border-box;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:8px;
+    color:#c4d6db;
+    font-size:14px;
+    transition:background .12s,color .12s;
+}
+.sidebar-group-toggle:hover{background:var(--color-sidebar-hover);color:#fff}
+.sidebar-group-toggle .ni{width:20px;text-align:center;color:#91b1ba;font-size:14px}
+.sidebar-group-toggle span{flex:1}
+.group-chevron{font-size:11px;color:#91b1ba;transition:transform .16s ease}
+.sidebar-section.open > .sidebar-group-toggle{background:rgba(255,255,255,.06);color:#fff}
+.sidebar-section.open > .sidebar-group-toggle .ni,
+.sidebar-section.open > .sidebar-group-toggle .group-chevron{color:#fff}
+.sidebar-section.open > .sidebar-group-toggle .group-chevron{transform:rotate(90deg)}
+.sidebar-submenu{display:none;padding:4px 0 2px 18px}
+.sidebar-section.open .sidebar-submenu{display:flex;flex-direction:column;gap:2px}
+.sidebar-submenu .nav-item{padding:9px 12px;font-size:13px}
+.sidebar-submenu .nav-item .ni{font-size:12px;color:#91b1ba}
 
 /* ==========================================
    NAV ITEM
@@ -76,13 +101,16 @@
     .sidebar-toggle{display:grid;place-items:center}
     .sidebar.is-collapsed{transform:translateX(calc(-100% + 54px))}
     .sidebar.is-collapsed .brand-info,
-    .sidebar.is-collapsed .sidebar-section-title,
+    .sidebar.is-collapsed .sidebar-group-toggle span,
+    .sidebar.is-collapsed .group-chevron,
     .sidebar.is-collapsed .nav-item span,
     .sidebar.is-collapsed .sidebar-user-copy,
     .sidebar.is-collapsed .copyright{display:none}
     .sidebar.is-collapsed .sidebar-header{justify-content:flex-end}
     .sidebar.is-collapsed .sidebar-brand{display:none}
     .sidebar.is-collapsed .nav-item{justify-content:center;padding-left:0;padding-right:0}
+    .sidebar.is-collapsed .sidebar-group-toggle{justify-content:center;padding-left:0;padding-right:0}
+    .sidebar.is-collapsed .sidebar-submenu{display:none}
     .sidebar.is-collapsed .sidebar-user{justify-content:center;padding-left:0;padding-right:0}
     .app-main{margin-left:0}
 }
