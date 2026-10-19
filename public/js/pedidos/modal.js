@@ -1,4 +1,4 @@
-import { fmt, $ } from "./utils.js";
+import { esc, fmt, $ } from "./utils.js";
 import { state } from "./state.js";
 
 export function abrirModalConfirmacao(pedido) {
@@ -30,10 +30,17 @@ export function abrirModalConfirmacao(pedido) {
       </div>
       <div class="section">
         <div class="section-title"><i class="fa-solid fa-location-dot icon-sm"></i> Entrega</div>
-        ${$("end-rua")?.value || "-"}, ${$("end-numero")?.value || "-"}<br>
-        ${$("end-bairro")?.value || "-"} - ${$("end-cidade")?.value || "-"}/${$("end-estado")?.value || "-"}
+        <b>Origem:</b> ${esc(pedido.endereco_origem || "-")}<br>
+        <b>Destino:</b><br>
+        ${esc($("end-rua")?.value || "-")}, ${esc($("end-numero")?.value || "-")}<br>
+        ${esc($("end-bairro")?.value || "-")} - ${esc($("end-cidade")?.value || "-")}/${esc($("end-estado")?.value || "-")}
+        ${$("end-cep")?.value ? `<br>CEP ${esc($("end-cep").value)}` : ""}
+        ${$("end-referencia")?.value ? `<br>${esc($("end-referencia").value)}` : ""}
         <br><br>
-        <b>${pedido.distancia_km || 0} km</b> • Frete: <b>${fmt(pedido.valor_frete || 0)}</b>
+        <b>${Number(pedido.distancia_cobrada_km || pedido.distancia_km || 0).toFixed(2)} km considerados</b>
+        (${Number(pedido.distancia_km || 0).toFixed(2)} km ida${Number(pedido.distancia_retorno_km || 0) > 0 ? ` + ${Number(pedido.distancia_retorno_km).toFixed(2)} km retorno` : ""})
+        • Frete: <b>${fmt(pedido.valor_frete || 0)}</b><br>
+        <small>${esc(pedido.frete_formula || state.rotaCalculada?.formula || "Frete salvo anteriormente")}</small>
       </div>
       <div class="section">
         <div class="section-title"><i class="fa-solid fa-dollar-sign icon-sm"></i> Pagamento</div>

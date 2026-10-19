@@ -21,7 +21,8 @@ export async function listar(req, res) {
       busca: req.query.busca || "",
       categoria: req.query.categoria || "",
       fornecedor: req.query.fornecedor || "",
-      status: req.query.status || ""
+      status: req.query.status === "INATIVO" ? "" : req.query.status || "",
+      ativo: req.query.status === "INATIVO" ? "0" : req.query.ativo || ""
     };
 
     console.log("Filtros:", filtros);
@@ -82,7 +83,10 @@ export async function listarAPI(req,res){
 
 
       status:
-      req.query.status || ""
+      req.query.status === "INATIVO" ? "" : req.query.status || "",
+
+      ativo:
+      req.query.status === "INATIVO" ? "0" : req.query.ativo || ""
 
 
     };
@@ -114,6 +118,22 @@ export async function listarAPI(req,res){
   }
 
 
+}
+
+export async function atualizarQuantidadesEstoque(req, res) {
+  try {
+    const resultado = await service.atualizarQuantidadesEstoque(
+      req.params.id,
+      req.body,
+      req.user?.id || null
+    );
+    res.json({ sucesso: true, data: resultado });
+  } catch (err) {
+    res.status(err.code ? 500 : 400).json({
+      sucesso: false,
+      erro: err.code ? "Não foi possível atualizar o estoque." : err.message
+    });
+  }
 }
 
 
@@ -225,7 +245,9 @@ export async function historico(req,res){
       produto: req.query.produto || '',
       usuario: req.query.usuario || '',
       de: req.query.de || '',
-      ate: req.query.ate || ''
+      ate: req.query.ate || '',
+      pagina: req.query.pagina || 1,
+      limite: req.query.limite || 25
     });
 
 
@@ -308,12 +330,14 @@ export async function editar(req,res){
 
 try{
 
-
 const produto =
  await service.buscarPorId(
   req.params.id
  );
 
+if (!produto) {
+  return res.status(404).send("Produto não encontrado.");
+}
 
 const produtos =
  await service.listar();
@@ -331,10 +355,11 @@ res.render(
 
   produto,
 
-  produtos,
+ produtos,
 
-  fornecedores,
-  categorias
+ fornecedores,
+ categorias,
+ filtros: {}
 
  }
 

@@ -1,0 +1,43 @@
+<header class="app-header">
+  <div class="app-header__inner">
+    <div class="app-header__page">
+      <button class="app-header__sidebar-toggle" id="sidebarToggle" type="button" aria-controls="appSidebar" aria-expanded="true" aria-label="Recolher menu">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
+      <div class="app-header__page-copy">
+        <span class="app-header__eyebrow">LOCAGEST</span>
+        <h1 class="app-header__page-title">Painel</h1>
+        <p class="app-header__page-subtitle"></p>
+      </div>
+    </div>
+
+    <label class="app-header__search">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <span class="app-visually-hidden">Buscar</span>
+      <input type="search" placeholder="Buscar..." autocomplete="off">
+    </label>
+
+    <div class="app-header__actions">
+      <button class="app-header__icon-button" type="button" aria-label="Notificações indisponíveis" title="Notificações indisponíveis" disabled>
+        <i class="fa-regular fa-bell" aria-hidden="true"></i>
+      </button>
+      <div class="app-header__account-wrap">
+        <button class="app-header__account-toggle" id="accountToggle" type="button" aria-expanded="false" aria-controls="accountMenu">
+          <span class="app-header__avatar" data-user-initials aria-hidden="true">U</span>
+          <span class="app-header__account-name">{{#if user.nome}}{{user.nome}}{{else}}Usuário{{/if}}</span>
+          <i class="fa-solid fa-chevron-down app-header__account-chevron" aria-hidden="true"></i>
+        </button>
+        <div class="app-header__account-menu" id="accountMenu" hidden>
+          <div class="app-header__account-details">
+            <strong>{{#if user.nome}}{{user.nome}}{{else}}Usuário{{/if}}</strong>
+            {{#if user.email}}<span>{{user.email}}</span>{{/if}}
+          </div>
+          <form action="/logout" method="POST" class="app-header__logout-form">
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
+            <button type="submit"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Sair</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>

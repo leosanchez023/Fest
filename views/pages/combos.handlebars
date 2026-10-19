@@ -28,8 +28,7 @@
         <tr>
           <th style="padding:12px;">Nome</th>
           <th style="padding:12px;">Código</th>
-          <th style="padding:12px;">Preço aluguel</th>
-          <th style="padding:12px;">Preço venda</th>
+          <th style="padding:12px;">Preço</th>
           <th style="padding:12px;">Disponibilidade</th>
           <th style="padding:12px;">Status</th>
           <th style="padding:12px;">Ações</th>
@@ -61,12 +60,8 @@
             <input name="codigo" />
           </div>
           <div>
-            <label>Preço de aluguel</label>
-            <input name="preco_aluguel" type="number" min="0" step="0.01" value="0" />
-          </div>
-          <div>
-            <label>Preço de venda</label>
-            <input name="preco_venda" type="number" min="0" step="0.01" value="0" />
+            <label>Preço</label>
+            <input name="preco" type="number" min="0" step="0.01" value="0" required />
           </div>
           <div>
             <label>Ativo</label>
@@ -106,6 +101,12 @@
   const comboForm = document.getElementById('combo-form');
   let comboAtualId = null;
 
+  function escapar(valor) {
+    return String(valor ?? '').replace(/[&<>'"]/g, (caractere) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[caractere]));
+  }
+
   function moeda(v) {
     return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
@@ -115,6 +116,7 @@
     const ativo = document.getElementById('combo-status').value;
     const resp = await fetch('/combos/api');
     const combos = await resp.json();
+    if (!resp.ok || !Array.isArray(combos)) throw new Error(combos.erro || 'Não foi possível carregar os combos.');
 
     const filtrados = combos.filter((combo) => {
       const texto = `${combo.nome || ''} ${combo.codigo || ''}`.toLowerCase();
@@ -125,15 +127,14 @@
 
     comboTableBody.innerHTML = filtrados.map((combo) => `
       <tr>
-        <td>${combo.nome}</td>
-        <td>${combo.codigo || '-'}</td>
-        <td>${moeda(combo.preco_aluguel)}</td>
-        <td>${moeda(combo.preco_venda)}</td>
+        <td>${escapar(combo.nome)}</td>
+        <td>${escapar(combo.codigo || '-')}</td>
+        <td>${moeda(combo.preco)}</td>
         <td>${combo.total_itens || 0} itens</td>
-        <td>${combo.ativo === 0 ? '<span class="badge b-muted">Inativo</span>' : '<span class="badge b-success">Ativo</span>'}</td>
+        <td>${Number(combo.ativo) === 0 ? '<span class="badge b-muted">Inativo</span>' : '<span class="badge b-success">Ativo</span>'}</td>
         <td>
           <button type="button" class="btn" data-action="edit" data-id="${combo.id}">Editar</button>
-          <button type="button" class="btn" data-action="toggle" data-id="${combo.id}">${combo.ativo === 0 ? 'Ativar' : 'Inativar'}</button>
+          <button type="button" class="btn" data-action="toggle" data-id="${combo.id}">${Number(combo.ativo) === 0 ? 'Ativar' : 'Inativar'}</button>
         </td>
       </tr>
     `).join('');
@@ -147,9 +148,43 @@
         const id = Number(btn.dataset.id);
         const combo = combos.find((item) => item.id === id);
         if (!combo) return;
-        await fetch(`/combos/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...combo, ativo: combo.ativo === 0 ? 1 : 0 }) });
+      const ativar = Number(combo.ativo) === 0;
+      const confirm = window.FestAlert?.confirm
+        ? await window.FestAlert.confirm(ativar ? 'Ativar combo' : 'Inativar combo', `Confirma ${ativar ? 'a ativação' : 'a inativação'} de "${combo.nome}"?`)
+        : { isConfirmed: window.confirm(`Confirma ${ativar ? 'a ativação' : 'a inativação'} deste combo?`) };
+      if (!confirm?.isConfirmed || btn.disabled) return;
+      btn.disabled = true;
+      try {
+        let response;
+        if (!ativar) {
+          response = await fetch(`/combos/${id}`, { method: 'DELETE' });
+        } else {
+          const detalheResponse = await fetch(`/combos/${id}`);
+          const detalhe = await detalheResponse.json();
+          if (!detalheResponse.ok) throw new Error(detalhe.erro || 'Não foi possível carregar o combo.');
+          response = await fetch(`/combos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              nome: detalhe.nome,
+              codigo: detalhe.codigo,
+              descricao: detalhe.descricao,
+              preco: detalhe.preco,
+              ativo: true,
+              itens: detalhe.itens.map(({ produto_id, quantidade }) => ({ produto_id, quantidade }))
+            })
+          });
+        }
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.erro || 'Não foi possível atualizar a situação do combo.');
         await carregarCombos();
-      });
+        await window.FestAlert?.success?.('Combo atualizado', `Combo ${ativar ? 'ativado' : 'inativado'} com sucesso.`);
+      } catch (error) {
+        await window.FestAlert?.error?.('Erro no combo', error.message);
+      } finally {
+        btn.disabled = false;
+      }
+    });
     });
   }
 
@@ -180,7 +215,7 @@
     fetch('/produtos/api').then((r) => r.json()).then((produtos) => {
       select.innerHTML = '<option value="">Selecione</option>' + produtos
         .filter((p) => Number(p.ativo || 1) === 1)
-        .map((p) => `<option value="${p.id}" ${Number(item.produto_id || 0) === Number(p.id) ? 'selected' : ''}>${p.nome}</option>`)
+        .map((p) => `<option value="${p.id}" ${Number(item.produto_id || 0) === Number(p.id) ? 'selected' : ''}>${escapar(p.nome)}</option>`)
         .join('');
     });
 
@@ -188,28 +223,31 @@
     comboItens.appendChild(row);
   }
 
-  function abrirModalEdicao(id) {
+  async function abrirModalEdicao(id) {
     comboAtualId = id;
     document.getElementById('combo-modal-title').textContent = 'Editar combo';
     comboModal.style.display = 'flex';
-    fetch(`/combos/${id}`).then((r) => r.json()).then(async (combo) => {
+    try {
+      const response = await fetch(`/combos/${id}`);
+      const combo = await response.json();
+      if (!response.ok) throw new Error(combo.erro || 'Não foi possível carregar o combo.');
       comboForm.nome.value = combo.nome || '';
       comboForm.codigo.value = combo.codigo || '';
       comboForm.descricao.value = combo.descricao || '';
-      comboForm.preco_aluguel.value = combo.preco_aluguel || 0;
-      comboForm.preco_venda.value = combo.preco_venda || 0;
+      comboForm.preco.value = combo.preco || 0;
       comboForm.ativo.value = String(combo.ativo ?? 1);
       comboItens.innerHTML = '';
-      const itens = await fetch(`/combos/${id}`).then((res) => res.json()).then((d) => d.itens || []);
-      itens.forEach((item) => adicionarLinhaItem({ produto_id: item.produto_id, quantidade: item.quantidade }));
-    });
+      (combo.itens || []).forEach((item) => adicionarLinhaItem({ produto_id: item.produto_id, quantidade: item.quantidade }));
+    } catch (error) {
+      comboModal.style.display = 'none';
+      await window.FestAlert?.error?.('Erro ao carregar combo', error.message);
+    }
   }
 
   document.getElementById('btn-novo-combo').addEventListener('click', () => {
     comboAtualId = null;
     comboForm.reset();
-    comboForm.preco_aluguel.value = 0;
-    comboForm.preco_venda.value = 0;
+    comboForm.preco.value = 0;
     comboForm.ativo.value = '1';
     comboItens.innerHTML = '';
     document.getElementById('combo-modal-title').textContent = 'Novo combo';
@@ -223,13 +261,13 @@
 
   comboForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (comboForm.dataset.saving === 'true') return;
     const formData = new FormData(comboForm);
     const payload = {
       nome: formData.get('nome'),
       codigo: formData.get('codigo'),
       descricao: formData.get('descricao'),
-      preco_aluguel: Number(formData.get('preco_aluguel') || 0),
-      preco_venda: Number(formData.get('preco_venda') || 0),
+      preco: Number(formData.get('preco') || 0),
       ativo: Number(formData.get('ativo')) === 1,
       itens: [...comboItens.querySelectorAll('.combo-item-row')].map((row) => {
         const produtoId = row.querySelector('[data-product]').value;
@@ -239,16 +277,19 @@
     };
 
     if (!payload.nome || !payload.nome.trim()) {
-      alert('Nome do combo é obrigatório.');
+      window.FestAlert?.warning?.('Combo', 'Nome do combo é obrigatório.');
       return;
     }
 
     if (!payload.itens.length) {
-      alert('Adicione pelo menos um componente ao combo.');
+      window.FestAlert?.warning?.('Combo', 'Adicione pelo menos um componente ao combo.');
       return;
     }
 
     try {
+      comboForm.dataset.saving = 'true';
+      const submit = comboForm.querySelector('button[type="submit"]');
+      if (submit) submit.disabled = true;
       let res;
       if (comboAtualId) {
         res = await fetch(`/combos/${comboAtualId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -260,10 +301,21 @@
       if (!res.ok) throw new Error(data.erro || 'Erro ao salvar combo');
       comboModal.style.display = 'none';
       await carregarCombos();
-      alert('Combo salvo com sucesso.');
+      await window.FestAlert?.success?.('Combo salvo', 'Combo salvo com sucesso.');
     } catch (error) {
-      alert(error.message);
+      await window.FestAlert?.error?.('Erro ao salvar combo', error.message || 'Não foi possível salvar o combo.');
+    } finally {
+      comboForm.dataset.saving = 'false';
+      const submit = comboForm.querySelector('button[type="submit"]');
+      if (submit) submit.disabled = false;
     }
+  });
+
+  comboModal.addEventListener('click', (event) => {
+    if (event.target === comboModal) comboModal.style.display = 'none';
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && comboModal.style.display === 'flex') comboModal.style.display = 'none';
   });
 
   document.getElementById('combo-busca').addEventListener('input', carregarCombos);

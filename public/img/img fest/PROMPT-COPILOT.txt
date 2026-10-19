@@ -1,0 +1,27 @@
+PROMPT PARA O GITHUB COPILOT (MODO AGENT)
+
+Use a imagem de referência visual enviada na conversa como referência obrigatória e utilize os arquivos reais da pasta public/img (ou a pasta img equivalente do projeto):
+
+- locagest-logo-horizontal.png: marca horizontal do painel esquerdo.
+- locagest-logo-vertical.png: símbolo + nome + slogan para o cartão de login.
+- locagest-simbolo.png: símbolo geométrico isolado, caso precise dele separadamente.
+- locagest-colors.css: paleta de cores de referência.
+
+Primeiro identifique a estrutura real do projeto, a view/template da tela de login e os CSS associados. Depois edite os arquivos reais; não entregue apenas instruções.
+
+Reproduza a referência fielmente:
+- layout desktop dividido em duas colunas: esquerda ~58%, direita ~42%;
+- painel esquerdo azul-marinho (#06152F), com marca horizontal no topo, título grande em branco e azul, descrição abaixo, formas geométricas decorativas e faixa curva azul na parte inferior;
+- NÃO incluir os blocos de ícones Produtos, Pedidos, Estoque, Clientes, Entregas e Financeiro;
+- rodapé pequeno no canto inferior esquerdo: “LOCAGEST • MAIS ORGANIZAÇÃO • MAIS RESULTADOS”;
+- painel direito em #F4F8FF;
+- cartão branco centralizado na coluna direita, cantos arredondados e sombra suave;
+- no topo do cartão usar locagest-logo-vertical.png, sem reconstruir o logotipo apenas com texto;
+- campos E-mail ou usuário e Senha com ícones, checkbox Lembrar-me, botão azul Entrar, separador “ou”, login Google somente se já estiver implementado e indicador “Acesso seguro”;
+- manter autenticação, rotas, validações, sessões e mensagens de erro existentes.
+
+Em desktop amplo, manter as proporções da imagem de referência: conteúdo do painel esquerdo com margens generosas e tipografia legível; cartão de login aproximadamente 450–525px de largura conforme o espaço disponível; campos e botão com cerca de 56px de altura. Não reduzir a página com zoom ou transform:scale().
+
+Use classes CSS específicas da tela de login, não altere o design das demais páginas e faça o layout responsivo para celular. Não use a imagem completa da tela como background: implemente os componentes reais em HTML/Handlebars e CSS.
+
+Depois de editar, execute a aplicação quando possível, confira visualmente e corrija tamanhos, margens e posicionamentos comparando com a referência. Informe os arquivos alterados e testes realmente executados.

@@ -1,0 +1,48 @@
+<link rel="stylesheet" href="/css/pages/controle-estoque.css">
+
+<section class="stock-page" aria-labelledby="stock-title">
+  <div class="page-meta" data-title="Controle de Estoque" data-subtitle="Consulte as quantidades e a disponibilidade dos produtos."></div>
+  <header class="stock-page__heading">
+    <div>
+      <h2 id="stock-title">Controle de Estoque</h2>
+      <p>Produtos ativos e quantidades registradas no sistema.</p>
+    </div>
+  </header>
+
+  {{#if erro}}
+    <div class="stock-page__error" role="alert">{{erro}}</div>
+  {{/if}}
+
+  <div class="stock-page__table-wrap">
+    <table class="stock-page__table">
+      <thead>
+        <tr>
+          <th scope="col">Produto</th>
+          <th scope="col">Estoque físico</th>
+          <th scope="col">Reservado</th>
+          <th scope="col">Em uso</th>
+          <th scope="col">Manutenção</th>
+          <th scope="col">Danificado</th>
+          <th scope="col">Disponível</th>
+          <th scope="col">Situação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each produtos}}
+          <tr>
+            <th scope="row">{{this.nome}}</th>
+            <td>{{this.estoque}}</td>
+            <td>{{this.estoque_reservado}}</td>
+            <td>{{this.estoque_em_uso}}</td>
+            <td>{{this.estoque_manutencao}}</td>
+            <td>{{this.estoque_danificado}}</td>
+            <td>{{this.disponivel}}</td>
+            <td>{{this.status_estoque}}</td>
+          </tr>
+        {{else}}
+          <tr><td class="stock-page__empty" colspan="8">Nenhum produto ativo encontrado.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</section>

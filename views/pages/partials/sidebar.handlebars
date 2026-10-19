@@ -1,0 +1,103 @@
+<aside class="app-sidebar" id="appSidebar" aria-label="Menu principal" aria-hidden="false">
+  <div class="app-sidebar__brand">
+    <img class="app-sidebar__brand-full" src="/img/img%20fest/locagest-logo-horizontal.png" alt="LOCAGEST, gestão inteligente para locação e venda">
+    <img class="app-sidebar__brand-compact" src="/img/img%20fest/locagest-simbolo.png" alt="" aria-hidden="true">
+  </div>
+
+  <nav class="app-sidebar__nav" aria-label="Navegação principal">
+    <div class="app-sidebar__section-label">MENU PRINCIPAL</div>
+    <ul class="app-sidebar__list">
+      {{#if userPermissions.dashboard}}
+        <li><a class="app-sidebar__link" href="/dashboard" data-nav-link title="Dashboard"><i class="fa-solid fa-chart-line" aria-hidden="true"></i><span class="app-sidebar__label">Dashboard</span></a></li>
+      {{/if}}
+      <li class="app-sidebar__group" data-sidebar-group>
+        <button class="app-sidebar__group-toggle" type="button" aria-expanded="false" aria-controls="sidebar-products-group" title="Produtos e Estoque">
+          <i class="fa-solid fa-boxes-stacked app-sidebar__group-icon" aria-hidden="true"></i>
+          <span class="app-sidebar__label">Produtos e Estoque</span>
+          <i class="fa-solid fa-chevron-down app-sidebar__group-chevron" aria-hidden="true"></i>
+        </button>
+        <div class="app-sidebar__submenu" id="sidebar-products-group" aria-hidden="true" inert>
+          <ul>
+            {{#if userPermissions.produtos}}
+              <li><a class="app-sidebar__link" href="/produtos" data-nav-link data-nav-hash-exclude="#cadastro" title="Produtos"><i class="fa-solid fa-box" aria-hidden="true"></i><span class="app-sidebar__label">Produtos</span></a></li>
+              <li><a class="app-sidebar__link" href="/produtos#cadastro" data-nav-link data-nav-hash="#cadastro" title="Cadastro de Produto"><i class="fa-solid fa-box-open" aria-hidden="true"></i><span class="app-sidebar__label">Cadastro de Produto</span></a></li>
+            {{/if}}
+            {{#if userPermissions.produtos}}
+              <li><a class="app-sidebar__link" href="/combos" data-nav-link title="Combos"><i class="fa-solid fa-puzzle-piece" aria-hidden="true"></i><span class="app-sidebar__label">Combos</span></a></li>
+            {{/if}}
+          </ul>
+        </div>
+      </li>
+      <li class="app-sidebar__group" data-sidebar-group>
+        <button class="app-sidebar__group-toggle" type="button" aria-expanded="false" aria-controls="sidebar-orders-group" title="Pedidos">
+          <i class="fa-solid fa-bag-shopping app-sidebar__group-icon" aria-hidden="true"></i>
+          <span class="app-sidebar__label">Pedidos</span>
+          <i class="fa-solid fa-chevron-down app-sidebar__group-chevron" aria-hidden="true"></i>
+        </button>
+        <div class="app-sidebar__submenu" id="sidebar-orders-group" aria-hidden="true" inert>
+          <ul>
+            {{#if userPermissions.pedidos}}
+              <li><a class="app-sidebar__link" href="/pedidos" data-nav-link title="Fazer Pedido"><i class="fa-solid fa-cart-plus" aria-hidden="true"></i><span class="app-sidebar__label">Fazer Pedido</span></a></li>
+              <li><a class="app-sidebar__link" href="/orcamentos" data-nav-link title="Orçamentos"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i><span class="app-sidebar__label">Orçamentos</span></a></li>
+            {{/if}}
+            {{#if userPermissions.entregas}}
+              <li><a class="app-sidebar__link" href="/entregas" data-nav-link title="Entregas"><i class="fa-solid fa-truck-fast" aria-hidden="true"></i><span class="app-sidebar__label">Entregas</span></a></li>
+            {{/if}}
+          </ul>
+        </div>
+      </li>
+      <li class="app-sidebar__group" data-sidebar-group>
+        <button class="app-sidebar__group-toggle" type="button" aria-expanded="false" aria-controls="sidebar-registrations-group" title="Cadastros">
+          <i class="fa-solid fa-address-book app-sidebar__group-icon" aria-hidden="true"></i>
+          <span class="app-sidebar__label">Cadastros</span>
+          <i class="fa-solid fa-chevron-down app-sidebar__group-chevron" aria-hidden="true"></i>
+        </button>
+        <div class="app-sidebar__submenu" id="sidebar-registrations-group" aria-hidden="true" inert>
+          <ul>
+            {{#if userPermissions.clientes}}
+              <li><a class="app-sidebar__link" href="/clientes" data-nav-link title="Clientes"><i class="fa-solid fa-users" aria-hidden="true"></i><span class="app-sidebar__label">Clientes</span></a></li>
+            {{/if}}
+            {{#if userPermissions.fornecedor}}
+              <li><a class="app-sidebar__link" href="/fornecedores" data-nav-link title="Fornecedores"><i class="fa-solid fa-industry" aria-hidden="true"></i><span class="app-sidebar__label">Fornecedores</span></a></li>
+            {{/if}}
+            {{#if userPermissions.cadastro_admin}}
+              <li><a class="app-sidebar__link" href="/usuarios" data-nav-link title="Funcionários"><i class="fa-solid fa-user-gear" aria-hidden="true"></i><span class="app-sidebar__label">Funcionários</span></a></li>
+            {{/if}}
+          </ul>
+        </div>
+      </li>
+      <li class="app-sidebar__group" data-sidebar-group>
+        <button class="app-sidebar__group-toggle" type="button" aria-expanded="false" aria-controls="sidebar-reports-group" title="Relatórios">
+          <i class="fa-solid fa-chart-pie app-sidebar__group-icon" aria-hidden="true"></i>
+          <span class="app-sidebar__label">Relatórios</span>
+          <i class="fa-solid fa-chevron-down app-sidebar__group-chevron" aria-hidden="true"></i>
+        </button>
+        <div class="app-sidebar__submenu" id="sidebar-reports-group" aria-hidden="true" inert>
+          <ul>
+            {{#if userPermissions.relatorios}}
+              <li><a class="app-sidebar__link" href="/relatorios" data-nav-link title="Relatórios"><i class="fa-solid fa-chart-column" aria-hidden="true"></i><span class="app-sidebar__label">Relatórios</span></a></li>
+              <li><a class="app-sidebar__link" href="/devedores" data-nav-link title="Devedores"><i class="fa-solid fa-user-clock" aria-hidden="true"></i><span class="app-sidebar__label">Devedores</span></a></li>
+            {{/if}}
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="app-sidebar__footer">
+    <div class="app-sidebar__account">
+      <span class="app-sidebar__avatar" data-user-initials aria-hidden="true">U</span>
+      <span class="app-sidebar__footer-copy">
+        <strong>{{#if user.nome}}{{user.nome}}{{else}}Usuário{{/if}}</strong>
+        <small>{{#if user.email}}{{user.email}}{{else}}Conta autenticada{{/if}}</small>
+      </span>
+    </div>
+    <form action="/logout" method="POST" class="app-sidebar__logout-form">
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
+      <button class="app-sidebar__link app-sidebar__logout" type="submit" title="Sair">
+        <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+        <span class="app-sidebar__label">Sair</span>
+      </button>
+    </form>
+  </div>
+</aside>

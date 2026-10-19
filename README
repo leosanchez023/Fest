@@ -1388,10 +1388,16 @@ Nele são realizadas operações como:
 - Controle de quantidade
 - Aplicação de descontos
 - Definição do frete
+- Configuração persistente da origem e da regra de entrega em “Configurações de entrega”
+- Cálculo da distância por rota viária, com cobrança configurável de ida ou ida e volta
 - Observações
 - Cálculo automático dos totais
 - Resumo financeiro
 - Finalização do pedido
+
+A origem padrão, a modalidade de cobrança, as tarifas e os limites opcionais são
+administrados na tela Fazer Pedido e persistidos na tabela `configuracoes_entrega`.
+Para instalações existentes, aplique as migrations com `npm run db:migrate`.
 
 ```mermaid
 flowchart TD

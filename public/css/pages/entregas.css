@@ -269,8 +269,16 @@
 .delivery-actions .iconbtn[disabled]{opacity:.45;cursor:not-allowed}
 .delivery-table-wrap{overflow-x:auto}
 .delivery-table-wrap table{min-width:1180px}
+.delivery-order-row{cursor:pointer}
+.delivery-order-row:hover{background:rgba(63,94,251,.06)}
+.delivery-order-row:focus-visible{outline:2px solid var(--color-primary,#3f5efb);outline-offset:-2px}
 .delivery-empty{padding:28px!important;text-align:center;color:var(--color-text-muted)}
 .btn-ghost{border:1px solid var(--color-border);background:var(--color-card);color:var(--color-text-muted);border-radius:7px;cursor:pointer}
+.delivery-pagination{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:14px 18px;border-top:1px solid #e5e7eb}
+.delivery-pagination select{width:auto;min-width:72px}
+.delivery-pagination button:disabled{opacity:.45;cursor:not-allowed}
+.kpi[data-kpi-filter].active{outline:2px solid var(--color-primary);outline-offset:2px}
+.kpi[data-kpi-filter]:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}
 
 @media(max-width:800px){
   .container .grid-6{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -280,4 +288,5 @@
   .container .grid-6{grid-template-columns:1fr}
   .finance-modal-card{padding:18px}
   .finance-modal-card .actions .btn{width:100%}
+  .delivery-pagination{justify-content:center;flex-wrap:wrap}
 }

@@ -1,14 +1,6 @@
 // VARIÁVEIS GLOBAIS
 let suppliers = [];
 
-// INICIALIZAÇÃO DA PÁGINA
-document.addEventListener("DOMContentLoaded", () => {
-
-    console.log("Tela de fornecedores iniciada");
-    carregarEventos();
-    fetchSuppliers();
-});
-
 // EVENTOS DOS CAMPOS
 function carregarEventos() {
 
@@ -189,10 +181,34 @@ function validarFormulario() {
     });
 
     if (!valido){
-        alert("Preencha todos os campos obrigatórios.");
+        window.FestAlert?.error?.("Validação", "Preencha todos os campos obrigatórios.");
+        return false;
     }
 
-    return valido;
+    const documento = document.getElementById("f-cnpj").value;
+    const telefone = document.getElementById("f-phone").value;
+    const whatsapp = document.getElementById("f-whatsapp").value;
+    const cep = document.getElementById("f-cep").value;
+    const estado = document.getElementById("f-state").value.trim();
+    const email = document.getElementById("f-email").value.trim();
+    const mensagem = !validarDocumento(documento)
+        ? "Informe um CPF ou CNPJ válido."
+        : !validarTelefone(telefone)
+            ? "Informe um telefone válido."
+            : whatsapp && !validarTelefone(whatsapp)
+                ? "Informe um WhatsApp válido."
+                : !validarEmail(email)
+                    ? "Informe um e-mail válido."
+                    : !validarCEP(cep)
+                        ? "Informe um CEP válido."
+                        : !/^[A-Za-z]{2}$/.test(estado)
+                            ? "Informe a sigla de estado com duas letras."
+                            : "";
+    if (mensagem) {
+        window.FestAlert?.error?.("Validação", mensagem);
+        return false;
+    }
+    return true;
 }
 
 // VALIDAÇÕES DE SEGURANÇA
@@ -294,14 +310,14 @@ async function saveSupplier(event) {
         closeForm();
         await fetchSuppliers();
 
-        alert(id
-            ? "Fornecedor atualizado com sucesso!"
-            : "Fornecedor cadastrado com sucesso!"
+        await window.FestAlert?.success?.(
+            id ? "Fornecedor atualizado" : "Fornecedor cadastrado",
+            id ? "Fornecedor atualizado com sucesso!" : "Fornecedor cadastrado com sucesso!"
         );
 
     } catch (erro) {
         console.error(erro);
-        alert(erro.message);
+        window.FestAlert?.error?.("Erro ao salvar", erro.message || "Não foi possível salvar o fornecedor.");
     }
 }
 
@@ -310,6 +326,9 @@ async function editSupplier(id) {
     try {
         const response = await fetch(`/fornecedores/${id}`);
         const f = await response.json();
+        if (!response.ok || f.success === false) {
+            throw new Error(f.error || "Não foi possível carregar o fornecedor.");
+        }
 
         document.getElementById("f-id").value = f.id ?? "";
         document.getElementById("f-name").value = f.nome ?? "";
@@ -336,33 +355,34 @@ async function editSupplier(id) {
 
     } catch (erro) {
         console.error(erro);
-        alert("Erro ao carregar fornecedor.");
+        window.FestAlert?.error?.("Erro ao carregar", erro.message || "Não foi possível carregar o fornecedor.");
     }
 }
 
 // EXCLUIR FORNECEDOR
 async function deleteSupplier(id) {
-    if (!confirm("Deseja excluir este fornecedor?")
-    ){
-        return;
-    }try {
+    const result = window.FestAlert?.confirm
+        ? await window.FestAlert.confirm("Confirmar exclusão", "Deseja excluir este fornecedor?")
+        : { isConfirmed: window.confirm("Deseja excluir este fornecedor?") };
+    if (!result?.isConfirmed) return;
 
+    try {
         const response = await fetch(`/fornecedores/${id}`,{
-
-            method: "DELETE"});
+            method: "DELETE"
+        });
 
         const resultado = await response.json();
 
         if (!response.ok || resultado.success === false){
+            throw new Error(resultado.error || "Erro ao excluir fornecedor.");
+        }
 
-            throw new Error(resultado.error ||"Erro ao excluir fornecedor.");
-        } alert("Fornecedor excluído com sucesso!");
-
-        fetchSuppliers();
+        await window.FestAlert?.success?.("Fornecedor removido", "Fornecedor excluído com sucesso!");
+        await fetchSuppliers();
 
     } catch (erro) {
         console.error(erro);
-        alert(erro.message);
+        window.FestAlert?.error?.("Erro ao excluir", erro.message || "Não foi possível excluir o fornecedor.");
     }
 }
 
@@ -373,13 +393,19 @@ async function fetchSuppliers() {
 
         const response = await fetch("/fornecedores/data");
         const dados = await response.json();
+        if (!response.ok || !Array.isArray(dados)) {
+            throw new Error(dados.error || "Não foi possível carregar os fornecedores.");
+        }
         suppliers = dados;
 
         renderTable();
         atualizarKPIs();
+        document.querySelector(".supplier-message-error")?.remove();
 
     } catch (erro) {
         console.error("Erro ao buscar fornecedores:", erro);
+        const tbody = document.getElementById("supplier-tbody");
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7">Não foi possível carregar os fornecedores.</td></tr>';
     }
 }
 
@@ -388,12 +414,22 @@ function atualizarKPIs() {
 
     const total = suppliers.length;
     const ativos = suppliers.filter(fornecedor =>fornecedor.status === "Ativo").length;
+    const agora = new Date();
+    const novos = suppliers.filter((fornecedor) => {
+        if (!fornecedor.criadoEm) return false;
+        const data = new Date(String(fornecedor.criadoEm).replace(" ", "T"));
+        return !Number.isNaN(data.getTime())
+            && data.getFullYear() === agora.getFullYear()
+            && data.getMonth() === agora.getMonth();
+    }).length;
     const totalElement = document.getElementById("kpi-total");
     const ativosElement = document.getElementById("kpi-active");
+    const novosElement = document.getElementById("kpi-new");
 
     if (totalElement) {totalElement.textContent = total;}
 
     if (ativosElement) {ativosElement.textContent = ativos;}
+    if (novosElement) {novosElement.textContent = novos;}
 }
 
 
@@ -442,29 +478,27 @@ function renderTable() {
             return buscaOk && categoriaOk && statusOk;
         });
 
-    tbody.innerHTML = "";
+    if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="7">Nenhum fornecedor encontrado.</td></tr>';
+        return;
+    }
 
-    lista.forEach(fornecedor => {
-
-        tbody.innerHTML +=
-
-            `<tr>
-                <td>${fornecedor.nome}</td>
-                <td>${fornecedor.categoria ?? "-"}</td>
-                <td>${fornecedor.telefone ?? "-"}</td>
-                <td>${fornecedor.email ?? "-"}</td>
-                <td>${fornecedor.cidade ?? "-"}</td>
-                <td>${fornecedor.status}</td>
-                <td style="text-align:center">
-
-                <button class="iconbtn" title="Visualizar" aria-label="Visualizar" onclick="viewSupplier(${fornecedor.id})"><i class="fa-solid fa-eye"></i></button>
-
-                <button class="iconbtn" title="Editar" aria-label="Editar" onclick="editSupplier(${fornecedor.id})"><i class="fa-solid fa-pen"></i></button>
-
-                <button class="iconbtn" title="Excluir" aria-label="Excluir" onclick="deleteSupplier(${fornecedor.id})"><i class="fa-solid fa-trash"></i></button>
+    tbody.innerHTML = lista.map((fornecedor) => {
+        const id = Number(fornecedor.id);
+        return `<tr>
+            <td>${escapeHTML(fornecedor.nome)}</td>
+            <td>${escapeHTML(fornecedor.categoria || "-")}</td>
+            <td>${escapeHTML(fornecedor.telefone || "-")}</td>
+            <td>${escapeHTML(fornecedor.email || "-")}</td>
+            <td>${escapeHTML(fornecedor.cidade || "-")}</td>
+            <td>${escapeHTML(fornecedor.status || "-")}</td>
+            <td style="text-align:center">
+                <button class="iconbtn" type="button" title="Visualizar" aria-label="Visualizar" onclick="viewSupplier(${id})"><i class="fa-solid fa-eye"></i></button>
+                <button class="iconbtn" type="button" title="Editar" aria-label="Editar" onclick="editSupplier(${id})"><i class="fa-solid fa-pen"></i></button>
+                <button class="iconbtn" type="button" title="Excluir" aria-label="Excluir" onclick="deleteSupplier(${id})"><i class="fa-solid fa-trash"></i></button>
             </td>
         </tr>`;
-    });
+    }).join("");
 }
 
 // FILTROS DA TABELA
@@ -482,28 +516,38 @@ async function viewSupplier(id) {
             await fetch(`/fornecedores/${id}`);
 
 
-        const f =
-            await response.json();
+        const f = await response.json();
+        if (!response.ok || f.success === false) {
+            throw new Error(f.error || "Não foi possível carregar o fornecedor.");
+        }
 
-
-
+        const campos = [
+            ["CNPJ / CPF", f.cnpj],
+            ["Responsável", f.responsavel],
+            ["Categoria", f.categoria],
+            ["Telefone", f.telefone],
+            ["WhatsApp", f.whatsapp],
+            ["E-mail", f.email],
+            ["Site", f.site],
+            ["Endereço", [f.rua, f.numero, f.bairro].filter(Boolean).join(", ")],
+            ["Cidade / Estado", [f.cidade, f.estado].filter(Boolean).join(" / ")],
+            ["CEP", f.cep],
+            ["Produtos ou serviços", f.produtos],
+            ["Prazo de entrega", f.entrega],
+            ["Forma de pagamento", f.pagamento],
+            ["Observações", f.observacoes],
+            ["Status", f.status]
+        ];
         document.getElementById("profile-content").innerHTML = `
-
-            <h3>${f.nome}</h3><p>
-            <strong>CNPJ:</strong>${f.cnpj ?? "-"}</p>
-            <p><strong>Responsável:</strong>${f.responsavel ?? "-"}</p>
-            <p><strong>Telefone:</strong>${f.telefone ?? "-"}</p>
-            <p><strong>Email:</strong>${f.email ?? "-"}</p>
-            <p><strong>Cidade:</strong>${f.cidade ?? "-"}</p>
-            <p><strong>Produtos:</strong>${f.produtos ?? "-"}</p>
-            <p><strong>Status:</strong>${f.status ?? "-"}</p>
+            <h3>${escapeHTML(f.nome)}</h3>
+            ${campos.map(([rotulo, valor]) => `<p><strong>${escapeHTML(rotulo)}:</strong> ${escapeHTML(valor || "-")}</p>`).join("")}
         `;
 
         document.getElementById("modal-profile").classList.add("open");
 
     } catch (erro) {
         console.error(erro);
-        alert("Erro ao abrir fornecedor.");
+        window.FestAlert?.error?.("Erro ao abrir", erro.message || "Não foi possível abrir o fornecedor.");
     }
 }
 
@@ -565,12 +609,10 @@ function buscarFornecedor(nome) {
     if (!nome) {return suppliers;}
 
     return suppliers.filter(fornecedor => {
-
-        return
-        fornecedor.nome
-        .toLowerCase()
-        .includes(nome.toLowerCase());}
-    );
+        return String(fornecedor.nome || "")
+            .toLowerCase()
+            .includes(String(nome).toLowerCase());
+    });
 }
 
 
@@ -595,6 +637,16 @@ function formatarTexto(valor) {
     return valor.toString().trim();
 }
 
+function escapeHTML(valor) {
+    return String(valor ?? "").replace(/[&<>"']/g, (caractere) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[caractere]);
+}
+
 
 // FORMATAR STATUS
 function badgeStatus(status) {
@@ -609,9 +661,12 @@ function badgeStatus(status) {
 
 
 // CONFIRMAR EXCLUSÃO
-function confirmarExclusao(nome) {
-
-    return confirm(`Deseja excluir o fornecedor ${nome}?`);
+async function confirmarExclusao(nome) {
+    if (window.FestAlert?.confirm) {
+        const resultado = await window.FestAlert.confirm("Excluir fornecedor", `Deseja excluir o fornecedor ${nome}?`);
+        return !!resultado?.isConfirmed;
+    }
+    return window.confirm(`Deseja excluir o fornecedor ${nome}?`);
 }
 
 

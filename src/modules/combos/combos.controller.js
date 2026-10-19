@@ -44,7 +44,9 @@ export async function criar(req, res) {
     const combo = await service.criarCombo(req.body);
     res.status(201).json({ sucesso: true, combo });
   } catch (error) {
-    res.status(400).json({ erro: error.message });
+    res.status(error.code ? 500 : 400).json({
+      erro: error.code ? 'Não foi possível concluir a operação.' : error.message
+    });
   }
 }
 
@@ -53,7 +55,9 @@ export async function atualizar(req, res) {
     await service.atualizarCombo(req.params.id, req.body);
     res.json({ sucesso: true, mensagem: 'Combo atualizado.' });
   } catch (error) {
-    res.status(400).json({ erro: error.message });
+    res.status(error.code ? 500 : 400).json({
+      erro: error.code ? 'Não foi possível concluir a operação.' : error.message
+    });
   }
 }
 
@@ -62,7 +66,9 @@ export async function desativar(req, res) {
     await service.desativarCombo(req.params.id);
     res.json({ sucesso: true, mensagem: 'Combo desativado.' });
   } catch (error) {
-    res.status(400).json({ erro: error.message });
+    res.status(error.code ? 500 : 400).json({
+      erro: error.code ? 'Não foi possível concluir a operação.' : error.message
+    });
   }
 }
 
@@ -71,7 +77,9 @@ export async function adicionarItem(req, res) {
     const item = await service.adicionarItemCombo(req.params.id, req.body);
     res.status(201).json({ sucesso: true, item });
   } catch (error) {
-    res.status(400).json({ erro: error.message });
+    res.status(error.code ? 500 : 400).json({
+      erro: error.code ? 'Não foi possível concluir a operação.' : error.message
+    });
   }
 }
 

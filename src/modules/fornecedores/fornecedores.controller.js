@@ -1,84 +1,73 @@
 import * as service from "./fornecedores.service.js";
 
+function statusDoErro(erro) {
+  if (erro?.code) return 500;
+  if (erro.message === "Fornecedor não encontrado.") return 404;
+  if (erro.message.includes("produtos vinculados") || erro.message.includes("Já existe")) return 409;
+  return 400;
+}
 
-// PÁGINA DE FORNECEDORES
+function mensagemDoErro(erro) {
+  return statusDoErro(erro) === 500
+    ? "Não foi possível concluir a operação."
+    : erro.message;
+}
+
 export async function listar(req, res) {
-    try {
-        const fornecedores = await service.listar({
-
-            q: req.query.q || "",
-            categoria: req.query.categoria || "",
-            status: req.query.status || ""
-
-        });
-        return res.render("pages/fornecedor", {fornecedores});
-
-    } catch (erro) {
-        console.error(erro);
-        return res.status(500).render("pages/fornecedor", {fornecedores: [],error: erro.message});
-    }
+  try {
+    const fornecedores = await service.listar(req.query);
+    return res.render("pages/fornecedor", { fornecedores });
+  } catch (erro) {
+    console.error("Erro ao listar fornecedores:", erro);
+    return res.status(500).render("pages/fornecedor", {
+      fornecedores: [],
+      error: "Não foi possível carregar os fornecedores."
+    });
+  }
 }
 
-// LISTAR FORNECEDORES EM JSON
 export async function listarJSON(req, res) {
-    try {
-        const fornecedores = await service.listar({
-            q: req.query.q || "",
-            categoria: req.query.categoria || "",
-            status: req.query.status || ""});
-
-        return res.json(fornecedores);
-
-    } catch (erro)
-        {console.error(erro);
-        return res.status(500).json({success: false,error: erro.message});
-    }
+  try {
+    return res.json(await service.listar(req.query));
+  } catch (erro) {
+    console.error("Erro ao listar fornecedores:", erro);
+    const status = statusDoErro(erro);
+    const mensagem = status === 500 ? "Não foi possível carregar os fornecedores." : erro.message;
+    return res.status(status).json({ success: false, error: mensagem });
+  }
 }
 
-// BUSCAR FORNECEDOR POR ID
 export async function buscar(req, res) {
-    try {
-        const fornecedor = await service.buscarPorId(req.params.id);
-        return res.json(fornecedor);
-
-    } catch (erro) {
-        console.error(erro);
-        return res.status(404).json({success: false,error: erro.message});
-    }
+  try {
+    return res.json(await service.buscarPorId(req.params.id));
+  } catch (erro) {
+    return res.status(statusDoErro(erro)).json({ success: false, error: mensagemDoErro(erro) });
+  }
 }
 
-// CADASTRAR FORNECEDOR
 export async function criar(req, res) {
-    try {
-        const id = await service.criar(req.body);
-        return res.status(201).json({success: true,id});
-
-    } catch (erro) {
-        console.error(erro);
-        return res.status(400).json({success: false,error: erro.message});
-    }
+  try {
+    const id = await service.criar(req.body);
+    return res.status(201).json({ success: true, id });
+  } catch (erro) {
+    return res.status(statusDoErro(erro)).json({ success: false, error: mensagemDoErro(erro) });
+  }
 }
 
-// ATUALIZAR FORNECEDOR
 export async function atualizar(req, res) {
-    try {
-        await service.atualizar(req.params.id,req.body);
-        return res.json({success: true});
-
-    } catch (erro) {
-        console.error(erro);
-        return res.status(400).json({success: false,error: erro.message});
-    }
+  try {
+    await service.atualizar(req.params.id, req.body);
+    return res.json({ success: true });
+  } catch (erro) {
+    return res.status(statusDoErro(erro)).json({ success: false, error: mensagemDoErro(erro) });
+  }
 }
 
-// EXCLUIR FORNECEDOR
 export async function excluir(req, res) {
-    try {
-        await service.excluir(req.params.id);
-        return res.json({success: true});
-
-    }catch (erro) {
-        console.error(erro);
-        return res.status(400).json({success: false,error: erro.message});
-    }
+  try {
+    await service.excluir(req.params.id);
+    return res.json({ success: true });
+  } catch (erro) {
+    return res.status(statusDoErro(erro)).json({ success: false, error: mensagemDoErro(erro) });
+  }
 }

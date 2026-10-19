@@ -3,6 +3,7 @@ import db from '../../../database/connection.js';
 export async function buscarOrcamentos(query) {
   const termo = String(query?.search || query?.q || '').trim();
   const where = `WHERE p.status_documento = 'ORCAMENTO'
+    AND p.status <> 'CANCELADO'
     ${termo ? 'AND (c.nome LIKE ? OR c.telefone LIKE ? OR CAST(p.id AS CHAR) LIKE ?)' : ''}`;
   const params = termo ? [`%${termo}%`, `%${termo}%`, `%${termo}%`] : [];
 

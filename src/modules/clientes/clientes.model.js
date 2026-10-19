@@ -1,287 +1,165 @@
 import db from "../../../database/connection.js";
 
-/* LISTAR CLIENTES */
-export async function findAll() {
-    const [rows] = await db.query(
-        `SELECT
-            c.id AS cliente_id,
-            c.nome,
-            c.email,
-            c.telefone,
-            c.cpf,
-            DATE_FORMAT(c.nascimento, '%Y-%m-%d') AS nascimento,
-            e.rua,
-            e.numero,
-            e.cidade,
-            e.estado
-        FROM cliente c
-        LEFT JOIN endereco e
-            ON c.id_endereco = e.id
-        ORDER BY c.id`
-    );
+const clienteSelect = `
+    SELECT
+        c.id AS cliente_id,
+        c.id_endereco,
+        c.nome,
+        c.email,
+        c.telefone,
+        c.cpf,
+        DATE_FORMAT(c.nascimento, '%Y-%m-%d') AS nascimento,
+        e.rua,
+        e.numero,
+        e.bairro,
+        e.cidade,
+        e.estado,
+        e.cep,
+        e.referencia
+    FROM cliente c
+    LEFT JOIN endereco e ON c.id_endereco = e.id`;
 
-    return rows;
-}
-
-/* LISTAR CLIENTES COM FILTRO */
-export async function findWithFilter({
-    q = "",
-    page = 1,
-    limit = 10
-} = {}) {
-
-    const offset =(Number(page) - 1) * Number(limit);
-    const hasQuery =q && q.trim() !== "";
-    let where = "";
-    const params = [];
-
-    if (hasQuery) {
-        where =
-            "WHERE (c.nome LIKE ? OR c.email LIKE ? OR c.cpf LIKE ?)";
-
-        const like = `%${q}%`;
-
-        params.push(
-            like,
-            like,
-            like
-        );
-    }
-
-    const [rows] = await db.query(
-        `SELECT
-            c.id AS cliente_id,
-            c.nome,
-            c.email,
-            c.telefone,
-            c.cpf,
-            DATE_FORMAT(c.nascimento, '%Y-%m-%d') AS nascimento,
-            e.rua,
-            e.numero,
-            e.cidade,
-            e.estado
-        FROM cliente c
-        LEFT JOIN endereco e
-            ON c.id_endereco = e.id
-        ${where}
-        ORDER BY c.id
-        LIMIT ? OFFSET ?`,
-
-        [
-            ...params,
-            Number(limit),
-            Number(offset)
-        ]
-    );
-
-    const countParams = hasQuery
-        ? [
-            `%${q}%`,
-            `%${q}%`,
-            `%${q}%`
-        ]: [];
-
-    const countSql =
-
-        `SELECT COUNT(*) AS total
-         FROM cliente c
-         ${hasQuery ? where : ""}`;
-
-    const [countRows] = await db.query(countSql, countParams);
-    const total = countRows[0]?.total || 0;
-
-    return {rows,total};
-}
-
-/* BUSCAR CLIENTE */
-export async function findById(id) {
-    const [rows] = await db.query(
-        `SELECT
-            c.id AS cliente_id,
-            c.id_endereco,
-            c.nome,
-            c.email,
-            c.telefone,
-            c.cpf,
-            DATE_FORMAT(c.nascimento, '%Y-%m-%d') AS nascimento,
-            e.rua,
-            e.numero,
-            e.cidade,
-            e.estado
-        FROM cliente c
-        LEFT JOIN endereco e
-            ON c.id_endereco = e.id
-        WHERE c.id = ?`,
+async function findByIdOn(connection, id) {
+    const [rows] = await connection.query(
+        `${clienteSelect} WHERE c.id = ?`,
         [id]
     );
-
-    return rows[0];
+    return rows[0] || null;
 }
 
-/* ATUALIZAR CLIENTE */
-export async function atualizarCliente(id,
-    {
-        nome,
-        email,
-        telefone,
-        cpf,
-        nascimento,
-        id_endereco
+async function gravarEndereco(connection, dados, idEndereco = null) {
+    const values = [
+        dados.rua,
+        dados.numero,
+        dados.bairro,
+        dados.cidade,
+        dados.estado,
+        dados.cep,
+        dados.referencia
+    ];
+
+    if (idEndereco) {
+        await connection.query(
+            `UPDATE endereco
+             SET rua = ?, numero = ?, bairro = ?, cidade = ?, estado = ?, cep = ?, referencia = ?
+             WHERE id = ?`,
+            [...values, idEndereco]
+        );
+        return idEndereco;
     }
 
-) {
-
-    await db.query(
-        `UPDATE cliente
-        SET
-            nome = ?,
-            email = ?,
-            telefone = ?,
-            cpf = ?,
-            nascimento = ?,
-            id_endereco = ?
-        WHERE id = ?`,
-
-        [
-            nome,
-            email,
-            telefone,
-            cpf,
-            nascimento,
-            id_endereco,
-            id
-        ]
+    const [result] = await connection.query(
+        `INSERT INTO endereco (rua, numero, bairro, cidade, estado, cep, referencia)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        values
     );
-}
-
-/* ATUALIZAR ENDEREÇO */
-export async function atualizarEndereco(id,
-    {
-        rua,
-        numero,
-        cidade,
-        estado,
-        cep
-    }
-
-) {
-
-    await db.query(
-
-        `UPDATE endereco
-        SET
-            rua = ?,
-            numero = ?,
-            cidade = ?,
-            estado = ?,
-            cep = ?
-        WHERE id = ?`,
-
-        [
-            rua,
-            numero,
-            cidade,
-            estado,
-            cep,
-            id
-        ]
-    );
-}
-
-/* CRIAR ENDEREÇO */
-export async function criarEndereco({
-
-    rua,
-    numero,
-    cidade,
-    estado,
-    cep
-
-}) {
-
-    const [result] = await db.query(
-
-        `INSERT INTO endereco
-            (
-                rua,
-                numero,
-                cidade,
-                estado,
-                cep
-            )
-        VALUES (?, ?, ?, ?, ?)`,
-
-        [
-            rua,
-            numero,
-            cidade,
-            estado,
-            cep
-        ]
-    );
-
     return result.insertId;
 }
 
-/* CRIAR CLIENTE */
-export async function criarCliente({
+async function gravarCliente(connection, dados, idEndereco, id = null) {
+    const values = [
+        dados.nome,
+        dados.email,
+        dados.telefone,
+        dados.cpf,
+        dados.nascimento,
+        idEndereco
+    ];
 
-    nome,
-    email,
-    telefone,
-    cpf,
-    nascimento,
-    id_endereco
+    if (id) {
+        await connection.query(
+            `UPDATE cliente
+             SET nome = ?, email = ?, telefone = ?, cpf = ?, nascimento = ?, id_endereco = ?
+             WHERE id = ?`,
+            [...values, id]
+        );
+        return id;
+    }
 
-}) {
-    const [result] = await db.query(
-        `INSERT INTO cliente
-            (
-                nome,
-                email,
-                telefone,
-                cpf,
-                nascimento,
-                id_endereco
-            )
-        VALUES (?, ?, ?, ?, ?, ?)`,
-
-        [
-            nome,
-            email,
-            telefone,
-            cpf,
-            nascimento,
-            id_endereco
-        ]
+    const [result] = await connection.query(
+        `INSERT INTO cliente (nome, email, telefone, cpf, nascimento, id_endereco)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        values
     );
-
-    return await findById(result.insertId);
+    return result.insertId;
 }
 
-/* EXCLUIR CLIENTE */
-export async function excluir(id) {
-
-    console.log("Entrou no model. ID =", id);
-
-    const [result] = await db.query(
-        `DELETE FROM cliente
-         WHERE id = ?`,
-        [id]
-    );
-    console.log(result);
+async function transact(work) {
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+        const result = await work(connection);
+        await connection.commit();
+        return result;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 }
 
-/* BUSCAR CLIENTE POR CPF */
-export async function buscarPorCPF(cpf) {
+export async function findAll() {
+    const [rows] = await db.query(`${clienteSelect} ORDER BY c.id`);
+    return rows;
+}
+
+export async function findWithFilter({ q = "", page = 1, limit = 10 } = {}) {
+    const offset = (Number(page) - 1) * Number(limit);
+    const hasQuery = q.trim() !== "";
+    const where = hasQuery
+        ? "WHERE (c.nome LIKE ? OR c.email LIKE ? OR c.cpf LIKE ?)"
+        : "";
+    const parameters = hasQuery ? [`%${q}%`, `%${q}%`, `%${q}%`] : [];
 
     const [rows] = await db.query(
-        `SELECT id
-        FROM cliente
-        WHERE cpf = ?
-        LIMIT 1`,
-        [cpf]
+        `${clienteSelect}
+         ${where}
+         ORDER BY c.id
+         LIMIT ? OFFSET ?`,
+        [...parameters, Number(limit), Number(offset)]
+    );
+    const [countRows] = await db.query(
+        `SELECT COUNT(*) AS total FROM cliente c ${where}`,
+        parameters
     );
 
+    return { rows, total: Number(countRows[0]?.total || 0) };
+}
+
+export async function findById(id) {
+    return findByIdOn(db, id);
+}
+
+export async function criarClienteComEndereco(dados) {
+    return transact(async (connection) => {
+        const idEndereco = await gravarEndereco(connection, dados);
+        const id = await gravarCliente(connection, dados, idEndereco);
+        return findByIdOn(connection, id);
+    });
+}
+
+export async function atualizarClienteComEndereco(id, dados, idEndereco) {
+    return transact(async (connection) => {
+        const enderecoId = await gravarEndereco(connection, dados, idEndereco);
+        await gravarCliente(connection, dados, enderecoId, id);
+        return findByIdOn(connection, id);
+    });
+}
+
+export async function excluir(id) {
+    await db.query("DELETE FROM cliente WHERE id = ?", [id]);
+}
+
+export async function buscarPorCPF(cpf) {
+    if (!cpf) return null;
+    const normalizedCpf = String(cpf).replace(/\D/g, "");
+    const [rows] = await db.query(
+        `SELECT id
+         FROM cliente
+         WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = ?
+         LIMIT 1`,
+        [normalizedCpf]
+    );
     return rows[0] || null;
 }

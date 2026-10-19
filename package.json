@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
-    "test": "node tests/estoque.regras.test.mjs && node tests/estoque.integracao.test.mjs",
+    "test": "node tests/estoque.regras.test.mjs && node tests/estoque.integracao.test.mjs && node tests/seguranca.test.mjs",
     "db:migrate": "node scripts/db/migrate.js",
     "db:seed": "node scripts/db/seed.js"
   },
@@ -16,13 +16,18 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "connect-flash": "^0.1.1",
+    "csurf": "^1.11.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-handlebars": "^8.0.6",
+    "express-rate-limit": "^8.7.0",
     "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
     "mysql2": "^3.19.1",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
-    "sequelize": "^6.37.8"
+    "sequelize": "^6.37.8",
+    "supertest": "^7.3.0",
+    "sweetalert2": "^11.26.25"
   }
 }

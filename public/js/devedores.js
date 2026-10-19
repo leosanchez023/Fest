@@ -57,19 +57,20 @@ async function submitPayment() {
   if (!paymentOrder) return;
   const value = Number(debtor$("debtor-payment-value").value);
   const method = debtor$("debtor-payment-method").value;
-  if (!value || value <= 0 || value > Number(paymentOrder.saldo_pendente)) return alert("Informe um valor válido dentro do saldo pendente.");
-  if (!method) return alert("Selecione a forma de pagamento.");
+  if (!value || value <= 0 || value > Number(paymentOrder.saldo_pendente)) return window.FestAlert?.warning?.("Pagamento", "Informe um valor válido dentro do saldo pendente.");
+  if (!method) return window.FestAlert?.warning?.("Pagamento", "Selecione a forma de pagamento.");
   const response = await fetch(`/devedores/${paymentOrder.pedido_id}/pagamento`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ valor: value, forma_pagamento: method, observacao: debtor$("debtor-payment-note").value }) });
   const result = await response.json().catch(() => ({}));
-  if (!response.ok) return alert(result.message || "Não foi possível registrar o pagamento.");
+  if (!response.ok) return window.FestAlert?.error?.("Erro ao registrar pagamento", result.message || "Não foi possível registrar o pagamento.");
   closePayment(); await loadDebtors();
+  await window.FestAlert?.success?.("Pagamento registrado", "O pagamento foi registrado com sucesso.");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  ["debtor-overdue", "debtor-period"].forEach((id) => debtor$(id).addEventListener("change", () => loadDebtors().catch((error) => alert(error.message))));
-  debtor$("debtor-client").addEventListener("input", () => { clearTimeout(window.debtorSearchTimer); window.debtorSearchTimer = setTimeout(() => loadDebtors().catch((error) => alert(error.message)), 300); });
-  debtor$("debtor-clear").onclick = () => { debtor$("debtor-client").value = ""; debtor$("debtor-overdue").value = "all"; debtor$("debtor-period").value = "all"; loadDebtors().catch((error) => alert(error.message)); };
+  ["debtor-overdue", "debtor-period"].forEach((id) => debtor$(id).addEventListener("change", () => loadDebtors().catch((error) => window.FestAlert?.error?.("Erro ao carregar", error.message))));
+  debtor$("debtor-client").addEventListener("input", () => { clearTimeout(window.debtorSearchTimer); window.debtorSearchTimer = setTimeout(() => loadDebtors().catch((error) => window.FestAlert?.error?.("Erro ao carregar", error.message)), 300); });
+  debtor$("debtor-clear").onclick = () => { debtor$("debtor-client").value = ""; debtor$("debtor-overdue").value = "all"; debtor$("debtor-period").value = "all"; loadDebtors().catch((error) => window.FestAlert?.error?.("Erro ao carregar", error.message)); };
   debtor$("debtors-export").onclick = () => { window.location.href = `/devedores/exportar?${queryString()}`; };
-  debtor$("debtor-payment-close").onclick = closePayment; debtor$("debtor-payment-cancel").onclick = closePayment; debtor$("debtor-payment-submit").onclick = () => submitPayment().catch((error) => alert(error.message));
+  debtor$("debtor-payment-close").onclick = closePayment; debtor$("debtor-payment-cancel").onclick = closePayment; debtor$("debtor-payment-submit").onclick = () => submitPayment().catch((error) => window.FestAlert?.error?.("Erro ao registrar pagamento", error.message));
   loadDebtors().catch((error) => { debtor$("debtors-body").innerHTML = `<tr><td colspan="9" class="debtors-empty">${error.message}</td></tr>`; });
 });

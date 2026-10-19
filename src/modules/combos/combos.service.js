@@ -24,16 +24,20 @@ export async function criarCombo(dados) {
 
   const itensValidados = [];
   const vistos = new Set();
+  const preco = Number(dados.preco ?? dados.preco_aluguel ?? dados.preco_venda ?? 0);
+  if (!Number.isFinite(preco) || preco < 0) {
+    throw new Error('O preço do combo deve ser válido e não negativo.');
+  }
 
   for (const item of itens) {
-    const produtoId = Number(item.produto_id || 0);
-    const quantidade = Number(item.quantidade || 1);
+    const produtoId = Number(item.produto_id);
+    const quantidade = Number(item.quantidade ?? 1);
 
-    if (!produtoId) {
+    if (!Number.isSafeInteger(produtoId) || produtoId <= 0) {
       throw new Error('Selecione um produto válido para cada componente.');
     }
-    if (quantidade <= 0) {
-      throw new Error('Quantidade do componente deve ser maior que zero.');
+    if (!Number.isSafeInteger(quantidade) || quantidade <= 0) {
+      throw new Error('Quantidade do componente deve ser um inteiro positivo.');
     }
     if (vistos.has(produtoId)) {
       throw new Error('Não é permitido repetir o mesmo produto no combo.');
@@ -47,8 +51,7 @@ export async function criarCombo(dados) {
     nome: String(dados.nome).trim(),
     descricao: dados.descricao || '',
     codigo: dados.codigo || null,
-    preco_venda: Number(dados.preco_venda || 0),
-    preco_aluguel: Number(dados.preco_aluguel || 0),
+    preco,
     ativo: dados.ativo !== false,
     itens: itensValidados
   });
@@ -61,12 +64,15 @@ export async function adicionarItemCombo(comboId, item) {
     throw new Error('Combo e produto são obrigatórios.');
   }
 
-  const quantidade = Number(item.quantidade || 1);
-  if (quantidade <= 0) {
-    throw new Error('Quantidade do item do combo deve ser maior que zero.');
+  const produtoId = Number(item.produto_id);
+  const quantidade = Number(item.quantidade ?? 1);
+  if (!Number.isSafeInteger(Number(comboId)) || Number(comboId) <= 0 ||
+      !Number.isSafeInteger(produtoId) || produtoId <= 0 ||
+      !Number.isSafeInteger(quantidade) || quantidade <= 0) {
+    throw new Error('Combo, produto e quantidade devem ser válidos.');
   }
 
-  return await model.adicionarItemCombo(comboId, { ...item, quantidade });
+  return await model.adicionarItemCombo(comboId, { ...item, produto_id: produtoId, quantidade });
 }
 
 export async function atualizarCombo(id, dados) {
@@ -77,31 +83,36 @@ export async function atualizarCombo(id, dados) {
   if (!itens.length) {
     throw new Error('Combo deve ter pelo menos um componente.');
   }
+  const preco = Number(dados.preco ?? dados.preco_aluguel ?? dados.preco_venda ?? 0);
+  if (!Number.isFinite(preco) || preco < 0) {
+    throw new Error('O preço do combo deve ser válido e não negativo.');
+  }
 
   const vistos = new Set();
+  const itensValidados = [];
   for (const item of itens) {
-    const produtoId = Number(item.produto_id || 0);
-    const quantidade = Number(item.quantidade || 1);
-    if (!produtoId) {
+    const produtoId = Number(item.produto_id);
+    const quantidade = Number(item.quantidade ?? 1);
+    if (!Number.isSafeInteger(produtoId) || produtoId <= 0) {
       throw new Error('Selecione um produto válido para cada componente.');
     }
-    if (quantidade <= 0) {
-      throw new Error('Quantidade do componente deve ser maior que zero.');
+    if (!Number.isSafeInteger(quantidade) || quantidade <= 0) {
+      throw new Error('Quantidade do componente deve ser um inteiro positivo.');
     }
     if (vistos.has(produtoId)) {
       throw new Error('Não é permitido repetir o mesmo produto no combo.');
     }
     vistos.add(produtoId);
+    itensValidados.push({ produto_id: produtoId, quantidade });
   }
 
   await model.atualizarCombo(id, {
     nome: String(dados.nome).trim(),
     descricao: dados.descricao || '',
     codigo: dados.codigo || null,
-    preco_venda: Number(dados.preco_venda || 0),
-    preco_aluguel: Number(dados.preco_aluguel || 0),
+    preco,
     ativo: dados.ativo !== false,
-    itens
+    itens: itensValidados
   });
 }
 

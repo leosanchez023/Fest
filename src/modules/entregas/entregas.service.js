@@ -5,10 +5,26 @@ const normalizarStatus = (pedido) => ({
   status: pedido?.status ? String(pedido.status).trim().toUpperCase() : pedido?.status
 });
 
+export function calcularSaldoPendente(total, entradasPagamento) {
+  const valorTotal = Number(total || 0);
+  const entradas = entradasPagamento || [];
+  const valorRecebido = entradas.reduce((sum, amount) => {
+    const value = Number(amount || 0);
+    return sum + (value > 0 ? value : 0);
+  }, 0);
+  const valorReembolsado = entradas.reduce((sum, amount) => {
+    const value = Number(amount || 0);
+    return sum + (value < 0 ? Math.abs(value) : 0);
+  }, 0);
+  return Math.max(0, valorTotal - valorRecebido - valorReembolsado);
+}
+
 export async function listarPedidos(filtros) {
-  // Já vem agregado por pedido (sem duplicação de JOIN)
-  const pedidos = await model.buscarPedidos(filtros);
-  return pedidos.map(normalizarStatus);
+  const resultado = await model.buscarPedidos(filtros);
+  return {
+    ...resultado,
+    rows: resultado.rows.map(normalizarStatus)
+  };
 }
 
 export async function buscarPedido(id) {
@@ -33,19 +49,24 @@ export async function adicionarPagamento(id, dados) {
 }
 
 export async function marcarEntregue(id, dados) {
-
   const dataEntrega = (dados.data_entrega || '').toString().trim();
   const responsavel = (dados.responsavel_entrega || '').toString().trim();
 
   if (!dataEntrega) {
     throw new Error("Informe a data e hora da entrega.");
   }
-
   if (!responsavel) {
     throw new Error("Informe o responsável pela entrega.");
   }
+  if (Number.isNaN(new Date(dataEntrega).getTime())) {
+    throw new Error("Informe uma data e hora válidas para a entrega.");
+  }
 
-  return await model.marcarEntregue(id, dados);
+  return await model.marcarEntregue(id, {
+    ...dados,
+    data_entrega: dataEntrega,
+    responsavel_entrega: responsavel
+  });
 }
 
 export async function registrarDevolucao(id, dados) {
@@ -84,10 +105,11 @@ export async function registrarOcorrencia(id, dados) {
     throw new Error("Valor inválido.");
   }
 
-  const descricao = (dados.descricao || "Ocorrência registrada").toString().trim();
-  if (!descricao) {
-    throw new Error("Informe uma descrição.");
+  const descricaoInformada = (dados.descricao || "").toString().trim();
+  if ((dados.tipo || "").toString().trim().toUpperCase() === "COBRANCA" && !descricaoInformada) {
+    throw new Error("Informe uma observação para a cobrança.");
   }
+  const descricao = descricaoInformada || "Ocorrência registrada";
 
   return await model.inserirOcorrencia(id, {
     ...dados,

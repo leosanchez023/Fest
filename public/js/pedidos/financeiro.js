@@ -1,7 +1,5 @@
-import { $, fmt } from "./utils.js";
+import { $, esc, fmt } from "./utils.js";
 import { state } from "./state.js";
-
-const PRECO_KM = 2.5;
 
 export function updateResumo() {
   const totalProdutos = state.itens.reduce(
@@ -31,32 +29,86 @@ export function updateResumo() {
   if (totalEl) totalEl.textContent = fmt(total);
 }
 
-export function calcularFrete() {
-  const km = Number($("distancia-km")?.value || 0);
-  const frete = km * PRECO_KM;
-
-  const freteInput = $("frete");
-  if (freteInput) freteInput.value = frete.toFixed(2);
-
-  const info = $("info-frete");
-  if (info) {
-    info.innerHTML = km > 0
-      ? `${km} km × R$ ${PRECO_KM.toFixed(2)} = <b>R$ ${frete.toFixed(2)}</b>`
-      : "";
-  }
-
+export function invalidarRota(mensagem = "Selecione a origem e o destino para calcular a distância pelas vias.") {
+  state.rotaCalculada = null;
+  state.recalcularRota = false;
+  if ($("distancia-km")) $("distancia-km").value = "";
+  if ($("frete")) $("frete").value = "";
+  if ($("info-frete")) $("info-frete").textContent = "";
+  const resumo = $("resumo-rota");
+  if (resumo) resumo.textContent = mensagem;
   updateResumo();
 }
 
-export function inicializarFinanceiro() {
-  const distancia = $("distancia-km");
-  if (distancia) distancia.addEventListener("input", calcularFrete);
+export async function calcularFrete() {
+  const destino = state.enderecoSelecionado;
+  const info = $("info-frete");
+  if (!state.configEntrega?.configurado) {
+    invalidarRota("Configure e salve a origem padrão e a regra de frete antes de calcular.");
+    $("painel-config-entrega")?.removeAttribute("hidden");
+    $("painel-config-entrega")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+  if (!destino?.selectionToken) {
+    invalidarRota("Selecione uma sugestão geocodificada para o destino antes de calcular.");
+    return;
+  }
 
+  const button = $("btn-calc-frete");
+  if (button) button.disabled = true;
+  if (info) info.textContent = "Calculando a rota pelas vias...";
+  try {
+    const response = await fetch("/pedidos/calcular-rota", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        destinoToken: destino.selectionToken,
+        destinoNumero: $("end-numero")?.value.trim() || "",
+        destinoEndereco: {
+          rua: $("end-rua")?.value.trim() || "",
+          numero: $("end-numero")?.value.trim() || "",
+          bairro: $("end-bairro")?.value.trim() || "",
+          cidade: $("end-cidade")?.value.trim() || "",
+          estado: $("end-estado")?.value.trim() || "",
+          cep: $("end-cep")?.value.trim() || ""
+        }
+      })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.erro || "Não foi possível calcular a rota.");
+    state.rotaCalculada = result;
+    state.recalcularRota = true;
+    state.podeManterRotaSalva = false;
+    if ($("distancia-km")) $("distancia-km").value = result.distanciaCobradaKm.toFixed(2);
+    if ($("frete")) $("frete").value = result.valorFrete.toFixed(2);
+    if (info) info.textContent = "";
+    const resumo = $("resumo-rota");
+    if (resumo) {
+      resumo.innerHTML = `
+        <strong>Origem:</strong> ${esc(result.origem)}<br>
+        <strong>Destino:</strong> ${esc(result.destino)}<br>
+        <strong>Rota de ida:</strong> ${result.distanciaKm.toFixed(2)} km<br>
+        ${result.sentidoDistancia === "IDA_VOLTA" ? `<strong>Rota de retorno:</strong> ${result.distanciaRetornoKm.toFixed(2)} km<br>` : ""}
+        <strong>Distância cobrada (${result.sentidoDistancia === "IDA" ? "somente ida" : "ida e volta"}):</strong> ${result.distanciaCobradaKm.toFixed(2)} km<br>
+        <strong>Regra aplicada:</strong> ${esc(result.formula)}<br>
+        ${result.numeroLocalizado ? "<strong>Número:</strong> localização do imóvel encontrada pelo Photon.<br>" : result.destinoAproximado ? `<strong>Atenção:</strong> ${result.numeroLookupFalhou ? "não foi possível consultar o número do imóvel; " : "o número não possui ponto geográfico confiável; "}a rota usa a localização aproximada da rua.<br>` : ""}
+        ${result.origemAproximada ? "<strong>Atenção:</strong> a origem usa uma localização aproximada.<br>" : ""}
+        <strong>Frete:</strong> ${fmt(result.valorFrete)}
+      `;
+    }
+    updateResumo();
+  } catch (error) {
+    console.error(error);
+    invalidarRota(error.message);
+    if (info) info.textContent = "O frete não foi calculado; não é possível salvar o pedido com esta rota.";
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+export function inicializarFinanceiro() {
   const calcBtn = $("btn-calc-frete");
   if (calcBtn) calcBtn.addEventListener("click", calcularFrete);
-
-  const frete = $("frete");
-  if (frete) frete.addEventListener("input", updateResumo);
 
   const desconto = $("desconto");
   if (desconto) desconto.addEventListener("input", updateResumo);

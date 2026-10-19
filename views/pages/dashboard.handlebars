@@ -1,42 +1,271 @@
-<link rel="stylesheet" href="/css/pages/dashborard.css">
-<div class="main">
+{{!-- ============================================================
+  DASHBOARD DO FEST: conteúdo da página (sem <html>/<head>/<body>)
+  Dados atuais: FICTÍCIOS (bloco MOCK no final). Quando a API existir,
+  trocar obterResumo() por fetch('/dashboard/api/resumo?periodo=' + periodo).
+  O nome do usuário vem de {{usuario.nome}}; ajuste se a sua sessão usa outro nome.
+============================================================ --}}
+<style>
+/* Dashboard · estilos escopados em .dash (não afetam o resto do sistema) */
+.dash{
+  --bg:#f4f5fb; --card:#fff; --ink:#1d1f2b; --muted:#6b7084; --line:#e6e8f2;
+  --brand:#6d4aff; --brand-2:#ff5c8a; --ok:#1fa971; --warn:#e8a317; --bad:#e5484d; --info:#2f7cf6;
+  --radius:14px; --shadow:0 1px 2px rgba(20,20,50,.05),0 6px 20px rgba(20,20,50,.06);
+  color:var(--ink); font-size:14px;
+}
+.dash, .dash *{box-sizing:border-box}
+.dash button,.dash input,.dash select{font:inherit;color:inherit}
 
-<div class="page-meta" data-title="Dashboard" data-subtitle="Visão geral do sistema"></div>
+  .dash{width:100%;min-width:0;padding:26px 30px 50px}
+  .dash .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  .dash h1{font-size:26px;letter-spacing:-.3px}
+  .dash .sub{color:var(--muted);margin-top:3px}
+  .dash .sub::first-letter{text-transform:uppercase}
+  .dash .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .dash .chip{border:1px solid var(--line);background:#fff;padding:8px 13px;border-radius:999px;cursor:pointer;font-weight:600;font-size:12.5px;color:var(--muted)}
+  .dash .chip:hover{border-color:var(--brand);color:var(--brand)}
+  .dash .chip.active{background:rgba(109,74,255,.1);border-color:var(--brand);color:var(--brand)}
 
-<!-- STATS -->
-<div class="grid-4" id="stats"></div>
+  .dash .quick{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .dash .qbtn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:11px;border:1px solid var(--line);background:var(--card);font-weight:600;color:var(--ink);text-decoration:none;box-shadow:var(--shadow);transition:.15s}
+  .dash .qbtn:hover{border-color:var(--brand);color:var(--brand);transform:translateY(-1px)}
+  .dash .qbtn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  .dash .qbtn.primary:hover{background:#5a39e6;color:#fff}
 
-<!-- CHART + DELIVERIES -->
-<div class="grid-2">
+  .dash .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:18px}
+  .dash .kpi{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;position:relative;overflow:hidden;border:none;text-align:left;width:100%;cursor:pointer;transition:transform .15s ease, box-shadow .15s ease}
+  .dash .kpi:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(50,50,80,.08)}
+  .dash .kpi:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .dash .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,var(--brand))}
+  .dash .kpi .l{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .dash .kpi .v{font-size:27px;font-weight:750;margin:6px 0 4px;letter-spacing:-.5px}
+  .dash .kpi .d{font-size:12.5px;color:var(--muted);min-height:18px}
+  .dash .up{color:var(--ok);font-weight:700}.dash .down{color:var(--bad);font-weight:700}
 
-<div class="card">
-<h2>Faturamento últimos meses</h2>
-<div class="chart" id="chart"></div>
-</div>
+  .dash .drow{display:grid;gap:14px;margin-bottom:14px}
+  .dash .r-a{grid-template-columns:2fr 1fr}
+  .dash .r-b{grid-template-columns:1fr 1fr;align-items:start}
+  .dash .r-c{grid-template-columns:2fr 1fr}
+  .dash .dcard{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;min-width:0}
+  .dash .dcard h2{font-size:15px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .dash .dcard h2 a{font-size:12.5px;font-weight:600;color:var(--brand);text-decoration:none}
+  .dash .dcard h2 a:hover{text-decoration:underline}
+  .dash .empty{color:var(--muted);padding:26px 0;text-align:center}
 
-<div class="card">
-<h2>Entregas de Hoje</h2>
-<div id="deliveries"></div>
-</div>
+  .dash .bars{display:flex;align-items:flex-end;gap:5px;height:210px;padding-top:10px}
+  .dash .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
+  .dash .bar div{width:100%;max-width:38px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--brand),#a58cff);min-height:2px}
+  .dash .bar div:hover{filter:brightness(1.1)}
+  .dash .bar small{font-size:10px;color:var(--muted);margin-top:6px;height:14px;white-space:nowrap}
+  .dash .donut-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .dash .donut{width:140px;height:140px;border-radius:50%;position:relative;flex-shrink:0}
+  .dash .donut::after{content:attr(data-total);position:absolute;inset:25px;background:var(--card);border-radius:50%;display:grid;place-items:center;font-weight:750;font-size:18px}
+  .dash .legend{display:flex;flex-direction:column;gap:7px;font-size:13px;flex:1;min-width:120px}
+  .dash .legend div{display:flex;align-items:center;gap:8px}
+  .dash .legend i{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+  .dash .legend b{margin-left:auto;padding-left:10px}
+  .dash .hbars{display:flex;flex-direction:column;gap:11px}
+  .dash .hbar .t{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}
+  .dash .hbar .t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dash .hbar .tr{height:9px;background:#eef0f8;border-radius:99px;overflow:hidden}
+  .dash .hbar .tr div{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2))}
 
-</div>
+  .dash .agenda{display:flex;flex-direction:column;gap:6px}
+  .dash .ag-day{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:8px 0 2px}
+  .dash .ag-day:first-child{margin-top:0}
+  .dash .ag-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:11px}
+  .dash .ag-item time{font-weight:700;min-width:44px}
+  .dash .ag-item .who{flex:1;min-width:0}
+  .dash .ag-item .who b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dash .ag-item .who small{color:var(--muted)}
 
-<!-- TABLE + ACTIVITY -->
+  .dash .alerts{display:flex;flex-direction:column;gap:9px}
+  .dash .dalerta{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:11px;background:#f8f9fd;border-left:4px solid var(--a,var(--info))}
+  .dash .dalerta.bad{--a:var(--bad)}.dash .dalerta.warn{--a:var(--warn)}.dash .dalerta.info{--a:var(--info)}
+  .dash .dalerta .tx{flex:1;min-width:0}
+  .dash .dalerta b{display:block}
+  .dash .dalerta small{color:var(--muted)}
+  .dash .dalerta a{font-weight:600;font-size:12.5px;color:var(--brand);text-decoration:none;white-space:nowrap}
 
-<div class="grid-table">
+  .dash .scroll{overflow-x:auto;margin:0 -18px;padding:0 18px}
+  .dash table{width:100%;border-collapse:collapse;min-width:520px}
+  .dash th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  .dash td{padding:11px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  .dash tbody tr:last-child td{border-bottom:0}
+  .dash .r{text-align:right}
+  .dash .dbadge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700}
+  .dash .b-ok{background:#e3f7ee;color:#127a52}.dash .b-info{background:#e3eeff;color:#1d5fc9}
+  .dash .b-warn{background:#fdf1d6;color:#9a6a00}.dash .b-bad{background:#fde5e6;color:#b4282d}.dash .b-def{background:#eef0f8;color:#555a73}
 
-<div class="card">
-<h2>Pedidos Recentes</h2>
-<table id="orders"></table>
-</div>
+  .dash .skeleton{opacity:.45;pointer-events:none;transition:opacity .15s}
+  .dash .erro{display:none;background:#fde5e6;color:#b4282d;border-radius:11px;padding:12px 16px;margin-bottom:16px;align-items:center;gap:12px;justify-content:space-between}
+  .dash .erro.show{display:flex}
+  .dash .erro button{border:1px solid #b4282d;background:#fff;color:#b4282d;border-radius:8px;padding:6px 12px;font-weight:600;cursor:pointer}
 
-<div class="card">
-<h2>Atividades</h2>
-<div id="activity"></div>
-</div>
+  @media(max-width:1000px){.dash .r-a,.dash .r-b,.dash .r-c{grid-template-columns:1fr}}
+  @media(max-width:860px){.dash{padding:18px 16px 40px}}
+</style>
 
-</div>
+<main class="dash" id="dash" data-nome="{{usuario.nome}}">
+  <div class="topbar">
+    <div>
+      <h1 id="saudacao">Olá!</h1>
+      <p class="sub" id="dataHoje"></p>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Período"></div>
+  </div>
 
-</div>
+  <div class="erro" id="erro" role="alert" hidden>
+    <span>Não foi possível carregar o painel agora.</span>
+    <button type="button" id="retry">Tentar novamente</button>
+  </div>
 
-<script src="/js/dashboard.js" ></script>
+  <nav class="quick" aria-label="Atalhos de visão rápida" hidden>
+    <span class="sr-only">Resumo executivo</span>
+  </nav>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="drow r-a">
+    <div class="dcard"><h2 id="tFat">Faturamento</h2><div id="gFat"></div></div>
+    <div class="dcard"><h2>Pedidos por status</h2><div id="gStatus"></div></div>
+  </section>
+
+  <section class="drow r-b">
+    <div class="dcard"><h2>Agenda: próximos 7 dias <a href="#" data-atalho="entregas">Ver entregas</a></h2><div id="agenda"></div></div>
+    <div class="dcard"><h2>Atenção</h2><div id="alertas"></div></div>
+  </section>
+
+  <section class="drow r-c">
+    <div class="dcard"><h2>Últimos pedidos <a href="#" data-atalho="pedidos">Ver todos</a></h2>
+      <div class="scroll"><table><thead><tr><th>Nº</th><th>Data</th><th>Cliente</th><th>Status</th><th class="r">Valor</th></tr></thead><tbody id="ultimos"></tbody></table></div>
+    </div>
+    <div class="dcard"><h2>Mais alugados no período</h2><div id="topProdutos"></div></div>
+  </section>
+</main>
+
+<script>
+(function () {
+
+async function obterResumo(periodo, signal) {
+  const query = new URLSearchParams({ periodo: String(periodo || '30') });
+  const response = await fetch(`/dashboard/api/resumo?${query.toString()}`, { signal, headers: { Accept: 'application/json' } });
+  if (!response.ok) {
+    throw new Error(`Falha ao carregar o dashboard (${response.status})`);
+  }
+
+  const data = await response.json();
+  return {
+    periodo: data.periodo || { de: '', ate: '' },
+    kpis: Array.isArray(data.kpis) ? data.kpis : [],
+    faturamento: Array.isArray(data.faturamento) ? data.faturamento : [],
+    statusPedidos: Array.isArray(data.statusPedidos) ? data.statusPedidos : [],
+    agenda: Array.isArray(data.agenda) ? data.agenda : [],
+    alertas: Array.isArray(data.alertas) ? data.alertas : [],
+    ultimosPedidos: Array.isArray(data.ultimosPedidos) ? data.ultimosPedidos : [],
+    topProdutos: Array.isArray(data.topProdutos) ? data.topProdutos : []
+  };
+}
+
+/* ---------- Utilitários ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const brl=v=>Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const brlCurto=v=>v>=1000?'R$ '+(v/1000).toFixed(1).replace('.',',')+' mil':brl(v);
+const parseIso=s=>new Date(s+'T00:00:00');
+const fdata=s=>parseIso(s).toLocaleDateString('pt-BR');
+const HOJE = new Date();
+HOJE.setHours(0, 0, 0, 0);
+const COR=['#6d4aff','#ff5c8a','#2f7cf6','#1fa971','#e8a317','#8a6bff','#14b8c6','#e5484d'];
+const BADGE={'Concluído':'ok','Em andamento':'info','Orçamento':'warn','Cancelado':'bad','Entrega':'info','Retirada':'warn'};
+const badge=t=>`<span class="dbadge b-${BADGE[t]||'def'}">${esc(t)}</span>`;
+const fmtValor=k=>k.formato==='moeda'?brl(k.valor):Number(k.valor).toLocaleString('pt-BR');
+const fmtVar=v=>v==null?'':`<span class="${v>=0?'up':'down'}">${v>=0?'▲':'▼'} ${Math.abs(v).toFixed(1).replace('.',',')}%</span> vs. período anterior`;
+
+/* ---------- Render ---------- */
+function gBarras(d,fmt){
+  if(!d.length||d.every(x=>!x.valor))return '<div class="empty">Sem movimento no período.</div>';
+  const max=Math.max(...d.map(x=>x.valor))||1,passo=Math.ceil(d.length/10);
+  return '<div class="bars">'+d.map((x,i)=>`<div class="bar"><div style="height:${x.valor/max*100}%" title="${esc(x.rotulo)}: ${esc(fmt(x.valor))}"></div><small>${i%passo===0?esc(x.rotulo):''}</small></div>`).join('')+'</div>';
+}
+function gRosca(d){
+  const total=d.reduce((t,x)=>t+x.valor,0);
+  if(!total)return '<div class="empty">Sem pedidos no período.</div>';
+  let acc=0;
+  const grad=d.map((x,i)=>{const a=acc/total*100;acc+=x.valor;return `${COR[i%COR.length]} ${a}% ${acc/total*100}%`}).join(',');
+  return `<div class="donut-wrap"><div class="donut" style="background:conic-gradient(${grad})" data-total="${total}"></div><div class="legend">${d.map((x,i)=>`<div><i style="background:${COR[i%COR.length]}"></i>${esc(x.rotulo)}<b>${x.valor}</b></div>`).join('')}</div></div>`;
+}
+function gHBarras(d){
+  if(!d.length)return '<div class="empty">Sem dados no período.</div>';
+  const max=Math.max(...d.map(x=>x.valor))||1;
+  return '<div class="hbars">'+d.map(x=>`<div class="hbar"><div class="t"><span title="${esc(x.rotulo)}">${esc(x.rotulo)}</span><b>${x.valor}</b></div><div class="tr"><div style="width:${x.valor/max*100}%"></div></div></div>`).join('')+'</div>';
+}
+function rotuloDia(s){
+  const dif=Math.round((parseIso(s)-HOJE)/864e5);
+  return dif===0?'Hoje':dif===1?'Amanhã':parseIso(s).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'});
+}
+function render(r){
+  $('#kpis').innerHTML=r.kpis.map((k, index) => {
+    const links = ['/relatorios', '/pedidos', '/devedores', '/devedores'];
+    const href = links[index] || '/dashboard';
+    return `<button type="button" class="kpi" style="--c:${esc(k.cor)}" data-link="${esc(href)}" aria-label="Abrir ${esc(k.rotulo)}"><div class="l">${esc(k.rotulo)}</div><div class="v">${esc(fmtValor(k))}</div><div class="d">${k.variacao!=null?fmtVar(k.variacao):esc(k.detalhe||'')}</div></button>`;
+  }).join('');
+  $('#tFat').textContent='Faturamento · '+fdata(r.periodo.de)+' a '+fdata(r.periodo.ate);
+  $('#gFat').innerHTML=gBarras(r.faturamento,brlCurto);
+  $('#gStatus').innerHTML=gRosca(r.statusPedidos);
+  $('#topProdutos').innerHTML=gHBarras(r.topProdutos);
+
+  if(!r.agenda.length){$('#agenda').innerHTML='<div class="empty">Nada agendado para os próximos dias.</div>'}
+  else{
+    let ult='',h='<div class="agenda">';
+    r.agenda.forEach(a=>{
+      if(a.data!==ult){h+=`<div class="ag-day">${esc(rotuloDia(a.data))}</div>`;ult=a.data}
+      h+=`<div class="ag-item"><time>${esc(a.hora)}</time><div class="who"><b>${esc(a.cliente)}</b><small>${esc(a.bairro)} · Pedido ${esc(a.pedido)}</small></div>${badge(a.tipo)}</div>`;
+    });
+    $('#agenda').innerHTML=h+'</div>';
+  }
+  $('#alertas').innerHTML=r.alertas.length
+    ?'<div class="alerts">'+r.alertas.map(a=>`<div class="dalerta ${esc(a.nivel)}"><div class="tx"><b>${esc(a.titulo)}</b><small>${esc(a.detalhe)}</small></div><a href="#" data-atalho="${esc(a.link)}">Ver</a></div>`).join('')+'</div>'
+    :'<div class="empty">Tudo em dia. Nenhum alerta no momento. 🎉</div>';
+  $('#ultimos').innerHTML=r.ultimosPedidos.length
+    ?r.ultimosPedidos.map(o=>`<tr><td>${esc(o.num)}</td><td>${esc(fdata(o.data))}</td><td>${esc(o.cliente)}</td><td>${badge(o.status)}</td><td class="r">${esc(brl(o.valor))}</td></tr>`).join('')
+    :'<tr><td colspan="5" class="empty">Nenhum pedido ainda.</td></tr>';
+}
+
+/* ---------- Estado e eventos ---------- */
+const estado={periodo:'30'};
+let ctrl=null;
+function marcarChips(){document.querySelectorAll('#chips .chip').forEach(c=>c.classList.toggle('active',c.dataset.p===estado.periodo))}
+async function carregar(){
+  if(ctrl)ctrl.abort();
+  ctrl=new AbortController();const meu=ctrl;
+  $('#dash').classList.add('skeleton');
+  $('#erro').hidden = true;
+  try{
+    const dados=await obterResumo(estado.periodo,meu.signal);
+    render(dados);
+    $('#erro').hidden = true;
+  }catch(e){
+    if(e.name==='AbortError')return;
+    $('#erro').hidden = false;
+  }
+  if(ctrl===meu)$('#dash').classList.remove('skeleton');
+}
+function iniciar(){
+  const h=new Date().getHours(),nome=(($('#dash').dataset.nome)||'').trim().split(' ')[0];
+  $('#saudacao').textContent=(h<12?'Bom dia':h<18?'Boa tarde':'Boa noite')+(nome?', '+nome:'')+'!';
+  $('#dataHoje').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  $('#chips').innerHTML=[['7','7 dias'],['30','30 dias'],['mes','Este mês'],['90','90 dias']].map(([p,l])=>`<button type="button" class="chip" data-p="${p}">${l}</button>`).join('');
+  $('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;estado.periodo=b.dataset.p;marcarChips();carregar()};
+  $('#retry').onclick=carregar;
+  document.querySelector('#kpis').addEventListener('click', (e) => {
+    const card = e.target.closest('[data-link]');
+    if (!card) return;
+    const link = card.dataset.link;
+    if (link) window.location.href = link;
+  });
+  marcarChips();carregar();
+}
+iniciar();
+
+})();
+</script>

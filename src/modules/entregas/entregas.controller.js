@@ -2,18 +2,29 @@ import * as service from "./entregas.service.js";
 
 export async function listarPedidos(req, res) {
   try {
-    const { search, from, to, status, pay, delivery } = req.query;
+    const { search, from, to, status, pay, delivery, sort, kpi } = req.query;
+    const page = Number.parseInt(req.query.page, 10);
+    const limit = Number.parseInt(req.query.limit, 10);
 
-    const pedidos = await service.listarPedidos({
+    const resultado = await service.listarPedidos({
       search: search?.trim() || null,
       from:   from   || null,
       to:     to     || null,
       status: status || null,
       pay:    pay    || null,
       delivery: delivery || null,
+      kpi: ["active", "delivery", "pickup", "late"].includes(kpi) ? kpi : null,
+      sort: sort === "event_asc" ? "event_asc" : "event_desc",
+      page: Number.isInteger(page) && page > 0 ? Math.min(page, 1000000) : 1,
+      limit: Number.isInteger(limit) && limit > 0 ? Math.min(limit, 100) : 25,
     });
 
-    return res.json(pedidos);
+    res.set({
+      "X-Total-Count": String(resultado.total),
+      "X-Page": String(resultado.page),
+      "X-Page-Size": String(resultado.limit),
+    });
+    return res.json(resultado.rows);
   } catch (err) {
     console.error("Erro listarPedidos:", err);
     return res.status(500).json({ message: "Erro ao buscar pedidos" });
@@ -47,6 +58,11 @@ export async function relatorio(req, res) {
       if (pedido) {
         const total = Number(pedido.valor_total || 0);
         const pago = Number(pedido.valor_pago || 0);
+        const reembolsado = Number(pedido.valor_reembolsado || 0);
+        const saldoPendente = service.calcularSaldoPendente(
+          total,
+          (pedido.pagamentos || []).map((pagamento) => pagamento.valor)
+        );
         const formatMoney = (value) => Number(value || 0).toLocaleString("pt-BR", {
           style: "currency", currency: "BRL"
         });
@@ -61,7 +77,8 @@ export async function relatorio(req, res) {
           [pedido.endereco_rua, pedido.endereco_numero].filter(Boolean).join(', '),
           pedido.endereco_bairro,
           [pedido.endereco_cidade, pedido.endereco_estado].filter(Boolean).join(' - '),
-          pedido.endereco_cep ? `CEP ${pedido.endereco_cep}` : ''
+          pedido.endereco_cep ? `CEP ${pedido.endereco_cep}` : '',
+          pedido.endereco_referencia
         ].filter(Boolean).join(' - ');
 
         results.push({
@@ -82,7 +99,8 @@ export async function relatorio(req, res) {
           })),
           total_formatado: formatMoney(total),
           pago_formatado: formatMoney(pago),
-          receber_formatado: formatMoney(Math.max(total - pago, 0)),
+          reembolsado_formatado: formatMoney(reembolsado),
+          receber_formatado: formatMoney(saldoPendente),
           observacao: pedido.observacao_entrega?.trim() || pedido.observacoes?.trim() || ''
         });
         pos++;
@@ -119,12 +137,14 @@ export async function kpis(req, res) {
 export async function adicionarPagamento(req, res) {
   try {
     const id = req.params.id;
-    const { valor, forma_pagamento, observacao, usuario_id } = req.body;
-    await service.adicionarPagamento(id, { valor, forma_pagamento, observacao, usuario_id });
+    const { valor, forma_pagamento, observacao } = req.body;
+    await service.adicionarPagamento(id, { valor, forma_pagamento, observacao, usuario_id: req.user?.id || null });
     return res.json({ sucesso: true });
   } catch (err) {
     console.error('Erro adicionarPagamento:', err);
-    return res.status(500).json({ message: err.message });
+    return res.status(err.code ? 500 : 400).json({
+      message: err.code ? 'Não foi possível concluir a operação.' : err.message
+    });
   }
 }
 
@@ -135,15 +155,14 @@ export async function marcarEntregue(req, res) {
     const {
       data_entrega,
       responsavel_entrega,
-      observacao_entrega,
-      usuario_id
+      observacao_entrega
     } = req.body;
 
     const resultado = await service.marcarEntregue(id, {
       data_entrega,
       responsavel_entrega,
       observacao_entrega,
-      usuario_id
+      usuario_id: req.user?.id || null
     });
 
     return res.json({
@@ -154,9 +173,8 @@ export async function marcarEntregue(req, res) {
   } catch (err) {
     console.error("Erro marcarEntregue:", err);
 
-    return res.status(500).json({
-      message: err.message,
-      stack: err.stack
+    return res.status(err.code ? 500 : 400).json({
+      message: err.code ? 'Não foi possível concluir a operação.' : err.message
     });
   }
 }
@@ -164,30 +182,21 @@ export async function marcarEntregue(req, res) {
 export async function registrarDevolucao(req, res) {
   try {
     const id = req.params.id;
-    const { itens, observacao, responsavel, usuario_id } = req.body;
+    const { itens, observacao, responsavel } = req.body;
 
     await service.registrarDevolucao(id, {
       itens,
       observacao,
       responsavel,
-      usuario_id
+      usuario_id: req.user?.id || null
     });
 
     return res.json({ sucesso: true });
 
   } catch (err) {
-    console.error("================================");
-    console.error("ERRO AO REGISTRAR DEVOLUÇÃO");
-    console.error("Mensagem:", err.message);
-    console.error("SQL:", err.sqlMessage);
-    console.error("Código:", err.code);
-    console.error(err);
-    console.error("================================");
-
-    return res.status(500).json({
-      message: err.message,
-      sql: err.sqlMessage,
-      code: err.code
+    console.error('Erro ao registrar devolução:', err);
+    return res.status(err.code ? 500 : 400).json({
+      message: err.code ? 'Não foi possível concluir a operação.' : err.message
     });
   }
 }
@@ -195,12 +204,14 @@ export async function registrarDevolucao(req, res) {
 export async function registrarReembolso(req, res) {
   try {
     const id = req.params.id;
-    const { valor, forma_pagamento, observacao, usuario_id } = req.body;
-    await service.registrarReembolso(id, { valor, forma_pagamento, observacao, usuario_id });
+    const { valor, forma_pagamento, observacao } = req.body;
+    await service.registrarReembolso(id, { valor, forma_pagamento, observacao, usuario_id: req.user?.id || null });
     return res.json({ sucesso: true });
   } catch (err) {
     console.error('Erro registrarReembolso:', err);
-    return res.status(500).json({ message: err.message });
+    return res.status(err.code ? 500 : 400).json({
+      message: err.code ? 'Não foi possível concluir a operação.' : err.message
+    });
   }
 }
 
@@ -240,11 +251,13 @@ export async function finalizarConferencia(req, res) {
 export async function registrarOcorrencia(req, res) {
   try {
     const id = req.params.id;
-    const { tipo, descricao, valor, usuario_id } = req.body;
-    await service.registrarOcorrencia(id, { tipo, descricao, valor, usuario_id });
+    const { tipo, descricao, valor } = req.body;
+    await service.registrarOcorrencia(id, { tipo, descricao, valor, usuario_id: req.user?.id || null });
     return res.json({ sucesso: true });
   } catch (err) {
     console.error('Erro registrarOcorrencia:', err);
-    return res.status(500).json({ message: 'Erro ao registrar ocorrência' });
+    return res.status(err.code ? 500 : 400).json({
+      message: err.code ? 'Erro ao registrar ocorrência' : err.message
+    });
   }
 }

@@ -51,8 +51,6 @@ export async function criar(dados) {
     tipo: dados.tipo || null,
     tipo_produto: dados.tipo_produto || 'PRODUTO',
 
-    localizacao: dados.localizacao || null,
-
     fornecedor_id:
       dados.fornecedor_id || null,
 
@@ -96,7 +94,7 @@ export async function atualizar(id, dados) {
   if (!produtoAtual) throw new Error("Produto não encontrado.");
 
   const estoqueAtual = Number(produtoAtual.estoque || 0);
-  const estoqueDesejado = Number(dados.estoque || 0);
+  const estoqueDesejado = Number(dados.estoque ?? estoqueAtual);
   if (!Number.isFinite(estoqueDesejado) || estoqueDesejado < 0) {
     throw new Error("Estoque inválido.");
   }
@@ -116,38 +114,55 @@ export async function atualizar(id, dados) {
 
       nome: dados.nome.trim(),
 
-      codigo: dados.codigo || null,
+      codigo: dados.codigo === undefined ? produtoAtual.codigo : dados.codigo,
 
-      categoria: dados.categoria || null,
+      categoria: dados.categoria === undefined ? produtoAtual.categoria : dados.categoria,
 
-      tipo: dados.tipo || null,
-      tipo_produto: dados.tipo_produto || 'PRODUTO',
+      tipo: dados.tipo === undefined ? produtoAtual.tipo : dados.tipo,
+      tipo_produto: dados.tipo_produto || produtoAtual.tipo_produto || 'PRODUTO',
 
-      localizacao: dados.localizacao || null,
+      fornecedor_id: dados.fornecedor_id === undefined
+        ? produtoAtual.fornecedor_id
+        : dados.fornecedor_id,
 
+      imagem: dados.imagem === undefined ? produtoAtual.imagem : dados.imagem,
 
-      fornecedor_id:
-        dados.fornecedor_id || null,
-
-
-      estoque:
-        Number(dados.estoque || 0),
+      estoque: estoqueDesejado,
 
 
-      precoVenda:
-        Number(dados.precoVenda || 0),
+      precoVenda: Number(dados.precoVenda ?? produtoAtual.preco_venda ?? 0),
 
 
-      precoAluguel:
-        Number(dados.precoAluguel || 0),
+      precoAluguel: Number(dados.precoAluguel ?? produtoAtual.preco_aluguel ?? 0),
 
-      estoque_minimo:
-        Number(dados.estoque_minimo || 0)
+      estoque_minimo: Number(dados.estoque_minimo ?? produtoAtual.estoque_minimo ?? 0)
 
     }
   );
 
 
+}
+
+export async function atualizarQuantidadesEstoque(id, dados, usuarioId = null) {
+  const quantidade = (campo, nome) => {
+    if (dados[campo] === undefined || dados[campo] === null || String(dados[campo]).trim() === "") {
+      throw new Error(`${nome} é obrigatório.`);
+    }
+    const numero = Number(dados[campo]);
+    if (!Number.isSafeInteger(numero) || numero < 0) {
+      throw new Error(`${nome} deve ser um inteiro não negativo.`);
+    }
+    return numero;
+  };
+
+  return await estoqueService.atualizarQuantidadesProduto({
+    produtoId: id,
+    estoque: quantidade("estoque", "Estoque físico"),
+    estoque_reservado: quantidade("estoque_reservado", "Quantidade reservada"),
+    estoque_danificado: quantidade("estoque_danificado", "Quantidade danificada"),
+    estoque_minimo: quantidade("estoque_minimo", "Estoque mínimo"),
+    usuarioId
+  });
 }
 
 

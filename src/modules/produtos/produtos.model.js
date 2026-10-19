@@ -1,7 +1,7 @@
 import db from "../../../database/connection.js";
 
 export async function findAll(filtros = {}) {
-  const { busca = "", categoria = "", status = "", fornecedor = "" } = filtros;
+  const { busca = "", categoria = "", status = "", fornecedor = "", ativo = "" } = filtros;
   let sql = `
     SELECT p.*, f.nome AS fornecedor,
       p.estoque_reservado AS reservado,
@@ -9,14 +9,18 @@ export async function findAll(filtros = {}) {
        - COALESCE(p.estoque_em_uso, 0) - COALESCE(p.estoque_manutencao, 0)
        - COALESCE(p.estoque_danificado, 0)) AS disponivel,
       CASE
-        WHEN p.ativo = 0 THEN 'INATIVO'
+        WHEN (COALESCE(p.estoque, 0) - COALESCE(p.estoque_reservado, 0)
+          - COALESCE(p.estoque_em_uso, 0) - COALESCE(p.estoque_manutencao, 0)
+          - COALESCE(p.estoque_danificado, 0)) <= 0 THEN 'INDISPONIVEL'
         WHEN COALESCE(p.estoque_manutencao, 0) > 0 THEN 'MANUTENCAO'
         WHEN COALESCE(p.estoque_danificado, 0) > 0 THEN 'DANIFICADO'
         WHEN COALESCE(p.estoque_reservado, 0) > 0 THEN 'RESERVADO'
         WHEN COALESCE(p.estoque_em_uso, 0) > 0 THEN 'EM_USO'
-        WHEN COALESCE(p.estoque, 0) <= COALESCE(p.estoque_minimo, 0) THEN 'BAIXO_ESTOQUE'
+        WHEN (COALESCE(p.estoque, 0) - COALESCE(p.estoque_reservado, 0)
+          - COALESCE(p.estoque_em_uso, 0) - COALESCE(p.estoque_manutencao, 0)
+          - COALESCE(p.estoque_danificado, 0)) <= COALESCE(p.estoque_minimo, 0) THEN 'BAIXO_ESTOQUE'
         ELSE 'DISPONIVEL'
-      END AS status
+      END AS status_estoque
     FROM produtos p
     LEFT JOIN fornecedores f ON f.id = p.fornecedor_id
     WHERE 1 = 1
@@ -35,8 +39,12 @@ export async function findAll(filtros = {}) {
     sql += " AND p.fornecedor_id = ?";
     params.push(fornecedor);
   }
+  if (ativo !== "" && (ativo === "0" || ativo === "1")) {
+    sql += " AND p.ativo = ?";
+    params.push(Number(ativo));
+  }
   if (status) {
-    sql += " HAVING status = ?";
+    sql += " HAVING status_estoque = ?";
     params.push(status);
   }
   sql += " ORDER BY p.nome ASC";
@@ -59,10 +67,10 @@ export async function buscarPorId(id) {
 export async function create(dados) {
   const [result] = await db.query(
     `INSERT INTO produtos
-      (nome, codigo, categoria, tipo, tipo_produto, fornecedor_id, imagem, localizacao,
+      (nome, codigo, categoria, tipo, tipo_produto, fornecedor_id, imagem,
        estoque, preco_venda, preco_aluguel, estoque_reservado, estoque_em_uso,
        estoque_manutencao, estoque_danificado, estoque_minimo, ativo)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?, 1)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?, 1)`,
     [
       dados.nome,
       dados.codigo || null,
@@ -71,7 +79,6 @@ export async function create(dados) {
       dados.tipo_produto || "PRODUTO",
       dados.fornecedor_id || null,
       dados.imagem || null,
-      dados.localizacao || null,
       Number(dados.estoque || 0),
       Number(dados.precoVenda || 0),
       Number(dados.precoAluguel || 0),
@@ -85,7 +92,7 @@ export async function atualizar(id, dados) {
   await db.query(
     `UPDATE produtos SET
        nome = ?, codigo = ?, categoria = ?, tipo = ?, tipo_produto = ?,
-       fornecedor_id = ?, imagem = ?, localizacao = ?, preco_venda = ?,
+       fornecedor_id = ?, imagem = ?, preco_venda = ?,
        preco_aluguel = ?, estoque_minimo = ?, updatedAt = NOW()
      WHERE id = ?`,
     [
@@ -96,7 +103,6 @@ export async function atualizar(id, dados) {
       dados.tipo_produto || "PRODUTO",
       dados.fornecedor_id || null,
       dados.imagem || null,
-      dados.localizacao || null,
       Number(dados.precoVenda || 0),
       Number(dados.precoAluguel || 0),
       Number(dados.estoque_minimo || 0),

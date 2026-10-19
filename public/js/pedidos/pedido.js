@@ -1,6 +1,7 @@
 ﻿import { state } from "./state.js";
 import { $, esc, fmt } from "./utils.js";
 import { updateResumo } from "./financeiro.js";
+import { preencherCamposEnderecoParaEdicao } from "./endereco.js";
 
 export function adicionarItem() {
   const prodQuery = $("prod-query");
@@ -9,7 +10,7 @@ export function adicionarItem() {
 
   const selecionado = state.itemSel;
   if (!selecionado) {
-    alert("Selecione um item da lista.");
+    window.FestAlert?.warning?.("Pedido", "Selecione um item da lista.");
     return;
   }
 
@@ -26,6 +27,10 @@ export function adicionarItem() {
       chave,
       nome: selecionado.nome,
       preco: selecionado.preco,
+      preco_venda: selecionado.preco_venda,
+      preco_aluguel: selecionado.preco_aluguel,
+      tipo_item: selecionado.tipo_item || "ALUGUEL",
+      pode_alternar_tipo: Boolean(selecionado.pode_alternar_tipo),
       quantidade: qtd
     });
   }
@@ -44,6 +49,22 @@ export function adicionarItem() {
 export function montarPedido() {
   const totalText = $("r-total")?.textContent || "0";
   const total = Number(totalText.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
+  const endereco = {
+    rua: $("end-rua")?.value.trim() || "",
+    numero: $("end-numero")?.value.trim() || "",
+    bairro: $("end-bairro")?.value.trim() || "",
+    cidade: $("end-cidade")?.value.trim() || "",
+    estado: $("end-estado")?.value.trim() || "",
+    cep: $("end-cep")?.value.trim() || "",
+    referencia: $("end-referencia")?.value.trim() || ""
+  };
+  const camposEndereco = ["rua", "numero", "bairro", "cidade", "estado", "cep", "referencia"];
+  const enderecoAindaSelecionado = state.enderecoSelecionado
+    && camposEndereco.every((campo) => String(state.enderecoSelecionado[campo] || "").trim() === endereco[campo]);
+  const destinoGeocodificado = state.enderecoSelecionado?.selectionToken
+    && ["rua", "bairro", "cidade", "estado", "cep"].every(
+      (campo) => String(state.enderecoSelecionado[campo] || "").trim() === endereco[campo]
+    );
 
   return {
     cliente_id: state.clienteSelecionado?.id || null,
@@ -56,18 +77,17 @@ export function montarPedido() {
     $("tel-cliente")?.value ||
     "Não informado",
 
-  endereco_id: state.enderecoSelecionado?.id || null,
-
-  endereco: {
-    rua: $("end-rua")?.value || "",
-    numero: $("end-numero")?.value || "",
-    bairro: $("end-bairro")?.value || "",
-    cidade: $("end-cidade")?.value || "",
-    estado: $("end-estado")?.value || ""
-    ,referencia: $("end-referencia")?.value || ""
-  },
+  endereco_id: enderecoAindaSelecionado ? state.enderecoSelecionado.id || null : null,
+  endereco,
+  endereco_origem: "",
+  origem_token: "",
+  destino_token: destinoGeocodificado ? state.enderecoSelecionado.selectionToken : "",
+  recalcular_rota: state.recalcularRota,
     telefone_contato: $("tel-contato")?.value.trim() || "",
-    tipo_pedido: $("tipo-pedido")?.value || "ALUGUEL",
+    tipo_pedido: state.itens.some((item) => item.tipo_item === "VENDA")
+      && state.itens.some((item) => item.tipo_item === "ALUGUEL")
+      ? "MISTO"
+      : state.itens.some((item) => item.tipo_item === "VENDA") ? "VENDA" : "ALUGUEL",
     distancia_km: Number($("distancia-km")?.value) || 0,
     valor_frete: Number($("frete")?.value) || 0,
     valor_desconto: Number($("desconto")?.value) || 0,
@@ -98,13 +118,18 @@ export function montarPedido() {
 
 export async function enviarPedido(saveAs = "CONFIRMADO") {
   if (!state.clienteSelecionado) {
-    alert("Selecione um cliente.");
-    return;
+    await window.FestAlert?.warning?.("Pedido", "Selecione um cliente.");
+    return false;
   }
 
   if (!state.itens.length) {
-    alert("Adicione pelo menos um item.");
-    return;
+    await window.FestAlert?.warning?.("Pedido", "Adicione pelo menos um item.");
+    return false;
+  }
+
+  if (!state.rotaCalculada && !state.podeManterRotaSalva) {
+    await window.FestAlert?.warning?.("Pedido", "Calcule uma rota válida antes de salvar o pedido.");
+    return false;
   }
 
   const pedido = montarPedido();
@@ -130,12 +155,15 @@ export async function enviarPedido(saveAs = "CONFIRMADO") {
     if (!res.ok) throw new Error(data.erro || "Erro ao salvar o pedido");
 
     if (state.editingId) {
-      alert("Orçamento atualizado com sucesso!");
-      window.location.href = '/orcamentos';
-      return;
+      await window.FestAlert?.success?.("Orçamento atualizado", "Orçamento atualizado com sucesso!");
+      const retorno = new URLSearchParams(window.location.search).get("retorno");
+      window.location.href = retorno === "entregas"
+        ? `/entregas?pedido=${encodeURIComponent(state.editingId)}`
+        : '/orcamentos';
+      return true;
     }
 
-    alert(saveAs === "ORCAMENTO" ? "Orçamento salvo com sucesso!" : "Pedido confirmado com sucesso!");
+    await window.FestAlert?.success?.("Pedido salvo", saveAs === "ORCAMENTO" ? "Orçamento salvo com sucesso!" : "Pedido confirmado com sucesso!");
     state.itens = [];
     renderItens();
     updateResumo();
@@ -143,10 +171,12 @@ export async function enviarPedido(saveAs = "CONFIRMADO") {
 
     state.clienteSelecionado = null;
     state.enderecoSelecionado = null;
+    return true;
 
   } catch (err) {
     console.error(err);
-    alert(err.message);
+    await window.FestAlert?.error?.("Erro ao salvar", err.message || "Não foi possível salvar o pedido.");
+    return false;
   }
 }
 
@@ -177,7 +207,11 @@ async function carregarPedidoParaEdicao(id) {
       chave: it.combo_id ? `c:${it.combo_id}` : `p:${it.produto_id}`,
       nome: it.produto_nome || it.combo_nome || it.nome,
       preco: it.valor_unitario ?? it.preco_unitario ?? 0,
-      quantidade: it.quantidade
+      preco_venda: it.produto_preco_venda ?? it.preco_combo ?? it.valor_unitario ?? 0,
+      preco_aluguel: it.produto_preco_aluguel ?? it.preco_combo ?? it.valor_unitario ?? 0,
+      quantidade: it.quantidade,
+      tipo_item: it.tipo_item || pedido.tipo_pedido || "ALUGUEL",
+      pode_alternar_tipo: Boolean(it.combo_id) || String(it.produto_tipo || "").toUpperCase() === "AMBOS"
     }));
 
     // Campos simples
@@ -186,9 +220,22 @@ async function carregarPedidoParaEdicao(id) {
     if ($("data-evento")) $("data-evento").value = pedido.data_evento ? pedido.data_evento.split('T')[0] : "";
     if ($("data-entrega")) $("data-entrega").value = pedido.data_entrega ? pedido.data_entrega.split('T')[0] : "";
     if ($("data-retirada")) $("data-retirada").value = pedido.data_retirada ? pedido.data_retirada.split('T')[0] : "";
-    if ($("tipo-pedido")) $("tipo-pedido").value = pedido.tipo_pedido || "ALUGUEL";
-    if ($("distancia-km")) $("distancia-km").value = pedido.distancia_km || 0;
+    if ($("distancia-km")) $("distancia-km").value = pedido.distancia_cobrada_km || pedido.distancia_km || 0;
     if ($("frete")) $("frete").value = pedido.valor_frete || 0;
+    state.rotaCalculada = pedido.endereco?.selectionToken && pedido.origem_token
+      ? {
+        distanciaKm: Number(pedido.distancia_km || 0),
+        distanciaCobradaKm: Number(pedido.distancia_cobrada_km || pedido.distancia_km || 0),
+        distanciaRetornoKm: Number(pedido.distancia_retorno_km || 0),
+        valorFrete: Number(pedido.valor_frete || 0),
+        formula: pedido.frete_formula || `${Number(pedido.distancia_km || 0).toFixed(2)} km × frete salvo`
+      }
+      : null;
+    state.recalcularRota = false;
+    const routeSummary = $("resumo-rota");
+    if (routeSummary && state.rotaCalculada) {
+      routeSummary.textContent = `Rota salva: ${state.rotaCalculada.distanciaKm.toFixed(2)} km ida${state.rotaCalculada.distanciaRetornoKm ? ` + ${state.rotaCalculada.distanciaRetornoKm.toFixed(2)} km retorno` : ""} • Considerada: ${state.rotaCalculada.distanciaCobradaKm.toFixed(2)} km • ${state.rotaCalculada.formula} • Frete: ${fmt(state.rotaCalculada.valorFrete)}`;
+    }
     if ($("desconto")) $("desconto").value = pedido.valor_desconto || 0;
     if ($("pago")) $("pago").value = pedido.valor_pago || 0;
     if ($("observacoes")) $("observacoes").value = pedido.observacoes || "";
@@ -222,13 +269,16 @@ async function carregarPedidoParaEdicao(id) {
       };
     }
 
-    preencherEndereco(state.enderecoSelecionado || {});
+    preencherCamposEnderecoParaEdicao(pedido);
+    if (!pedido.endereco?.selectionToken || !pedido.origem_token) {
+      state.podeManterRotaSalva = true;
+    }
     renderItens();
     updateResumo();
 
   } catch (err) {
     console.error(err);
-    alert(err.message || 'Erro ao carregar pedido');
+    window.FestAlert?.error?.('Erro ao carregar pedido', err.message || 'Não foi possível carregar o pedido.');
   }
 }
 
@@ -237,13 +287,18 @@ function renderItens() {
   if (!tbody) return;
 
   if (!state.itens.length) {
-    tbody.innerHTML = '<tr><td colspan="5">Nenhum item adicionado.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6">Nenhum item adicionado.</td></tr>';
     return;
   }
 
   tbody.innerHTML = state.itens.map((item, idx) => `
     <tr>
       <td>${esc(item.nome)}</td>
+      <td class="text-center">${item.pode_alternar_tipo ? `
+        <select class="tipo-item-input" data-idx="${idx}" aria-label="Modalidade de ${esc(item.nome)}">
+          <option value="ALUGUEL" ${item.tipo_item === 'ALUGUEL' ? 'selected' : ''}>Aluguel</option>
+          <option value="VENDA" ${item.tipo_item === 'VENDA' ? 'selected' : ''}>Venda</option>
+        </select>` : item.tipo_item === 'VENDA' ? 'Venda' : 'Aluguel'}</td>
       <td class="text-center">
         <input class="qtd-input" type="number" min="1" value="${item.quantidade}" data-idx="${idx}" />
       </td>
@@ -264,6 +319,16 @@ function renderItens() {
     };
   });
 
+  tbody.querySelectorAll(".tipo-item-input").forEach((select) => {
+    select.onchange = () => {
+      const item = state.itens[Number(select.dataset.idx)];
+      item.tipo_item = select.value;
+      item.preco = select.value === "VENDA" ? Number(item.preco_venda || item.preco) : Number(item.preco_aluguel || item.preco);
+      updateResumo();
+      renderItens();
+    };
+  });
+
   tbody.querySelectorAll(".btn-remove").forEach((button) => {
     button.onclick = () => {
       state.itens.splice(Number(button.dataset.idx), 1);
@@ -271,72 +336,6 @@ function renderItens() {
       updateResumo();
     };
   });
-}
-
-function preencherEndereco(endereco) {
-  state.enderecoSelecionado = endereco;
-
-  if ($("end-rua")) $("end-rua").value = endereco?.rua || "";
-  if ($("end-numero")) $("end-numero").value = endereco?.numero || "";
-  if ($("end-bairro")) $("end-bairro").value = endereco?.bairro || "";
-  if ($("end-cidade")) $("end-cidade").value = endereco?.cidade || "";
-  if ($("end-estado")) $("end-estado").value = endereco?.estado || "";
-  if ($("end-referencia")) $("end-referencia").value = endereco?.referencia || "";
-
-  const painel = $("painel-endereco");
-  if (painel) painel.style.display = "none";
-}
-
-async function buscarEnderecos() {
-  const filtros = {
-    rua: $("end-rua")?.value.trim() || "",
-    numero: $("end-numero")?.value.trim() || "",
-    bairro: $("end-bairro")?.value.trim() || "",
-    cidade: $("end-cidade")?.value.trim() || "",
-    estado: $("end-estado")?.value.trim() || ""
-    ,referencia: $("end-referencia")?.value.trim() || ""
-  };
-
-  const query = Object.values(filtros).filter(Boolean).join(" ");
-  if (!query) {
-    alert("Digite pelo menos um campo do endereço para buscar.");
-    return;
-  }
-
-  const params = new URLSearchParams(filtros);
-  const painel = $("painel-endereco");
-  if (!painel) return;
-
-  try {
-    const res = await fetch(`/pedidos/buscar-enderecos?${params}`);
-    const data = await res.json();
-
-    if (!data.length) {
-      painel.innerHTML = '<div class="lista-vazia">Nenhum endereço encontrado.</div>';
-      painel.style.display = "block";
-      return;
-    }
-
-    painel.innerHTML = data.map((endereco) => `
-      <button type="button" class="cliente-card" data-id="${endereco.id}">
-        <div><strong>${esc(endereco.rua || "")}</strong>, ${esc(endereco.numero || "")}</div>
-        <small>${esc(endereco.bairro || "")} - ${esc(endereco.cidade || "")}/${esc(endereco.estado || "")}</small>
-      </button>
-    `).join("");
-
-    painel.querySelectorAll(".cliente-card").forEach((button) => {
-      button.onclick = () => {
-        const endereco = data.find((item) => String(item.id) === button.dataset.id);
-        if (endereco) preencherEndereco(endereco);
-      };
-    });
-
-    painel.style.display = "block";
-  } catch (err) {
-    console.error(err);
-    painel.innerHTML = '<div class="lista-vazia">Erro ao buscar endereço.</div>';
-    painel.style.display = "block";
-  }
 }
 
 function criarData(valor) {
@@ -358,8 +357,11 @@ function validarFormulario() {
 
   // ENDEREÇO
 
-  if (!state.enderecoSelecionado) {
-    throw new Error("Selecione um endereço.");
+  if (!$("end-rua")?.value.trim() || !$("end-cidade")?.value.trim()) {
+    throw new Error("Informe a rua e a cidade do endereço de entrega.");
+  }
+  if (!state.rotaCalculada && !state.podeManterRotaSalva) {
+    throw new Error("Selecione origem e destino nas sugestões e calcule a rota antes de salvar.");
   }
 
   // ITENS
@@ -498,13 +500,17 @@ if (btnSalvarTela) {
         },
 
         frete: {
+          origem: pedido.endereco_origem,
           rua: pedido.endereco.rua,
           numero: pedido.endereco.numero,
           bairro: pedido.endereco.bairro,
           cidade: pedido.endereco.cidade,
           estado: pedido.endereco.estado,
-          km: pedido.distancia_km,
-          valor: pedido.valor_frete
+          cep: pedido.endereco.cep,
+          referencia: pedido.endereco.referencia,
+          km: pedido.distancia_cobrada_km || pedido.distancia_km,
+          valor: pedido.valor_frete,
+          formula: pedido.frete_formula || state.rotaCalculada?.formula || ""
         },
 
         pagamento: {
@@ -530,7 +536,7 @@ if (btnSalvarTela) {
 
     } catch (erro) {
 
-      alert(erro.message);
+      window.FestAlert?.error?.('Erro ao carregar pedido', erro.message || 'Não foi possível carregar os dados do pedido.');
 
     }
 
@@ -544,9 +550,7 @@ const btnConfirmar = $("btn-confirmar-modal");
 if (btnConfirmar) {
   btnConfirmar.addEventListener("click", async () => {
 
-    await enviarPedido("CONFIRMADO");
-
-    window.ModalPedido.fechar();
+    if (await enviarPedido("CONFIRMADO")) window.ModalPedido.fechar();
 
   });
 }
@@ -558,26 +562,10 @@ const btnOrcamento = $("btn-gerar-orcamento-modal");
 if (btnOrcamento) {
   btnOrcamento.addEventListener("click", async () => {
 
-    await enviarPedido("ORCAMENTO");
-
-    window.ModalPedido.fechar();
+    if (await enviarPedido("ORCAMENTO")) window.ModalPedido.fechar();
 
   });
 }
-   // BUSCAR ENDEREÇO
-  const btnEndereco = $("btn-endereco");
-
-  if (btnEndereco) {
-
-    btnEndereco.addEventListener(
-      "click",
-      buscarEnderecos
-    );
-
-  }
-
-
-
   // IMPRIMIR
   const btnImprimir = $("btn-imprimir-pedido");
 

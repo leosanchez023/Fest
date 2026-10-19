@@ -1,21 +1,55 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: var(--font-family);
     background: var(--bg);
     color: var(--fg);
+    line-height: var(--line-height);
     -webkit-font-smoothing: antialiased;
 }
 
-h1 {
-    font-size: 24px;
-    font-weight: 700;
+img {
+    max-width: 100%;
+    display: block;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     margin: 0;
+    color: var(--color-text);
     letter-spacing: -.02em;
 }
 
+h1 {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
 h2 {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0 0 12px;
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+h3 {
+    font-size: 1rem;
+    font-weight: 700;
 }
 
 .subtitle {
@@ -23,6 +57,92 @@ h2 {
     color: var(--color-text-muted);
     margin-top: .25rem;
 }
+
 .muted {
     color: var(--muted);
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 20px;
+}
+
+.page-header .page-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.page-content > .wrap,
+.page-content > .container,
+.container,
+.main {
+    width: min(100%, 1400px);
+    margin: 0 auto;
+}
+
+.main,
+.container {
+    padding: 0 0 24px;
+}
+
+.alert,
+.notice,
+.status-box {
+    margin: 0 0 16px;
+}
+
+@media (max-width: 900px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+.fest-swal {
+    border-radius: 18px;
+    font-family: var(--font-family);
+    box-shadow: var(--shadow-lg);
+}
+
+.fest-swal__title {
+    color: var(--color-text);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.fest-swal__content {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+}
+
+.fest-swal__confirm,
+.fest-swal__cancel {
+    min-height: 40px;
+    padding: 0 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: transform .12s ease, opacity .12s ease;
+}
+
+.fest-swal__confirm {
+    background: var(--grad-primary);
+    border: none;
+    color: #fff;
+}
+
+.fest-swal__cancel {
+    background: #f3f6fb;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+.fest-swal__confirm:hover,
+.fest-swal__cancel:hover {
+    transform: translateY(-1px);
+    opacity: 0.98;
 }

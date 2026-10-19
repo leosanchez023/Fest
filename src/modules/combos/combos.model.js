@@ -1,11 +1,40 @@
 import db from '../../../database/connection.js';
 
+async function adicionarItemNaTransacao(conn, comboId, item) {
+  const produtoId = Number(item.produto_id);
+  const quantidade = Number(item.quantidade);
+  if (!Number.isSafeInteger(produtoId) || produtoId <= 0 ||
+      !Number.isSafeInteger(quantidade) || quantidade <= 0) {
+    throw new Error('Produto e quantidade do componente devem ser válidos.');
+  }
+
+  const [combos] = await conn.query('SELECT id FROM combos WHERE id = ? FOR UPDATE', [comboId]);
+  if (!combos.length) throw new Error('Combo inexistente.');
+  const [produtos] = await conn.query(
+    'SELECT id, ativo FROM produtos WHERE id = ? FOR UPDATE',
+    [produtoId]
+  );
+  if (!produtos.length || Number(produtos[0].ativo) !== 1) {
+    throw new Error('Produto inexistente ou inativo.');
+  }
+  const [duplicados] = await conn.query(
+    'SELECT id FROM combo_itens WHERE combo_id = ? AND produto_id = ? LIMIT 1 FOR UPDATE',
+    [comboId, produtoId]
+  );
+  if (duplicados.length) throw new Error('Este produto já está adicionado ao combo.');
+
+  return conn.query(
+    'INSERT INTO combo_itens (combo_id, produto_id, quantidade) VALUES (?, ?, ?)',
+    [comboId, produtoId, quantidade]
+  );
+}
+
 export async function listarCombos() {
   const [rows] = await db.query(`
-    SELECT c.*, 
+    SELECT c.*,
+      COALESCE(NULLIF(c.preco_aluguel, 0), c.preco_venda, 0) AS preco,
       (SELECT COUNT(*) FROM combo_itens ci WHERE ci.combo_id = c.id) AS total_itens
     FROM combos c
-    WHERE c.ativo = 1
     ORDER BY c.nome ASC
   `);
 
@@ -14,7 +43,8 @@ export async function listarCombos() {
 
 export async function buscarComboPorId(id) {
   const [rows] = await db.query(`
-    SELECT * FROM combos WHERE id = ?
+    SELECT *, COALESCE(NULLIF(preco_aluguel, 0), preco_venda, 0) AS preco
+    FROM combos WHERE id = ?
   `, [id]);
   return rows[0] || null;
 }
@@ -35,103 +65,105 @@ export async function criarCombo(dados) {
     throw new Error('Nome do combo é obrigatório.');
   }
 
-  if (dados.codigo) {
-    const [existente] = await db.query(
-      `SELECT id FROM combos WHERE codigo = ? AND id <> ?`,
-      [String(dados.codigo).trim(), Number(dados.id || 0)]
-    );
-    if (existente.length) {
-      throw new Error('Já existe um combo com este código.');
+  const preco = Number(dados.preco ?? dados.preco_aluguel ?? dados.preco_venda ?? 0);
+  if (!Number.isFinite(preco) || preco < 0) throw new Error('O preço do combo deve ser válido e não negativo.');
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    if (dados.codigo) {
+      const [existente] = await conn.query(
+        'SELECT id FROM combos WHERE codigo = ? FOR UPDATE',
+        [String(dados.codigo).trim()]
+      );
+      if (existente.length) throw new Error('Já existe um combo com este código.');
     }
-  }
 
-  const [result] = await db.query(`
-    INSERT INTO combos (nome, descricao, codigo, preco_venda, preco_aluguel, ativo)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `, [
-    String(dados.nome).trim(),
-    dados.descricao || null,
-    dados.codigo ? String(dados.codigo).trim() : null,
-    Number(dados.preco_venda || 0),
-    Number(dados.preco_aluguel || 0),
-    dados.ativo === false ? 0 : 1
-  ]);
+    const [result] = await conn.query(`
+      INSERT INTO combos (nome, descricao, codigo, preco_venda, preco_aluguel, ativo)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `, [
+      String(dados.nome).trim(),
+      dados.descricao || null,
+      dados.codigo ? String(dados.codigo).trim() : null,
+      preco,
+      preco,
+      dados.ativo === false ? 0 : 1
+    ]);
 
-  if (Array.isArray(dados.itens)) {
-    for (const item of dados.itens) {
-      await adicionarItemCombo(result.insertId, item);
+    for (const item of (Array.isArray(dados.itens) ? dados.itens : [])) {
+      await adicionarItemNaTransacao(conn, result.insertId, item);
     }
+    await conn.commit();
+    return { id: result.insertId };
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
   }
-
-  return { id: result.insertId };
 }
 
 export async function adicionarItemCombo(comboId, item) {
-  const produtoId = Number(item.produto_id || 0);
-  const quantidade = Number(item.quantidade || 1);
-
-  if (!comboId || !produtoId) {
-    throw new Error('Combo e produto são obrigatórios.');
+  comboId = Number(comboId);
+  if (!Number.isSafeInteger(comboId) || comboId <= 0) throw new Error('Combo inválido.');
+  const produtoId = Number(item.produto_id);
+  const quantidade = Number(item.quantidade ?? 1);
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [result] = await adicionarItemNaTransacao(conn, comboId, { produto_id: produtoId, quantidade });
+    await conn.commit();
+    return { id: result.insertId, produto_id: produtoId, quantidade };
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
   }
-
-  if (quantidade <= 0) {
-    throw new Error('Quantidade do item do combo deve ser maior que zero.');
-  }
-
-  const [produtoRows] = await db.query(
-    `SELECT id, ativo FROM produtos WHERE id = ? LIMIT 1`,
-    [produtoId]
-  );
-
-  if (!produtoRows.length) {
-    throw new Error('Produto inexistente.');
-  }
-
-  if (Number(produtoRows[0].ativo || 0) === 0) {
-    throw new Error('Produto inativo não pode compor combo.');
-  }
-
-  const [duplicado] = await db.query(
-    `SELECT id FROM combo_itens WHERE combo_id = ? AND produto_id = ? LIMIT 1`,
-    [comboId, produtoId]
-  );
-
-  if (duplicado.length) {
-    throw new Error('Este produto já está adicionado ao combo.');
-  }
-
-  const [result] = await db.query(`
-    INSERT INTO combo_itens (combo_id, produto_id, quantidade)
-    VALUES (?, ?, ?)
-  `, [comboId, produtoId, quantidade]);
-
-  return { id: result.insertId, produto_id: produtoId, quantidade };
 }
 
 export async function atualizarCombo(id, dados) {
-  if (!id) {
-    throw new Error('Combo inválido.');
-  }
+  id = Number(id);
+  const preco = Number(dados.preco ?? dados.preco_aluguel ?? dados.preco_venda ?? 0);
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error('Combo inválido.');
+  if (!Number.isFinite(preco) || preco < 0) throw new Error('O preço do combo deve ser válido e não negativo.');
 
-  await db.query(`
-    UPDATE combos
-    SET nome = ?, descricao = ?, codigo = ?, preco_venda = ?, preco_aluguel = ?, ativo = ?
-    WHERE id = ?
-  `, [
-    String(dados.nome || '').trim(),
-    dados.descricao || null,
-    dados.codigo ? String(dados.codigo).trim() : null,
-    Number(dados.preco_venda || 0),
-    Number(dados.preco_aluguel || 0),
-    dados.ativo === false ? 0 : 1,
-    id
-  ]);
-
-  if (Array.isArray(dados.itens)) {
-    await db.query(`DELETE FROM combo_itens WHERE combo_id = ?`, [id]);
-    for (const item of dados.itens) {
-      await adicionarItemCombo(id, item);
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [combos] = await conn.query('SELECT id FROM combos WHERE id = ? FOR UPDATE', [id]);
+    if (!combos.length) throw new Error('Combo inexistente.');
+    if (dados.codigo) {
+      const [existente] = await conn.query(
+        'SELECT id FROM combos WHERE codigo = ? AND id <> ? FOR UPDATE',
+        [String(dados.codigo).trim(), id]
+      );
+      if (existente.length) throw new Error('Já existe um combo com este código.');
     }
+    await conn.query(`
+      UPDATE combos
+      SET nome = ?, descricao = ?, codigo = ?, preco_venda = ?, preco_aluguel = ?, ativo = ?
+      WHERE id = ?
+    `, [
+      String(dados.nome || '').trim(),
+      dados.descricao || null,
+      dados.codigo ? String(dados.codigo).trim() : null,
+      preco,
+      preco,
+      dados.ativo === false ? 0 : 1,
+      id
+    ]);
+
+    if (Array.isArray(dados.itens)) {
+      await conn.query('DELETE FROM combo_itens WHERE combo_id = ?', [id]);
+      for (const item of dados.itens) await adicionarItemNaTransacao(conn, id, item);
+    }
+    await conn.commit();
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
   }
 }
 

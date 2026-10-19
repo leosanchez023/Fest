@@ -3,6 +3,16 @@ import * as controller from "./fornecedores.controller.js";
 
 const router = express.Router();
 
+router.use((req, res, next) => {
+    if (!req.isAuthenticated?.() || !req.user) {
+        return res.status(401).json({ success: false, error: "Autenticação necessária." });
+    }
+    if (Number(res.locals.userPermissions?.fornecedor) !== 1) {
+        return res.status(403).json({ success: false, error: "Você não tem permissão para esta operação." });
+    }
+    return next();
+});
+
 // Página
 router.get("/", controller.listar);
 

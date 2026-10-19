@@ -1,6 +1,7 @@
 // usuarios.service.js
 import bcrypt from "bcrypt";
 import * as model from "./usuarios.model.js";
+import { isValidPassword } from "../../config/security.js";
 
 export async function getUsuarios() {
   return await model.buscarUsuariosComPermissoes();
@@ -8,6 +9,10 @@ export async function getUsuarios() {
 
 export async function criarUsuario(data) {
   const { nome, email, senha } = data;
+
+  if (!isValidPassword(senha)) {
+    throw new Error(`A senha deve ter pelo menos 8 caracteres.`);
+  }
 
   // verifica email
   const existente = await model.buscarPorEmail(email);

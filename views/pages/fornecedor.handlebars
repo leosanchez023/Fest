@@ -4,8 +4,12 @@
     <div class="page-header">
         <div class="page-meta" data-title="Fornecedores" data-subtitle="Gerencie fornecedores e produtos relacionados"></div>
 
-        <button class="btn btn-primary" onclick="openForm()"><i class="fa-solid fa-plus icon-sm"></i> Novo Fornecedor</button>
+        <button class="btn btn-primary" type="button" onclick="openForm()"><i class="fa-solid fa-plus icon-sm"></i> Novo Fornecedor</button>
     </div>
+
+    {{#if error}}
+    <div class="supplier-message supplier-message-error" role="alert">{{error}}</div>
+    {{/if}}
 
     <!-- Indicadores -->
     <div class="kpi-grid">
@@ -100,7 +104,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Responsável</label>
+                    <label>Responsável *</label>
                     <input type="text" id="f-responsavel" required>
                 </div>
 
@@ -144,32 +148,32 @@
             <div class="form-grid">
 
                 <div class="form-group full">
-                    <label>Rua / Avenida</label>
+                    <label>Rua / Avenida *</label>
                     <input type="text" id="f-street" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Número</label>
+                    <label>Número *</label>
                     <input type="text" id="f-number" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Bairro</label>
+                    <label>Bairro *</label>
                     <input type="text" id="f-neighborhood" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Cidade</label>
+                    <label>Cidade *</label>
                     <input type="text" id="f-city" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Estado</label>
+                    <label>Estado *</label>
                     <input type="text" id="f-state" maxlength="2" required>
                 </div>
 
                 <div class="form-group">
-                    <label>CEP</label>
+                    <label>CEP *</label>
                     <input type="text" id="f-cep" required>
                 </div>
             </div>
@@ -179,7 +183,7 @@
 
             <div class="form-grid">
                 <div class="form-group full">
-                    <label>Produtos ou Serviços</label>
+                    <label>Produtos ou Serviços *</label>
                     <input type="text" id="f-product" required>
                 </div>
 

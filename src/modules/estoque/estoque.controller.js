@@ -7,13 +7,13 @@ export async function index(req, res) {
       SELECT p.*, 
              (p.estoque - p.estoque_reservado - p.estoque_em_uso - p.estoque_manutencao - p.estoque_danificado) AS disponivel,
              CASE
-               WHEN p.ativo = 0 THEN 'INATIVO'
-               WHEN p.estoque_em_uso > 0 THEN 'EM_USO'
+               WHEN (p.estoque - p.estoque_reservado - p.estoque_em_uso - p.estoque_manutencao - p.estoque_danificado) <= 0 THEN 'INDISPONIVEL'
                WHEN p.estoque_manutencao > 0 THEN 'MANUTENCAO'
                WHEN p.estoque_danificado > 0 THEN 'DANIFICADO'
                WHEN p.estoque_reservado > 0 THEN 'RESERVADO'
-               WHEN p.estoque <= p.estoque_minimo THEN 'BAIXO'
-               ELSE 'NORMAL'
+               WHEN p.estoque_em_uso > 0 THEN 'EM_USO'
+               WHEN (p.estoque - p.estoque_reservado - p.estoque_em_uso - p.estoque_manutencao - p.estoque_danificado) <= p.estoque_minimo THEN 'BAIXO_ESTOQUE'
+               ELSE 'DISPONIVEL'
              END AS status_estoque
       FROM produtos p
       WHERE p.ativo = 1
@@ -51,7 +51,9 @@ export async function historico(req, res) {
       produto: req.query.produto || '',
       usuario: req.query.usuario || '',
       de: req.query.de || '',
-      ate: req.query.ate || ''
+      ate: req.query.ate || '',
+      pagina: req.query.pagina || 1,
+      limite: req.query.limite || 25
     });
     res.json({ success: true, data: dados });
   } catch (error) {

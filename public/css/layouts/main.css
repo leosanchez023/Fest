@@ -1,14 +1,91 @@
 
-/* Main layout helpers */
-main, .page-content {
-    flex: 1; padding: 26px 28px 40px; width:100%; max-width: none; box-sizing:border-box;
+html,
+body {
+    min-height: 100%;
 }
 
-.container, .page-content > .wrap {max-width: 1400px;width:100%;margin:0 auto;padding:0 0 24px}
+.app-layout {
+    --sidebar-width: 264px;
+    --sidebar-compact-width: 78px;
+    min-height: 100vh;
+    min-height: 100svh;
+    background: #f4f7fb;
+    color: #172033;
+}
 
-/* Cards/grid area should adapt to available width */
-.wrap{max-width:1320px;margin:0 auto}
+.app-main {
+    display: flex;
+    min-width: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    flex-direction: column;
+    margin-left: var(--sidebar-width);
+    transition: margin-left .18s ease;
+}
 
-@media(max-width:900px){
-    main, .page-content{padding:20px 16px 32px}
+.app-layout.is-sidebar-collapsed .app-main {
+    margin-left: var(--sidebar-compact-width);
+}
+
+.page-content {
+    width: 100%;
+    max-width: none;
+    flex: 1;
+    box-sizing: border-box;
+    padding: 26px 28px 40px;
+    background: #f4f7fb;
+}
+
+.page-content > .wrap,
+.container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 0 24px;
+}
+
+.wrap {
+    max-width: 1320px;
+    margin: 0 auto;
+}
+
+.app-shell-overlay {
+    display: none;
+}
+
+.app-shell-overlay[hidden] {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    body.app-sidebar-open {
+        overflow: hidden;
+    }
+
+    .app-main,
+    .app-layout.is-sidebar-collapsed .app-main {
+        margin-left: 0;
+    }
+
+    .page-content {
+        padding: 20px 16px 32px;
+        overflow-x: visible;
+        overscroll-behavior-inline: contain;
+    }
+
+    .app-layout.is-sidebar-open .app-shell-overlay {
+        position: fixed;
+        z-index: 45;
+        inset: 0;
+        display: block;
+        border: 0;
+        background: rgba(15, 23, 42, .42);
+        cursor: pointer;
+    }
+}
+
+@media (max-width: 560px) {
+    .page-content {
+        padding: 18px 14px 28px;
+    }
 }

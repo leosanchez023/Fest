@@ -9,7 +9,7 @@ export function adicionarItem() {
   const prodQtd = $("prod-qtd");
 
   if (!state.prodSel) {
-    alert("Selecione um produto da lista.");
+    window.FestAlert?.warning?.("Pedido", "Selecione um produto da lista.");
     return;
   }
 
@@ -69,12 +69,12 @@ export function montarPedido() {
 
 export async function enviarPedido(saveAs = "CONFIRMADO") {
   if (!state.clienteSelecionado) {
-    alert("Selecione um cliente.");
+    await window.FestAlert?.warning?.("Pedido", "Selecione um cliente.");
     return;
   }
 
   if (!state.itens.length) {
-    alert("Adicione pelo menos um item.");
+    await window.FestAlert?.warning?.("Pedido", "Adicione pelo menos um item.");
     return;
   }
 
@@ -92,13 +92,13 @@ export async function enviarPedido(saveAs = "CONFIRMADO") {
     const data = await res.json();
     if (!res.ok) throw new Error(data.erro || "Erro ao salvar o pedido");
 
-    alert(saveAs === "ORCAMENTO" ? "Orçamento salvo com sucesso!" : "Pedido confirmado com sucesso!");
+    await window.FestAlert?.success?.("Pedido salvo", saveAs === "ORCAMENTO" ? "Orçamento salvo com sucesso!" : "Pedido confirmado com sucesso!");
     state.itens = [];
     renderItens();
     updateResumo();
   } catch (err) {
     console.error(err);
-    alert(err.message);
+    await window.FestAlert?.error?.("Erro ao salvar", err.message || "Não foi possível salvar o pedido.");
   }
 }
 
@@ -167,7 +167,7 @@ async function buscarEnderecos() {
 
   const query = Object.values(filtros).filter(Boolean).join(" ");
   if (!query) {
-    alert("Digite pelo menos um campo do endereço para buscar.");
+    await window.FestAlert?.warning?.("Endereço", "Digite pelo menos um campo do endereço para buscar.");
     return;
   }
 
@@ -215,11 +215,11 @@ export function inicializarPedido() {
   if (btnConfirmar) {
     btnConfirmar.addEventListener("click", () => {
       if (!state.clienteSelecionado) {
-        alert("Selecione um cliente.");
+        window.FestAlert?.warning?.("Pedido", "Selecione um cliente.");
         return;
       }
       if (!state.itens.length) {
-        alert("Adicione pelo menos um item.");
+        window.FestAlert?.warning?.("Pedido", "Adicione pelo menos um item.");
         return;
       }
       abrirModalConfirmacao(montarPedido());
@@ -230,11 +230,11 @@ export function inicializarPedido() {
   if (btnOrcamento) {
     btnOrcamento.addEventListener("click", () => {
       if (!state.clienteSelecionado) {
-        alert("Selecione um cliente.");
+        window.FestAlert?.warning?.("Pedido", "Selecione um cliente.");
         return;
       }
       if (!state.itens.length) {
-        alert("Adicione pelo menos um item.");
+        window.FestAlert?.warning?.("Pedido", "Adicione pelo menos um item.");
         return;
       }
       abrirModalConfirmacao(montarPedido());

@@ -2,6 +2,14 @@ console.log("entregas carregada")
 
 const $ = (id) => document.getElementById(id);
 
+const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+}[character]));
+
 const formatMoney = (value) =>
   "R$ " + Number(value || 0).toLocaleString("pt-BR", {
     minimumFractionDigits: 2,
@@ -97,6 +105,12 @@ let currentReturnItems = [];
 let currentOrderContext = null;
 let eventOrder = 'desc'; // 'desc' = mais recentes primeiro, 'asc' = mais antigos primeiro
 let selectedOrders = new Set();
+let currentPage = 1;
+let pageSize = 25;
+let totalOrders = 0;
+let dashboardKpis = null;
+let openOrderRequest = 0;
+let listRequest = 0;
 
 const getFilters = () => {
   const params = new URLSearchParams();
@@ -107,6 +121,9 @@ const getFilters = () => {
   const pay = $("f-pay").value;
   const delivery = $("f-deliv").value;
 
+  params.append("page", String(currentPage));
+  params.append("limit", String(pageSize));
+  if (activeKpiFilter) params.append("kpi", activeKpiFilter);
   if (search) params.append("search", search);
   if (from) params.append("from", from);
   if (to) params.append("to", to);
@@ -127,6 +144,8 @@ const normalizeOrder = (o) => {
     cpf: o.cpf || "-",
     valor_total: Number(o.valor_total || 0),
     valor_pago: Number(o.valor_pago || 0),
+    valor_reembolsado: Number(o.valor_reembolsado || 0),
+    valor_creditado: Number(o.valor_creditado ?? o.valor_pago ?? 0),
     conferencia_finalizada: Number(o.conferencia_finalizada || 0) === 1,
     endereco_rua: o.endereco_rua || o.rua || "",
     endereco_numero: o.endereco_numero || o.numero || "",
@@ -145,34 +164,33 @@ const renderTable = () => {
   const tbody = $("orders-tbody");
   if (!tbody) return;
 
-  const todayStr = new Date().toISOString().split("T")[0];
-
-  const filtered = orders.filter((o) => {
-    if (activeKpiFilter === "active") {
-      return o.status !== "FINALIZADO" && o.status !== "CANCELADO";
-    }
-    if (activeKpiFilter === "delivery") {
-      return o.data_entrega?.split("T")[0] === todayStr;
-    }
-    if (activeKpiFilter === "pickup") {
-      return o.data_retirada?.split("T")[0] === todayStr;
-    }
-    if (activeKpiFilter === "late") {
-      return Number(o.valor_pago || 0) < Number(o.valor_total || 0);
-    }
-    return true;
+  const filtered = orders;
+  const totalPages = Math.max(1, Math.ceil(totalOrders / pageSize));
+  $("count-badge").textContent = `${totalOrders} pedidos${activeKpiFilter ? " • filtro KPI" : ""}`;
+  $("orders-page-label").textContent = `Página ${currentPage} de ${totalPages} • ${orders.length} exibidos`;
+  $("orders-prev").disabled = currentPage <= 1;
+  $("orders-next").disabled = currentPage >= totalPages;
+  document.querySelectorAll(".kpi[data-kpi-filter]").forEach((card) => {
+    const active = card.dataset.kpiFilter === activeKpiFilter;
+    card.classList.toggle("active", active);
+    card.setAttribute("aria-pressed", String(active));
   });
 
-  $("count-badge").textContent = `${filtered.length} pedidos`;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td class="delivery-empty" colspan="13">Nenhum pedido encontrado com os filtros selecionados.</td></tr>';
+    updateSelectedCount();
+    return;
+  }
 
   tbody.innerHTML = filtered
     .map((o) => {
       const checked = selectedOrders.has(Number(o.id)) ? 'checked' : '';
-      const totalPercent = Math.min(100, Math.round((o.valor_pago / Math.max(1, o.valor_total)) * 100));
-      const saldo = Math.max(0, o.valor_total - o.valor_pago);
+      const totalPercent = Math.min(100, Math.round((o.valor_creditado / Math.max(1, o.valor_total)) * 100));
+      const saldo = Math.max(0, o.valor_total - o.valor_creditado);
       const canDeliver = ["CONFIRMADO", "EM_PREPARO"].includes(o.status);
       return `
-        <tr>
+        <tr class="delivery-order-row" data-order-row="${Number(o.id)}" tabindex="0"
+            aria-label="Abrir detalhes do pedido ${Number(o.id)} de ${escapeHtml(o.cliente)}">
           <td><input type="checkbox" class="select-order" data-id="${o.id}" ${checked} /></td>
           <td><strong>${o.id}</strong></td>
           <td>
@@ -186,16 +204,13 @@ const renderTable = () => {
           <td>
             <strong>${formatMoney(o.valor_total)}</strong>
             <div class="progress"><div style="width:${totalPercent}%"></div></div>
-            <div class="muted">${paymentStatus(o.valor_pago, o.valor_total)}</div>
+            <div class="muted">${paymentStatus(o.valor_creditado, o.valor_total)}</div>
           </td>
           <td>${formatMoney(o.valor_pago)}</td>
           <td>${formatMoney(saldo)}</td>
           <td>${orderStatusBadge(o.status)}</td>
           <td>
             <div class="delivery-actions">
-              <button class="iconbtn" type="button" data-delivery-action="view" data-id="${o.id}" title="Visualizar pedido" aria-label="Visualizar pedido"><i class="fa-solid fa-eye"></i></button>
-              <button class="iconbtn" type="button" data-delivery-action="payment" data-id="${o.id}" title="Registrar pagamento" aria-label="Registrar pagamento"><i class="fa-solid fa-money-bill"></i></button>
-              <button class="iconbtn" type="button" data-delivery-action="charge" data-id="${o.id}" title="Gerar cobrança" aria-label="Gerar cobrança"><i class="fa-solid fa-file-invoice-dollar"></i></button>
               <button class="iconbtn" type="button" data-delivery-action="deliver" data-id="${o.id}" title="Marcar como entregue" aria-label="Marcar como entregue" ${canDeliver ? "" : "disabled"}><i class="fa-solid fa-truck"></i></button>
               ${o.status === "ENTREGUE" ? `<button class="iconbtn" type="button" data-delivery-action="return" data-id="${o.id}" title="Recolher" aria-label="Recolher"><i class="fa-solid fa-box-archive"></i></button>` : ""}
             </div>
@@ -206,7 +221,7 @@ const renderTable = () => {
     .join("");
 
   // ligar handlers de seleção
-  document.querySelectorAll('.select-order').forEach((cb) => {
+  tbody.querySelectorAll('.select-order').forEach((cb) => {
     cb.addEventListener('change', (e) => {
       const id = Number(cb.dataset.id);
       if (cb.checked) selectedOrders.add(id); else selectedOrders.delete(id);
@@ -218,11 +233,21 @@ const renderTable = () => {
     button.addEventListener('click', async () => {
       const id = Number(button.dataset.id);
       const action = button.dataset.deliveryAction;
-      if (action === 'view') return openOrderModal(id);
       if (action === 'deliver') return openOrderFinanceOrDelivery(id, 'delivery');
-      if (action === 'payment') return openOrderFinanceOrDelivery(id, 'payment');
-      if (action === 'charge') return openOrderFinanceOrDelivery(id, 'charge');
       if (action === 'return') return openOrderFinanceOrDelivery(id, 'return');
+    });
+  });
+
+  tbody.querySelectorAll('[data-order-row]').forEach((row) => {
+    const abrir = (event) => {
+      if (event.target.closest('button, input, select, textarea, a, label')) return;
+      openOrderModal(Number(row.dataset.orderRow));
+    };
+    row.addEventListener('click', abrir);
+    row.addEventListener('keydown', (event) => {
+      if (event.target !== row || (event.key !== 'Enter' && event.key !== ' ')) return;
+      event.preventDefault();
+      openOrderModal(Number(row.dataset.orderRow));
     });
   });
 
@@ -234,28 +259,23 @@ const updateSelectedCount = () => {
 };
 
 const renderKPIs = () => {
-  const todayStr = new Date().toISOString().split("T")[0];
-  const active = orders.filter((o) => o.status !== "FINALIZADO" && o.status !== "CANCELADO").length;
-  const delivery = orders.filter((o) => o.data_entrega?.split("T")[0] === todayStr).length;
-  const pickup = orders.filter((o) => o.data_retirada?.split("T")[0] === todayStr).length;
-  const late = orders.filter((o) => Number(o.valor_pago || 0) < Number(o.valor_total || 0) && o.status !== "FINALIZADO" && o.status !== "CANCELADO").length;
-
-  $("kpi-active").textContent = active;
-  $("kpi-delivery").textContent = delivery;
-  $("kpi-pickup").textContent = pickup;
-  $("kpi-late").textContent = late;
+  if (!dashboardKpis) return;
+  $("kpi-active").textContent = dashboardKpis.ativos ?? 0;
+  $("kpi-delivery").textContent = dashboardKpis.entregasHoje ?? 0;
+  $("kpi-pickup").textContent = dashboardKpis.retiradasHoje ?? 0;
+  $("kpi-late").textContent = dashboardKpis.atrasados ?? 0;
 };
 
 const renderAlerts = () => {
   const alerts = [];
-  const overdue = orders.filter((o) => Number(o.valor_pago || 0) < Number(o.valor_total || 0));
-
-  if (overdue.length) {
+  const overdueCount = Number(dashboardKpis?.atrasados || 0);
+  const outstanding = Number(dashboardKpis?.saldoDevedor || 0);
+  if (overdueCount) {
     alerts.push({
       class: "a-warning",
       icon: "dollar-sign",
-      title: `${overdue.length} pedidos com saldo`,
-      desc: formatMoney(overdue.reduce((sum, o) => sum + (Number(o.valor_total || 0) - Number(o.valor_pago || 0)), 0)),
+      title: `${overdueCount} pedidos com pagamento pendente`,
+      desc: formatMoney(outstanding),
     });
   }
 
@@ -284,15 +304,33 @@ const renderAlerts = () => {
 };
 
 const loadOrders = async () => {
+  const requestId = ++listRequest;
   try {
     const res = await fetch(`/entregas/pedidos?${getFilters()}`);
     if (!res.ok) throw new Error("Erro ao carregar pedidos");
-    orders = (await res.json()).map(normalizeOrder);
-    console.log("Orders:", orders);
-console.log(document.getElementById("orders-tbody"));
-    renderKPIs();
+    const results = (await res.json()).map(normalizeOrder);
+    if (requestId !== listRequest) return;
+    orders = results;
+    totalOrders = Number(res.headers.get("X-Total-Count") || results.length);
     renderAlerts();
     renderTable();
+  } catch (error) {
+    console.error(error);
+    if (requestId !== listRequest) return;
+    orders = [];
+    totalOrders = 0;
+    renderTable();
+    $("orders-tbody").innerHTML = '<tr><td class="delivery-empty" colspan="13">Não foi possível carregar os pedidos. Tente novamente.</td></tr>';
+  }
+};
+
+const loadKpis = async () => {
+  try {
+    const response = await fetch("/entregas/kpis");
+    if (!response.ok) throw new Error("Erro ao carregar os indicadores");
+    dashboardKpis = await response.json();
+    renderKPIs();
+    renderAlerts();
   } catch (error) {
     console.error(error);
   }
@@ -329,12 +367,13 @@ const renderTimeline = (order) => {
 
   const totalValue = Number(order.valor_total || 0);
   const paidValue = Number(order.valor_pago || 0);
-  const paymentComplete = paidValue >= totalValue;
+  const creditedValue = Number(order.valor_creditado ?? paidValue);
+  const paymentComplete = creditedValue >= totalValue;
   const finalStepCompleted = order.status === "FINALIZADO";
 
   const pendingReasons = [];
   if (!paymentComplete) {
-    pendingReasons.push(`Falta pagamento de ${formatMoney(Math.max(0, totalValue - paidValue))}`);
+    pendingReasons.push(`Saldo pendente de ${formatMoney(Math.max(0, totalValue - creditedValue))}`);
   }
   if (!allItemsReturned) {
     pendingReasons.push(`${pendingReturnQty} item${pendingReturnQty === 1 ? "" : "s"} ainda ${pendingReturnQty === 1 ? "não foi" : "não foram"} devolvido${pendingReturnQty === 1 ? "" : "s"}`);
@@ -465,6 +504,9 @@ const renderOrderPanels = (order) => {
         <div class="field-row"><span class="l">Tipo</span><span class="v">${order.tipo_pedido || "-"}</span></div>
         <div class="field-row"><span class="l">Contato</span><span class="v">${order.telefone_contato || "-"}</span></div>
         <div class="field-row"><span class="l">Status</span><span class="v">${orderStatusBadge(order.status)}</span></div>
+        ${order.status_documento === "PEDIDO" && !["ENTREGUE", "RETIRADO", "FINALIZADO", "CANCELADO"].includes(order.status)
+          ? `<button class="btn-primary btn" type="button" data-edit-order="${Number(order.id)}">Editar pedido</button>`
+          : ""}
       </div>
     </div>
     <div class="section-card">
@@ -482,19 +524,29 @@ const renderOrderPanels = (order) => {
       </table>
     </div>
   `;
+  $("m-dados").querySelector("[data-edit-order]")?.addEventListener("click", () => {
+    window.location.href = `/pedidos?editar=${Number(order.id)}&retorno=entregas`;
+  });
 
-  const saldo = Number(order.valor_total || 0) - Number(order.valor_pago || 0);
-  const pagamentoLabel = paymentStatus(order.valor_pago, order.valor_total);
+  const recebido = Number(order.valor_pago || 0);
+  const reembolsado = Number(order.valor_reembolsado || 0);
+  const creditado = Number(order.valor_creditado ?? recebido);
+  const saldo = Math.max(0, Number(order.valor_total || 0) - creditado);
+  const pagamentoLabel = paymentStatus(creditado, order.valor_total);
 
   $("m-fin").innerHTML = `
-    <div class="grid grid-3" style="gap:16px; margin-bottom:16px;">
+    <div class="grid grid-4" style="gap:16px; margin-bottom:16px;">
       <div class="section-card">
         <div class="section-title">Total</div>
         <div class="field-row"><span class="v">${formatMoney(order.valor_total)}</span></div>
       </div>
       <div class="section-card">
-        <div class="section-title">Pago</div>
-        <div class="field-row"><span class="v">${formatMoney(order.valor_pago)}</span></div>
+        <div class="section-title">Recebido</div>
+        <div class="field-row"><span class="v">${formatMoney(recebido)}</span></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">Restituído</div>
+        <div class="field-row"><span class="v">${formatMoney(reembolsado)}</span></div>
       </div>
       <div class="section-card">
         <div class="section-title">Saldo</div>
@@ -503,7 +555,7 @@ const renderOrderPanels = (order) => {
     </div>
     <div class="section-card">
       <div class="section-title">Situação financeira</div>
-      <div class="field-row"><span class="l">Pagamento</span><span class="v">${renderBadge(pagamentoLabel, order.valor_pago < order.valor_total ? "warning" : "success")}</span></div>
+      <div class="field-row"><span class="l">Situação do saldo</span><span class="v">${renderBadge(pagamentoLabel, creditado < order.valor_total ? "warning" : "success")}</span></div>
       <div class="field-row"><span class="l">Entrega</span><span class="v">${renderBadge(deliveryStatus(order.status), order.status === "ENTREGUE" ? "success" : "info")}</span></div>
     </div>
     <div class="section-card">
@@ -524,7 +576,7 @@ const renderOrderPanels = (order) => {
                   (payment) => `
                     <tr>
                       <td>${formatDateTime(payment.data_pagamento)}</td>
-                      <td>${payment.forma_pagamento || "-"}</td>
+                      <td>${Number(payment.valor || 0) < 0 ? "Restituição" : payment.forma_pagamento || "-"}</td>
                       <td>${formatMoney(payment.valor)}</td>
                       <td>${payment.observacao || "-"}</td>
                     </tr>
@@ -654,6 +706,8 @@ const renderOrderPanels = (order) => {
     title.textContent = mode === "payment" ? "Registrar pagamento" : mode === "refund" ? "Fazer restituição" : "Gerar cobrança";
     valor.value = "";
     descricao.value = "";
+    descricao.required = mode === "charge";
+    descricao.placeholder = mode === "charge" ? "Observação obrigatória da cobrança" : "Descreva o motivo";
     formaPagamentoSelect.value = "";
     const recebido = (order.pagamentos || []).reduce((total, pagamento) => {
       const valor = Number(pagamento.valor || 0);
@@ -680,17 +734,17 @@ const renderOrderPanels = (order) => {
       const text = (descricao.value || "").trim();
 
       if (!value || value <= 0) {
-        alert("Informe um valor válido.");
+        await window.FestAlert?.warning?.("Financeiro", "Informe um valor válido.");
         return;
       }
 
       if (mode === "refund" && value > disponivel) {
-        alert(`O valor máximo disponível para restituição é ${formatMoney(disponivel)}.`);
+        await window.FestAlert?.warning?.("Financeiro", `O valor máximo disponível para restituição é ${formatMoney(disponivel)}.`);
         return;
       }
 
       if (mode === "charge" && !text) {
-        alert("Informe uma descrição ou observação.");
+        await window.FestAlert?.warning?.("Financeiro", "Informe uma descrição ou observação.");
         return;
       }
 
@@ -698,7 +752,7 @@ const renderOrderPanels = (order) => {
         if (mode === "payment") {
           const metodo = (formaPagamentoSelect.value || "").trim();
           if (!metodo) {
-            alert("Selecione a forma de pagamento.");
+            await window.FestAlert?.warning?.("Financeiro", "Selecione a forma de pagamento.");
             return;
           }
 
@@ -714,7 +768,7 @@ const renderOrderPanels = (order) => {
         } else if (mode === "refund") {
           const metodo = (formaPagamentoSelect.value || "").trim();
           if (!metodo) {
-            alert("Selecione a forma de restituição.");
+            await window.FestAlert?.warning?.("Financeiro", "Selecione a forma de restituição.");
             return;
           }
           const res = await fetch(`/entregas/pedidos/${order.id}/reembolso`, {
@@ -739,10 +793,12 @@ const renderOrderPanels = (order) => {
         }
 
         closeFinanceModal();
-        openOrderModal(order.id);
+        await openOrderModal(order.id);
+        await Promise.all([loadOrders(), loadKpis()]);
+        await window.FestAlert?.success?.("Financeiro", `${mode === "payment" ? "Pagamento registrado" : mode === "refund" ? "Reembolso registrado" : "Cobrança registrada"} com sucesso.`);
       } catch (err) {
         console.error(err);
-        alert(`Erro ao ${mode === "payment" ? "registrar pagamento" : mode === "refund" ? "registrar restituição" : "gerar cobrança"}: ${err.message}`);
+        await window.FestAlert?.error?.("Financeiro", `Erro ao ${mode === "payment" ? "registrar pagamento" : mode === "refund" ? "registrar restituição" : "gerar cobrança"}: ${err.message}`);
       }
     };
   };
@@ -774,7 +830,11 @@ const renderOrderPanels = (order) => {
     if (returnBtn) returnBtn.onclick = () => openReturnModal(order);
   }, 0);
 
-  const occurrences = [];
+  const occurrences = (order.ocorrencias || []).map((occurrence) => ({
+    date: occurrence.data_ocorrencia,
+    type: occurrence.tipo || "Ocorrência",
+    description: occurrence.descricao || "Sem descrição"
+  }));
   if (order.observacoes) occurrences.push({ date: order.data_pedido, type: "Observação", description: order.observacoes });
   if (order.observacao_entrega) occurrences.push({ date: order.data_entrega || order.data_pedido, type: "Entrega", description: order.observacao_entrega });
   if (order.observacao_retirada) occurrences.push({ date: order.data_retirada || order.data_pedido, type: "Retirada", description: order.observacao_retirada });
@@ -786,8 +846,8 @@ const renderOrderPanels = (order) => {
             <div class="alert a-warning" style="margin-bottom:12px;">
               <i class="fa-solid fa-triangle-exclamation"></i>
               <div>
-                <div class="title">${occ.type} • ${formatDate(occ.date)}</div>
-                <div class="desc">${occ.description}</div>
+                <div class="title">${escapeHtml(occ.type)} • ${formatDate(occ.date)}</div>
+                <div class="desc">${escapeHtml(occ.description)}</div>
               </div>
             </div>
           `
@@ -813,9 +873,12 @@ const renderOrderPanels = (order) => {
 const openDeliveryModal = (order) => {
   currentOrderContext = order;
   const modal = $("delivery-modal");
-  $("delivery-datetime").value = order.data_entrega_hora ? order.data_entrega_hora.slice(0, 16) : new Date().toISOString().slice(0, 16);
+  const now = new Date();
+  const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  $("delivery-datetime").value = order.data_entrega_hora ? order.data_entrega_hora.slice(0, 16).replace(" ", "T") : localDateTime;
   $("delivery-responsavel").value = order.responsavel_entrega || "";
   $("delivery-observacao").value = order.observacao_entrega || "";
+  $("delivery-responsavel").setCustomValidity("");
   modal.classList.add("open");
 };
 
@@ -824,7 +887,8 @@ const closeDeliveryModal = () => {
 };
 
 const openOrderFinanceOrDelivery = async (id, mode) => {
-  await openOrderModal(id);
+  const order = await openOrderModal(id);
+  if (!order) return;
   const buttonId = mode === "delivery"
     ? "show-delivery-modal"
     : mode === "payment"
@@ -832,7 +896,14 @@ const openOrderFinanceOrDelivery = async (id, mode) => {
       : mode === "return"
         ? "show-return-modal"
         : "gen-charge";
-  document.getElementById(buttonId)?.click();
+  const button = document.getElementById(buttonId);
+  if (!button || button.disabled) {
+    if (mode === "delivery") {
+      await window.FestAlert?.warning?.("Entrega", "Este pedido não pode ser confirmado como entregue no estado atual.");
+    }
+    return;
+  }
+  button.click();
 };
 
 const openReturnModal = (order) => {
@@ -928,9 +999,12 @@ const markEntregue = async () => {
   const observacao = $("delivery-observacao").value.trim();
 
   if (!datetime || !responsavel) {
-    alert("Informe a data/hora e o responsável da entrega.");
+    $("delivery-responsavel").setCustomValidity(responsavel ? "" : "Informe o responsável pela entrega.");
+    $("delivery-responsavel").reportValidity();
+    await window.FestAlert?.warning?.("Entrega", "Informe a data/hora e o responsável da entrega.");
     return;
   }
+  $("delivery-responsavel").setCustomValidity("");
 
   try {
     const res = await fetch(`/entregas/pedidos/${order.id}/marcar-entregue`, {
@@ -944,10 +1018,11 @@ const markEntregue = async () => {
     }
     closeDeliveryModal();
     await openOrderModal(order.id);
-    await loadOrders();
+    await Promise.all([loadOrders(), loadKpis()]);
+    await window.FestAlert?.success?.("Entrega registrada", "Pedido marcado como entregue com sucesso.");
   } catch (err) {
     console.error(err);
-    alert(`Erro ao marcar entregue: ${err.message}`);
+    await window.FestAlert?.error?.("Erro ao marcar entregue", err.message || "Não foi possível registrar a entrega.");
   }
 };
 
@@ -974,12 +1049,12 @@ const submitReturn = async () => {
   const observacao = $("return-observacao").value.trim();
 
   if (!itens.length) {
-    alert("Informe ao menos uma quantidade para devolução.");
+    await window.FestAlert?.warning?.("Devolução", "Informe ao menos uma quantidade para devolução.");
     return;
   }
 
   if (!responsavel) {
-    alert("Informe o responsável pela devolução.");
+    await window.FestAlert?.warning?.("Devolução", "Informe o responsável pela devolução.");
     return;
   }
 
@@ -996,51 +1071,55 @@ const submitReturn = async () => {
     closeReturnModal();
     await openOrderModal(order.id);
     await loadOrders();
+    await window.FestAlert?.success?.("Devolução registrada", "A devolução foi registrada com sucesso.");
   } catch (err) {
     console.error(err);
-    alert('Erro ao registrar devolução');
+    await window.FestAlert?.error?.("Erro ao registrar devolução", err.message || "Não foi possível registrar a devolução.");
   }
 };
 
 const markRetirado = async (id) => {
-  if (!confirm('Confirmar marcar como retirado?')) return;
+  const resultado = await window.FestAlert?.confirm?.('Retirada', 'Confirmar marcar como retirado?');
+  if (!resultado || !resultado.isConfirmed) return;
   try {
     const res = await fetch(`/entregas/pedidos/${id}/marcar-retirado`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({}) });
     if (!res.ok) throw new Error('Falha ao marcar retirado');
-    alert('Pedido marcado como retirado');
+    await window.FestAlert?.success?.('Pedido retirado', 'Pedido marcado como retirado.');
     openOrderModal(id);
     loadOrders();
   } catch (err) {
     console.error(err);
-    alert('Erro ao marcar retirado');
+    await window.FestAlert?.error?.('Erro ao marcar retirado', err.message || 'Não foi possível marcar o pedido como retirado.');
   }
 };
 
 const markConferencia = async (id) => {
-  if (!confirm('Marcar pedido como em conferência?')) return;
+  const resultado = await window.FestAlert?.confirm?.('Conferência', 'Marcar pedido como em conferência?');
+  if (!resultado || !resultado.isConfirmed) return;
   try {
     const res = await fetch(`/entregas/pedidos/${id}/marcar-conferencia`, { method: 'POST' });
     if (!res.ok) throw new Error('Falha ao atualizar conferência');
-    alert('Pedido marcado em conferência');
+    await window.FestAlert?.success?.('Conferência', 'Pedido marcado como em conferência.');
     openOrderModal(id);
     loadOrders();
   } catch (err) {
     console.error(err);
-    alert('Erro ao marcar conferência');
+    await window.FestAlert?.error?.('Erro ao atualizar conferência', err.message || 'Não foi possível atualizar a conferência.');
   }
 };
 
 const finalizarConferencia = async (id) => {
-  if (!confirm('Finalizar conferência e marcar pedido como finalizado?')) return;
+  const resultado = await window.FestAlert?.confirm?.('Finalização', 'Finalizar conferência e marcar pedido como finalizado?');
+  if (!resultado || !resultado.isConfirmed) return;
   try {
     const res = await fetch(`/entregas/pedidos/${id}/finalizar-conferencia`, { method: 'POST' });
     if (!res.ok) throw new Error('Falha ao finalizar conferência');
-    alert('Conferência finalizada');
+    await window.FestAlert?.success?.('Conferência finalizada', 'Pedido finalizado com sucesso.');
     openOrderModal(id);
     loadOrders();
   } catch (err) {
     console.error(err);
-    alert('Erro ao finalizar conferência');
+    await window.FestAlert?.error?.('Erro ao finalizar conferência', err.message || 'Não foi possível finalizar a conferência.');
   }
 };
 
@@ -1055,11 +1134,11 @@ const submitOcorrencia = async (id) => {
       body: JSON.stringify({ tipo, descricao, valor })
     });
     if (!res.ok) throw new Error('Falha ao registrar ocorrência');
-    alert('Ocorrência registrada');
-    openOrderModal(id);
+    await Promise.all([openOrderModal(id), loadOrders(), loadKpis()]);
+    await window.FestAlert?.success?.('Ocorrência registrada', 'A ocorrência foi registrada com sucesso.');
   } catch (err) {
     console.error(err);
-    alert('Erro ao registrar ocorrência');
+    await window.FestAlert?.error?.('Erro ao registrar ocorrência', err.message || 'Não foi possível registrar a ocorrência.');
   }
 };
 
@@ -1072,6 +1151,7 @@ window.submitReturn = submitReturn;
 
 const openOrderModal = async (id) => {
   currentOrderId = id;
+  const requestId = ++openOrderRequest;
 
   try {
     const res = await fetch(`/entregas/pedidos/${id}`);
@@ -1080,6 +1160,7 @@ const openOrderModal = async (id) => {
       throw new Error(`HTTP ${res.status}: ${body}`);
     }
     const order = await res.json();
+    if (requestId !== openOrderRequest) return null;
 
     const normalized = normalizeOrder(order);
     currentOrderContext = normalized;
@@ -1087,12 +1168,15 @@ const openOrderModal = async (id) => {
     renderOrderHeader(normalized);
     renderTimeline(normalized);
     renderOrderPanels(normalized);
+    document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === "dados"));
+    document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.toggle("active", panel.id === "tab-dados"));
 
     $("modal").classList.add("open");
     return normalized;
   } catch (error) {
+    if (requestId !== openOrderRequest) return null;
     console.error("openOrderModal error:", error);
-    alert("Erro ao abrir o pedido: " + error.message);
+    await window.FestAlert?.error?.("Erro ao abrir o pedido", error.message || "Não foi possível abrir o pedido.");
   }
 };
 
@@ -1100,12 +1184,30 @@ window.openModal = openOrderModal;
 window.openOrderModal = openOrderModal;
 
 const closeModal = () => {
+  ++openOrderRequest;
   $("modal").classList.remove("open");
+  $("finance-modal").classList.remove("open");
+  $("delivery-modal").classList.remove("open");
+  $("return-modal").classList.remove("open");
+  currentOrderContext = null;
+};
+
+const closeTopmostModal = () => {
+  if ($("finance-modal").classList.contains("open")) {
+    $("finance-modal").classList.remove("open");
+  } else if ($("delivery-modal").classList.contains("open")) {
+    closeDeliveryModal();
+  } else if ($("return-modal").classList.contains("open")) {
+    closeReturnModal();
+  } else if ($("modal").classList.contains("open")) {
+    closeModal();
+  }
 };
 
 const filterByKpi = (filter) => {
-  activeKpiFilter = filter;
-  renderTable();
+  activeKpiFilter = activeKpiFilter === filter ? null : filter;
+  currentPage = 1;
+  loadOrders();
 };
 
 const updateEventOrderIndicator = () => {
@@ -1136,6 +1238,7 @@ const init = () => {
   window.filterByKpi = filterByKpi;
 
   loadOrders();
+  loadKpis();
   const pedidoParam = new URLSearchParams(window.location.search).get("pedido");
   if (pedidoParam && Number.isInteger(Number(pedidoParam))) {
     openOrderModal(Number(pedidoParam));
@@ -1143,12 +1246,18 @@ const init = () => {
   activateTabs();
 
   ["f-from", "f-to", "f-status", "f-pay", "f-deliv"].forEach((id) => {
-    $(id)?.addEventListener("change", loadOrders);
+    $(id)?.addEventListener("change", () => {
+      currentPage = 1;
+      loadOrders();
+    });
   });
 
   $("f-search")?.addEventListener("input", () => {
     clearTimeout(window.searchTimer);
-    window.searchTimer = setTimeout(loadOrders, 300);
+    window.searchTimer = setTimeout(() => {
+      currentPage = 1;
+      loadOrders();
+    }, 300);
   });
 
   // Alternar ordem por evento
@@ -1157,6 +1266,7 @@ const init = () => {
     updateEventOrderIndicator();
     toggleBtn.addEventListener('click', () => {
       eventOrder = eventOrder === 'desc' ? 'asc' : 'desc';
+      currentPage = 1;
       updateEventOrderIndicator();
       loadOrders();
     });
@@ -1176,27 +1286,57 @@ const init = () => {
   if (deselectAllBtn) deselectAllBtn.addEventListener('click', () => { selectedOrders.clear(); renderTable(); updateSelectedCount(); });
   if (invertBtn) invertBtn.addEventListener('click', () => {
     const current = new Set(selectedOrders);
-    selectedOrders.clear();
     orders.forEach(o => {
-      if (!current.has(Number(o.id))) selectedOrders.add(Number(o.id));
+      if (current.has(Number(o.id))) selectedOrders.delete(Number(o.id));
+      else selectedOrders.add(Number(o.id));
     });
     renderTable(); updateSelectedCount();
   });
-  if (toggleOrderBtn) toggleOrderBtn.addEventListener('click', () => { eventOrder = eventOrder === 'desc' ? 'asc' : 'desc'; loadOrders(); });
+  if (toggleOrderBtn) toggleOrderBtn.addEventListener('click', () => {
+    eventOrder = eventOrder === 'desc' ? 'asc' : 'desc';
+    currentPage = 1;
+    updateEventOrderIndicator();
+    loadOrders();
+  });
   if (genBtn) genBtn.addEventListener('click', () => generateReport());
+  $("orders-prev")?.addEventListener("click", () => {
+    if (currentPage <= 1) return;
+    currentPage -= 1;
+    loadOrders();
+  });
+  $("orders-next")?.addEventListener("click", () => {
+    if (currentPage >= Math.ceil(totalOrders / pageSize)) return;
+    currentPage += 1;
+    loadOrders();
+  });
+  $("orders-page-size")?.addEventListener("change", (event) => {
+    pageSize = Number(event.target.value) || 25;
+    currentPage = 1;
+    loadOrders();
+  });
+  document.querySelectorAll(".kpi[data-kpi-filter]").forEach((card) => {
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        filterByKpi(card.dataset.kpiFilter);
+      }
+    });
+  });
 
 
 const generateReport = () => {
-  if (!selectedOrders.size) return alert('Selecione ao menos um pedido para gerar o relatório.');
-  // manter ordem visível conforme DOM (ordem atual da tabela)
-  const boxes = Array.from(document.querySelectorAll('#orders-tbody .select-order'));
-  const idsOrdered = boxes.map(b => Number(b.dataset.id)).filter(id => selectedOrders.has(id));
+  if (!selectedOrders.size) return window.FestAlert?.warning?.('Relatório', 'Selecione ao menos um pedido para gerar o relatório.');
+  if (selectedOrders.size > 100) return window.FestAlert?.warning?.('Relatório', 'Selecione no máximo 100 pedidos por relatório.');
+  const idsOrdered = Array.from(selectedOrders);
   const idsParam = idsOrdered.join(',');
-  if (!idsParam) return alert('Selecione ao menos um pedido para gerar o relatório.');
+  if (!idsParam) return window.FestAlert?.warning?.('Relatório', 'Selecione ao menos um pedido para gerar o relatório.');
   window.open(`/entregas/relatorio?ids=${encodeURIComponent(idsParam)}`, '_blank');
 };
   $("modal")?.addEventListener("click", (event) => {
     if (event.target.id === "modal") closeModal();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeTopmostModal();
   });
 };
 

@@ -4,16 +4,16 @@
   <div class="page-meta" data-title="Orçamentos" data-subtitle="Lista de orçamentos"></div>
 
   <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div class="orcamentos-toolbar">
       <div>
-        <input id="q" class="input" placeholder="Pesquisar por cliente, telefone, número..." style="width:320px;">
+        <input id="q" class="input" placeholder="Pesquisar por cliente, telefone, número..." aria-label="Pesquisar orçamentos">
       </div>
       <div>
-        <button id="btn-new" class="btn"><i class="fa-solid fa-plus icon-sm"></i> Novo Orçamento</button>
+        <button id="btn-new" class="btn" type="button"><i class="fa-solid fa-plus icon-sm"></i> Novo Orçamento</button>
       </div>
     </div>
 
-    <div class="table-wrap" style="margin-top:12px;">
+    <div class="table-wrap orcamentos-table-wrap">
       <table class="table">
         <thead>
           <tr>

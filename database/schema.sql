@@ -20,6 +20,7 @@ CREATE TABLE endereco (
   cidade VARCHAR(100) DEFAULT NULL,
   estado VARCHAR(2) DEFAULT NULL,
   cep VARCHAR(12) DEFAULT NULL,
+  referencia VARCHAR(150) DEFAULT NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -144,6 +145,17 @@ CREATE TABLE pedidos (
   data_entrega DATE DEFAULT NULL,
   data_retirada DATE DEFAULT NULL,
   telefone_contato VARCHAR(20) DEFAULT NULL,
+  endereco_origem VARCHAR(255) DEFAULT NULL,
+  origem_lat DECIMAL(10,7) DEFAULT NULL,
+  origem_lon DECIMAL(10,7) DEFAULT NULL,
+  destino_lat DECIMAL(10,7) DEFAULT NULL,
+  destino_lon DECIMAL(10,7) DEFAULT NULL,
+  distancia_km DECIMAL(8,2) NOT NULL DEFAULT 0.00,
+  distancia_retorno_km DECIMAL(8,2) NOT NULL DEFAULT 0.00,
+  distancia_cobrada_km DECIMAL(8,2) NOT NULL DEFAULT 0.00,
+  frete_formula VARCHAR(500) DEFAULT NULL,
+  origem_aproximada TINYINT(1) NOT NULL DEFAULT 0,
+  destino_aproximado TINYINT(1) NOT NULL DEFAULT 0,
   tipo_pedido ENUM('ALUGUEL', 'VENDA', 'MISTO') NOT NULL DEFAULT 'ALUGUEL',
   status ENUM('ORCAMENTO', 'CONFIRMADO', 'EM_PREPARO', 'ENTREGUE', 'RETIRADO', 'CONFERENCIA', 'PENDENTE', 'FINALIZADO', 'CANCELADO') NOT NULL DEFAULT 'ORCAMENTO',
   valor_produtos DECIMAL(10,2) NOT NULL DEFAULT 0.00,
@@ -175,6 +187,29 @@ CREATE TABLE pedidos (
     FOREIGN KEY (endereco_id) REFERENCES endereco(id) ON DELETE SET NULL,
   CONSTRAINT fk_pedido_usuario
     FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE configuracoes_entrega (
+  id TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  origem_rua VARCHAR(150) NOT NULL,
+  origem_numero VARCHAR(20) DEFAULT NULL,
+  origem_bairro VARCHAR(100) DEFAULT NULL,
+  origem_cidade VARCHAR(100) NOT NULL,
+  origem_estado VARCHAR(2) NOT NULL,
+  origem_cep VARCHAR(12) DEFAULT NULL,
+  origem_referencia VARCHAR(150) DEFAULT NULL,
+  origem_lat DECIMAL(10,7) NOT NULL,
+  origem_lon DECIMAL(10,7) NOT NULL,
+  origem_aproximada TINYINT(1) NOT NULL DEFAULT 0,
+  regra_cobranca ENUM('FIXO', 'POR_KM', 'FIXO_POR_KM') NOT NULL,
+  valor_fixo DECIMAL(10,2) DEFAULT NULL,
+  taxa_inicial DECIMAL(10,2) DEFAULT NULL,
+  valor_por_km DECIMAL(10,2) DEFAULT NULL,
+  taxa_minima DECIMAL(10,2) DEFAULT NULL,
+  distancia_maxima_km DECIMAL(8,2) DEFAULT NULL,
+  sentido_distancia ENUM('IDA', 'IDA_VOLTA') NOT NULL,
+  atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE pedido_itens (

@@ -34,7 +34,7 @@
 
     <div id="cadastro-cliente" style="display:none;">
     {{> cadastro_cliente
-        action="/clientes/criar"
+        action="/pedidos/criarCliente"
         formId="formClientePedido"
         titulo="Novo Cliente"
         botaoSalvar="Salvar Cliente"
@@ -75,16 +75,6 @@
         <input id="data-retirada" class="input" type="date">
       </div>
 
-      <div class="field">
-        <label>Tipo do Pedido</label>
-        <select id="tipo-pedido" class="input">
-          <option value="VENDA">Venda</option>
-          <option value="ALUGUEL" selected>Aluguel</option>
-          <option value="MISTO">Misto</option>
-        </select>
-      </div>
-
-
     </div>
   </div>
 
@@ -116,6 +106,7 @@
         <thead>
           <tr>
             <th>Produto</th>
+            <th>Modalidade</th>
             <th class="text-center">Qtd</th>
             <th class="text-right">Valor Unit.</th>
             <th class="text-right">Subtotal</th>
@@ -131,62 +122,117 @@
   <div class="card">
     <div class="card-title">Frete e Endereço de Entrega</div>
 
-    <div class="field" style="position: relative;">
-      <label>Rua / Logradouro</label>
-      <input class="input" type="text" id="end-rua" autocomplete="off">
-      <ul id="end-list" class="autocomplete-list" style="display:none;"></ul>
-      <div id="painel-endereco" class="lista-clientes" style="display:none;"></div>
+    <div class="delivery-settings-bar">
+      <div id="entrega-config-status" class="muted" role="status" aria-live="polite">Carregando configurações de entrega...</div>
+      <button class="btn btn-blue" type="button" id="btn-config-entrega" aria-expanded="false" aria-controls="painel-config-entrega">
+        <i class="fa-solid fa-gear icon-sm"></i> Configurações de entrega
+      </button>
     </div>
 
-    <div class="field">
-      <label>Número</label>
-      <input id="end-numero" class="input">
+    <section id="painel-config-entrega" class="delivery-settings" hidden aria-label="Configurações de entrega">
+      <h3>Origem padrão e regra de frete</h3>
+      <p class="muted">A origem fica salva no sistema e será usada nos próximos pedidos. Não usamos a localização do navegador.</p>
+      <div class="address-autocomplete">
+        <label for="origem-config-query">Origem desta entrega</label>
+        <input id="origem-config-query" class="input" autocomplete="off" maxlength="200"
+               aria-autocomplete="list" aria-controls="origem-config-list"
+               placeholder="Digite rua, bairro ou cidade para pesquisar">
+        <ul id="origem-config-list" class="autocomplete-list address-suggestions" role="listbox" aria-live="polite" hidden></ul>
+      </div>
+      <div class="grid-3 address-fields">
+        <div class="field"><label for="origem-config-rua">Logradouro</label><input id="origem-config-rua" class="input" maxlength="150"></div>
+        <div class="field"><label for="origem-config-numero">Número</label><input id="origem-config-numero" class="input" maxlength="20"></div>
+        <div class="field"><label for="origem-config-bairro">Bairro</label><input id="origem-config-bairro" class="input" maxlength="100"></div>
+        <div class="field"><label for="origem-config-cidade">Cidade</label><input id="origem-config-cidade" class="input" maxlength="100"></div>
+        <div class="field"><label for="origem-config-estado">Estado (UF)</label><input id="origem-config-estado" class="input" maxlength="2"></div>
+        <div class="field"><label for="origem-config-cep">CEP</label><input id="origem-config-cep" class="input" maxlength="12"></div>
+        <div class="field"><label for="origem-config-referencia">Complemento</label><input id="origem-config-referencia" class="input" maxlength="150"></div>
+      </div>
+      <div class="grid-3 delivery-rule-fields">
+        <div class="field">
+          <label for="regra-cobranca">Regra de cobrança</label>
+          <select id="regra-cobranca" class="input">
+            <option value="">Selecione</option>
+            <option value="FIXO">Valor fixo por entrega</option>
+            <option value="POR_KM">Valor por quilômetro</option>
+            <option value="FIXO_POR_KM">Taxa inicial + valor por quilômetro</option>
+          </select>
+        </div>
+        <div class="field delivery-rule-fixed"><label for="frete-valor-fixo">Valor fixo (R$)</label><input id="frete-valor-fixo" class="input" type="number" min="0" step="0.01"></div>
+        <div class="field delivery-rule-initial"><label for="frete-taxa-inicial">Taxa inicial (R$)</label><input id="frete-taxa-inicial" class="input" type="number" min="0" step="0.01"></div>
+        <div class="field delivery-rule-km"><label for="frete-valor-km">Valor por km (R$)</label><input id="frete-valor-km" class="input" type="number" min="0" step="0.01"></div>
+        <div class="field"><label for="frete-minimo">Taxa mínima opcional (R$)</label><input id="frete-minimo" class="input" type="number" min="0" step="0.01"></div>
+        <div class="field"><label for="frete-distancia-maxima">Distância máxima opcional (km)</label><input id="frete-distancia-maxima" class="input" type="number" min="0.01" step="0.01"></div>
+        <div class="field">
+          <label for="sentido-distancia">Distância cobrada</label>
+          <select id="sentido-distancia" class="input">
+            <option value="IDA">Somente ida</option>
+            <option value="IDA_VOLTA">Ida e volta (rotas calculadas separadamente)</option>
+          </select>
+        </div>
+      </div>
+      <div class="delivery-settings-actions">
+        <button class="btn btn-teal" type="button" id="btn-salvar-config-entrega"><i class="fa-solid fa-floppy-disk icon-sm"></i> Salvar configurações</button>
+        <div id="config-entrega-feedback" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <div class="field address-autocomplete">
+      <label for="end-rua">Endereço de entrega</label>
+      <input id="end-rua" class="input" autocomplete="off" maxlength="150"
+             aria-autocomplete="list" aria-controls="end-list"
+             placeholder="Digite rua, bairro ou cidade (mínimo 3 caracteres)">
+      <ul id="end-list" class="autocomplete-list address-suggestions" role="listbox" aria-live="polite" hidden></ul>
     </div>
 
-    <div class="field">
-      <label>Bairro</label>
-      <input id="end-bairro" class="input">
+    <div class="grid-3 address-fields">
+      <div class="field">
+        <label for="end-numero">Número</label>
+        <input id="end-numero" class="input" maxlength="10" autocomplete="address-line2">
+      </div>
+      <div class="field">
+        <label for="end-bairro">Bairro</label>
+        <input id="end-bairro" class="input" maxlength="100">
+      </div>
+      <div class="field">
+        <label for="end-cidade">Cidade</label>
+        <input id="end-cidade" class="input" maxlength="100">
+      </div>
+      <div class="field">
+        <label for="end-estado">Estado</label>
+        <input id="end-estado" class="input" maxlength="2">
+      </div>
+      <div class="field">
+        <label for="end-cep">CEP</label>
+        <input id="end-cep" class="input" maxlength="12" autocomplete="postal-code">
+      </div>
+      <div class="field">
+        <label for="end-referencia">Complemento / referência</label>
+        <input id="end-referencia" class="input" placeholder="Apto, bloco, salão ou ponto de referência" maxlength="150">
+      </div>
     </div>
 
-    <div class="field">
-      <label>Cidade</label>
-      <input id="end-cidade" class="input">
-    </div>
-
-    <div class="field">
-      <label>Estado</label>
-      <input id="end-estado" class="input" maxlength="2">
-    </div>
-
-    <div class="field">
-      <label>Referência / nominativo</label>
-      <input id="end-referencia" class="input" placeholder="Ex.: Salão do João" maxlength="150">
-    </div>
-
-      <button class="btn" type="button" id="btn-endereco"><i class="fa-solid fa-magnifying-glass icon-sm"></i> Buscar endereço</button>
-      <button class="btn" type="button" id="btn-cadastrar-endereco"><i class="fa-solid fa-location-dot icon-sm"></i> Salvar endereço</button>
+    <button class="btn" type="button" id="btn-cadastrar-endereco">
+      <i class="fa-solid fa-location-dot icon-sm"></i> Salvar endereço
+    </button>
+    <p class="address-lookup-note">Sugestões fornecidas pelo Photon, com dados do OpenStreetMap. © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>.</p>
 
     <div class="grid-3" style="margin-top:1rem; align-items:end">
-
       <div class="field">
-        <label>Distância (KM)</label>
-        <input id="distancia-km" class="input" type="number" min="0" step="0.1" value="0">
+        <label for="distancia-km">Distância considerada no frete (km)</label>
+        <input id="distancia-km" class="input" type="number" min="0" step="0.01" value="" readonly>
       </div>
-
       <div class="field">
-        <label>Frete <i class="fa-solid fa-triangle-exclamation icon-xs"></i> (R$)</label>
-        <input id="frete" class="input" type="number" min="0" step="0.01" value="0">
+        <label for="frete">Frete calculado (R$)</label>
+        <input id="frete" class="input" type="number" min="0" step="0.01" value="" readonly>
       </div>
-
-      <button id="btn-calc-frete" class="btn btn-blue"><i class="fa-solid fa-location-dot icon-sm"></i> Calcular</button>
-
+      <button id="btn-calc-frete" class="btn btn-blue" type="button">
+        <i class="fa-solid fa-route icon-sm"></i> Calcular rota e frete
+      </button>
     </div>
 
-    <div id="info-frete" class="info-frete" style="margin-top:8px;"></div>
-
-    <div class="muted">
-      Informe a distância em KM ou ajuste o valor do frete manualmente.
-    </div>
+    <div id="info-frete" class="info-frete" style="margin-top:8px;" role="status" aria-live="polite"></div>
+    <div id="resumo-rota" class="route-summary" aria-live="polite">Configure a origem padrão e selecione o destino para calcular a distância pelas vias.</div>
   </div><br>
 
   <!-- ================= PAGAMENTO ================= -->
@@ -311,14 +357,18 @@
 
         <!-- 4. FRETE -->
         <section class="mp-card" id="mp-card-frete">
-          <h3 class="mp-card-title"><i class="fa-solid fa-location-dot icon-sm"></i> Endereço de Entrega</h3>
+          <h3 class="mp-card-title"><i class="fa-solid fa-location-dot icon-sm"></i> Rota e Endereço de Entrega</h3>
           <div class="mp-grid">
+            <div class="mp-field" style="grid-column:1/-1"><label>Origem informada para este pedido</label><span id="mp-fr-origem">—</span></div>
             <div class="mp-field"><label>Rua</label><span id="mp-fr-rua">—</span></div>
             <div class="mp-field"><label>Número</label><span id="mp-fr-num">—</span></div>
             <div class="mp-field"><label>Bairro</label><span id="mp-fr-bairro">—</span></div>
             <div class="mp-field"><label>Cidade</label><span id="mp-fr-cidade">—</span></div>
             <div class="mp-field"><label>Estado</label><span id="mp-fr-uf">—</span></div>
+            <div class="mp-field"><label>CEP</label><span id="mp-fr-cep">—</span></div>
+            <div class="mp-field"><label>Complemento / referência</label><span id="mp-fr-referencia">—</span></div>
             <div class="mp-field"><label>Distância</label><span id="mp-fr-km">—</span></div>
+            <div class="mp-field"><label>Regra aplicada</label><span id="mp-fr-formula">—</span></div>
             <div class="mp-field"><label>Valor do frete</label><span id="mp-fr-valor">—</span></div>
           </div>
         </section>
@@ -459,16 +509,20 @@ const ModalPedido = (() => {
 
     const frete = Number(fr.valor) || 0;
 
+    set("mp-fr-origem", fr.origem);
     set("mp-fr-rua", fr.rua);
     set("mp-fr-num", fr.numero);
     set("mp-fr-bairro", fr.bairro);
     set("mp-fr-cidade", fr.cidade);
     set("mp-fr-uf", fr.estado);
+    set("mp-fr-cep", fr.cep);
+    set("mp-fr-referencia", fr.referencia);
 
     set(
       "mp-fr-km",
-      fr.km != null ? `${fr.km} km` : "—"
+      fr.km != null ? `${Number(fr.km).toFixed(2)} km` : "—"
     );
+    set("mp-fr-formula", fr.formula);
 
     const valorFrete = $("mp-fr-valor");
     if (valorFrete) {
@@ -672,15 +726,6 @@ const ModalPedido = (() => {
 
 window.ModalPedido = ModalPedido;
 </script>
-
-
-
-
-
-
-
-
-
 
 
 

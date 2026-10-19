@@ -13,6 +13,12 @@ import {
   enviarParaManutencao,
   finalizarManutencao
 } from '../src/modules/estoque/estoque.service.js';
+import { inserirPagamentoPedido } from '../src/modules/pedidos/pedidos.model.js';
+import {
+  marcarEntregue,
+  registrarDevolucao as registrarDevolucaoPedido,
+  inserirReembolso
+} from '../src/modules/entregas/entregas.model.js';
 
 const tag = Date.now();
 let produtoId;
@@ -52,15 +58,26 @@ try {
   );
   pedidoId = pedido.insertId;
 
-  await db.query(
+  const [pedidoItem] = await db.query(
     `INSERT INTO pedido_itens
       (pedido_id, produto_id, quantidade, valor_unitario, subtotal)
      VALUES (?, ?, 3, 0, 0)`,
     [pedidoId, produtoId]
   );
+  const pedidoItemId = pedidoItem.insertId;
+
+  const concorrencia = await Promise.allSettled([
+    reservarEstoque({ produtoId, quantidade: 6, pedidoId }),
+    reservarEstoque({ produtoId, quantidade: 6, pedidoId })
+  ]);
+  assert.equal(concorrencia.filter((resultado) => resultado.status === 'fulfilled').length, 1);
+  assert.equal(concorrencia.filter((resultado) => resultado.status === 'rejected').length, 1);
+  let estado = await estadoProduto();
+  assert.equal(estado.estoque_reservado, 6, 'Requisições concorrentes não podem reservar acima do disponível');
+  await liberarReserva({ produtoId, quantidade: 6, pedidoId });
 
   await reservarEstoque({ produtoId, quantidade: 3, pedidoId });
-  let estado = await estadoProduto();
+  estado = await estadoProduto();
   assert.equal(estado.estoque, 10);
   assert.equal(estado.estoque_reservado, 3);
   assert.equal(calcularDisponibilidade(estado), 7);
@@ -159,9 +176,48 @@ try {
   );
   assert.ok(Number(movimentacoes[0].total) >= 7);
   assert.equal(movimentacoes[0].total, historico[0].total);
+
+  await reservarEstoque({ produtoId, quantidade: 3, pedidoId });
+  await marcarEntregue(pedidoId, {
+    data_entrega: new Date().toISOString(),
+    responsavel_entrega: 'Teste de integração'
+  });
+  await assert.rejects(
+    () => registrarDevolucaoPedido(pedidoId, {
+      itens: [{ id: pedidoItemId, produto_id: produtoId, quantidade_devolvida: 4 }]
+    }),
+    /excede a quantidade/i
+  );
+  await registrarDevolucaoPedido(pedidoId, {
+    itens: [{ id: pedidoItemId, produto_id: produtoId, quantidade_devolvida: 3 }],
+    responsavel: 'Teste de integração'
+  });
+  estado = await estadoProduto();
+  assert.equal(estado.estoque_em_uso, 0);
+  await assert.rejects(
+    () => registrarDevolucaoPedido(pedidoId, {
+      itens: [{ id: pedidoItemId, produto_id: produtoId, quantidade_devolvida: 1 }]
+    }),
+    /situação que permita devolução/i
+  );
+
+  await db.query('UPDATE pedidos SET valor_total = 10 WHERE id = ?', [pedidoId]);
+  await inserirPagamentoPedido(pedidoId, { valor: 10, forma_pagamento: 'PIX' });
+  await assert.rejects(
+    () => inserirPagamentoPedido(pedidoId, { valor: 0.01, forma_pagamento: 'PIX' }),
+    /exceder o saldo pendente/i
+  );
+  await assert.rejects(
+    () => inserirReembolso(pedidoId, { valor: 10.01, forma_pagamento: 'PIX' }),
+    /exceder o valor efetivamente pago/i
+  );
   console.log('Teste de integração MySQL do estoque ok');
 } finally {
   if (produtoId) {
+    await db.query('DELETE FROM ocorrencias WHERE pedido_id = ?', [pedidoId]);
+    await db.query('DELETE FROM pagamentos WHERE pedido_id = ?', [pedidoId]);
+    await db.query('DELETE FROM devolucao_itens WHERE devolucao_id IN (SELECT id FROM devolucoes WHERE pedido_id = ?)', [pedidoId]);
+    await db.query('DELETE FROM devolucoes WHERE pedido_id = ?', [pedidoId]);
     await db.query('DELETE FROM estoque_historico WHERE produto_id = ?', [produtoId]);
     await db.query('DELETE FROM movimentacao_estoque WHERE produto_id = ?', [produtoId]);
     await db.query('DELETE FROM reservas_estoque WHERE produto_id = ?', [produtoId]);

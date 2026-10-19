@@ -116,6 +116,38 @@
   border-top: 1px solid #e5e7ee;
 }
 
+.orcamentos-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.orcamentos-toolbar .input {
+  width: min(320px, 100%);
+}
+
+.orcamentos-table-wrap {
+  margin-top: 12px;
+}
+
+.orcamentos-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 720px) {
+  .orcamentos-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .orcamentos-toolbar .input {
+    width: 100%;
+  }
+}
+
 
 
 
@@ -424,6 +456,50 @@ body{ font-family:var(--mp-font); background:var(--color-background); display:bl
 .container .resumo-total span:last-child{color:var(--color-primary-dark);font-size:1.2rem}
 #q{max-width:420px}
 #btn-new{background:var(--color-primary);color:#fff}
+.address-results{width:100%;margin-top:8px}
+.address-result{display:block;width:100%;padding:11px 12px;border:1px solid #e6e8f0;border-radius:10px;background:#fff;text-align:left;cursor:pointer}
+.address-result:hover{background:#f0fdfa;border-color:var(--color-primary)}
+.address-result strong,.address-result small{display:block}
+.address-result small{margin-top:4px;color:var(--color-text-muted);line-height:1.4}
+.address-lookup-note{margin:8px 0 0;color:var(--color-text-muted);font-size:.8rem;line-height:1.5}
+.address-lookup-note a,.address-attribution a{color:var(--color-primary-dark)}
+.address-search-status,.address-search-error,.address-attribution{padding:10px 12px;font-size:.85rem;line-height:1.5}
+.address-search-error{color:var(--color-danger)}
+.address-attribution{align-self:flex-start}
+.address-autocomplete{position:relative;min-width:0}
+.address-autocomplete > .address-suggestions{
+  position:relative;top:auto;right:auto;bottom:auto;left:auto;z-index:auto;
+  display:block;width:100%;max-height:240px;box-sizing:border-box;
+  margin:5px 0 0;padding:4px;overflow-y:auto;overscroll-behavior:contain;
+  list-style:none;border:1px solid var(--color-border);border-radius:10px;
+  background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.12)
+}
+.address-autocomplete > .address-suggestions[hidden]{display:none}
+.address-suggestions li{margin:0;padding:0}
+.address-suggestion{display:block;width:100%;padding:10px 12px;border:0;border-radius:8px;background:#fff;text-align:left;cursor:pointer}
+.address-suggestion:hover,.address-suggestions [aria-selected="true"] .address-suggestion{background:#f0fdfa;color:var(--color-primary-dark)}
+.address-suggestion strong,.address-suggestion small{display:block;line-height:1.45}
+.address-suggestion small{margin-top:2px;color:var(--color-text-muted);font-size:.8rem;overflow-wrap:anywhere}
+.address-suggestion-status{padding:10px 12px;color:var(--color-text-muted);font-size:.85rem;line-height:1.4}
+.address-suggestion-status.is-error{color:var(--color-danger)}
+.address-broader-search{display:block;margin-top:6px;padding:0;border:0;background:none;color:var(--color-primary-dark);font:inherit;font-weight:600;text-align:left;text-decoration:underline;cursor:pointer}
+.route-summary{margin-top:10px;padding:12px 14px;border:1px solid #dbe5ee;border-radius:10px;background:#f8fafc;color:var(--color-text);font-size:.88rem;line-height:1.65;overflow-wrap:anywhere}
+.address-fields{margin-top:12px}
+#distancia-km[readonly],#frete[readonly]{background:#f8fafc;cursor:not-allowed}
+.delivery-settings-bar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px}
+.delivery-settings{display:grid;gap:14px;margin:0 0 18px;padding:16px;border:1px solid var(--color-border);border-radius:12px;background:#f8fafc}
+.delivery-settings[hidden],.delivery-rule-fields [hidden]{display:none}
+.delivery-settings h3{margin:0;color:var(--color-primary-dark);font-size:1rem}
+.delivery-settings > .muted{margin:0}
+.delivery-rule-fields{align-items:end}
+.delivery-settings-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#config-entrega-feedback{color:var(--color-text-muted);font-size:.9rem}
+@media(max-width:700px){
+  .address-fields{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+  #btn-calc-frete{min-height:44px}
+  .delivery-settings-bar{align-items:stretch;flex-direction:column}
+  .delivery-settings-bar .btn,.delivery-settings-actions .btn{width:100%;min-height:44px}
+}
 
 @media(max-width:700px){
   .container .grid-3{grid-template-columns:1fr}

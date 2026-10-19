@@ -29,8 +29,8 @@ export async function criarCliente(req, res) {
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      erro: err.message,
+    res.status(err.code ? 500 : 400).json({
+      erro: err.code ? "Não foi possível concluir o cadastro do cliente." : err.message,
     });
   }
 }
@@ -54,13 +54,13 @@ export async function buscarItens(req, res) {
 /* Cria um novo pedido.*/
 export async function criar(req, res) {
   try {
-    const resultado = await service.criarPedido(req.body);
+    const resultado = await service.criarPedido({ ...req.body, usuario_id: req.user?.id || null });
     res.status(201).json(resultado);
 
   } catch (err) {
     console.error(err);
-    res.status(400).json({
-      erro: err.message,
+    res.status(err.code ? 500 : 400).json({
+      erro: err.code ? 'Não foi possível concluir a operação.' : err.message,
     });
   }
 }
@@ -74,6 +74,7 @@ export async function buscarEnderecos(req, res) {
       bairro: (req.query.bairro || "").trim(),
       cidade: (req.query.cidade || "").trim(),
       estado: (req.query.estado || "").trim(),
+      cep: (req.query.cep || "").trim(),
       referencia: (req.query.referencia || "").trim(),
     };
 
@@ -89,15 +90,105 @@ export async function buscarEnderecos(req, res) {
   }
 }
 
+export async function buscarSugestoesEndereco(req, res) {
+  try {
+    const resultados = await service.buscarSugestoesEndereco(
+      req.query.q,
+      {
+        cidade: req.query.cidade,
+        estado: req.query.estado,
+        bairro: req.query.bairro,
+        cep: req.query.cep
+      },
+      req.query.ampla === "1"
+    );
+    res.set("Cache-Control", "private, max-age=300");
+    res.json(resultados);
+  } catch (err) {
+    const status = err.statusCode || 502;
+    if (status >= 500) console.error("Erro ao consultar o Photon:", err);
+    res.status(status).json({
+      erro: status === 429
+        ? "A busca está ocupada. Aguarde um instante e tente novamente."
+        : err.message
+    });
+  }
+}
+
+export async function calcularRota(req, res) {
+  try {
+    const rota = await service.calcularRota(
+      req.body?.destinoToken,
+      req.body?.destinoNumero,
+      req.body?.destinoEndereco
+    );
+    res.set("Cache-Control", "no-store");
+    res.json(rota);
+  } catch (err) {
+    const status = err.statusCode || 502;
+    if (status >= 500) console.error("Erro ao calcular rota de entrega:", err);
+    res.status(status).json({ erro: err.message });
+  }
+}
+
+export async function obterConfiguracaoEntrega(req, res) {
+  try {
+    res.set("Cache-Control", "no-store");
+    res.json(await service.buscarConfiguracaoEntrega());
+  } catch (err) {
+    registrarErroConfiguracaoEntrega("carregar", err);
+    res.status(500).json({ erro: mensagemErroConfiguracao(err, "carregar") });
+  }
+}
+
+export async function atualizarConfiguracaoEntrega(req, res) {
+  try {
+    const config = await service.salvarConfiguracaoEntrega(req.body);
+    res.json({ sucesso: true, configuracao: config });
+  } catch (err) {
+    const status = err.statusCode || (err.code ? 500 : 400);
+    if (status >= 500) registrarErroConfiguracaoEntrega("salvar", err);
+    res.status(status).json({
+      erro: status >= 500
+        ? mensagemErroConfiguracao(err, "salvar")
+        : err.message
+    });
+  }
+}
+
+function registrarErroConfiguracaoEntrega(operacao, err) {
+  console.error(`Erro ao ${operacao} configurações de entrega:`, {
+    code: err.code || null,
+    errno: err.errno || null,
+    sqlState: err.sqlState || null,
+    message: String(err.message || "Erro desconhecido").slice(0, 500)
+  });
+}
+
+function mensagemErroConfiguracao(err, operacao) {
+  if (err.code === "ER_NO_SUCH_TABLE") {
+    return "A tabela de configurações de entrega ainda não existe. Aplique as migrations do banco e tente novamente.";
+  }
+  if (err.code === "ER_BAD_FIELD_ERROR") {
+    return "A estrutura do banco está desatualizada. Aplique as migrations do banco e tente novamente.";
+  }
+  return `Não foi possível ${operacao} as configurações de entrega. Verifique os dados e tente novamente.`;
+}
+
   /* Atualiza um pedido existente (edição de pedido/orçamento) */
   export async function atualizar(req, res) {
     try {
       const { id } = req.params;
-      const resultado = await service.atualizarPedido(id, req.body);
+      const resultado = await service.atualizarPedido(id, {
+        ...req.body,
+        usuario_id: req.user?.id || null
+      });
       res.json(resultado);
     } catch (err) {
       console.error('Erro ao atualizar pedido:', err);
-      res.status(400).json({ erro: err.message });
+      res.status(err.code ? 500 : 400).json({
+        erro: err.code ? 'Não foi possível concluir a operação.' : err.message
+      });
     }
   }
 
@@ -141,14 +232,16 @@ export async function cancelar(req, res) {
   try {
     const { id } = req.params;
     const resultado = await service.cancelarPedido(id, {
-      usuario_id: req.body?.usuario_id || null,
+      usuario_id: req.user?.id || null,
       observacao: req.body?.observacao || 'Cancelamento de pedido'
     });
 
     return res.json({ sucesso: true, ...resultado });
   } catch (err) {
     console.error('Erro ao cancelar pedido:', err);
-    return res.status(400).json({ erro: err.message });
+    return res.status(err.code ? 500 : 400).json({
+      erro: err.code ? 'Não foi possível concluir a operação.' : err.message
+    });
   }
 }
 
@@ -157,13 +250,15 @@ export async function alterarQuantidadeItem(req, res) {
     const { id, produtoId } = req.params;
     const quantidade = Number(req.body?.quantidade || 0);
     const resultado = await service.alterarQuantidadeItemPedido(id, Number(produtoId), quantidade, {
-      usuario_id: req.body?.usuario_id || null,
+      usuario_id: req.user?.id || null,
       observacao: req.body?.observacao || 'Alteração de quantidade do pedido'
     });
 
     return res.json({ sucesso: true, ...resultado });
   } catch (err) {
     console.error('Erro ao alterar quantidade do pedido:', err);
-    return res.status(400).json({ erro: err.message });
+    return res.status(err.code ? 500 : 400).json({
+      erro: err.code ? 'Não foi possível concluir a operação.' : err.message
+    });
   }
 }

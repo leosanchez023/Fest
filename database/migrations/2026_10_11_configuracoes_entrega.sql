@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS configuracoes_entrega (
+  id TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  origem_rua VARCHAR(150) NOT NULL,
+  origem_numero VARCHAR(20) DEFAULT NULL,
+  origem_bairro VARCHAR(100) DEFAULT NULL,
+  origem_cidade VARCHAR(100) NOT NULL,
+  origem_estado VARCHAR(2) NOT NULL,
+  origem_cep VARCHAR(12) DEFAULT NULL,
+  origem_referencia VARCHAR(150) DEFAULT NULL,
+  origem_lat DECIMAL(10,7) NOT NULL,
+  origem_lon DECIMAL(10,7) NOT NULL,
+  origem_aproximada TINYINT(1) NOT NULL DEFAULT 0,
+  regra_cobranca ENUM('FIXO', 'POR_KM', 'FIXO_POR_KM') NOT NULL,
+  valor_fixo DECIMAL(10,2) DEFAULT NULL,
+  taxa_inicial DECIMAL(10,2) DEFAULT NULL,
+  valor_por_km DECIMAL(10,2) DEFAULT NULL,
+  taxa_minima DECIMAL(10,2) DEFAULT NULL,
+  distancia_maxima_km DECIMAL(8,2) DEFAULT NULL,
+  sentido_distancia ENUM('IDA', 'IDA_VOLTA') NOT NULL,
+  atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

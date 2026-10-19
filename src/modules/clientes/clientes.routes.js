@@ -8,6 +8,9 @@ router.get("/", controller.listar);
 /* API CLIENTES */
 router.get( "/data", controller.apiList);
 
+/* DETALHES DO CLIENTE */
+router.get("/detalhes/:id", controller.detalhes);
+
 /* CRIAR CLIENTE */
 router.post("/criar", controller.criar);
 

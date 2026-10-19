@@ -33,6 +33,11 @@ router.get(
   controller.buscar
 );
 
+router.put(
+  "/api/:id/estoque",
+  controller.atualizarQuantidadesEstoque
+);
+
 
 // Dashboard estoque
 router.get(

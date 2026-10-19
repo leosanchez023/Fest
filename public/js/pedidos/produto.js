@@ -38,16 +38,32 @@ export function inicializarProduto() {
           data-id="${esc(p.id)}"
           data-nome="${esc(p.nome)}"
           data-origem="${esc(p.origem)}"
-          data-preco="${esc(p.origem === "COMBO" ? p.preco_aluguel : p.preco_venda)}">
+          data-tipo="${esc(p.tipo || "")}"
+          data-preco-venda="${esc(p.preco_venda)}"
+          data-preco-aluguel="${esc(p.preco_aluguel)}">
           <span>${esc(p.nome)} <small>(${p.origem === "COMBO" ? "Combo" : "Produto"})</small></span>
-          <span class="preco">${fmt(p.origem === "COMBO" ? p.preco_aluguel : p.preco_venda)}</span>
+          <span class="preco">${fmt(p.tipo === "Venda" ? p.preco_venda : p.preco_aluguel)}</span>
         </button>
       `).join("");
 
       prodList.style.display = "block";
       prodList.querySelectorAll(".autocomplete-item").forEach((btn) => {
         btn.onclick = () => {
-          const selecionado = { id: btn.dataset.id, nome: btn.dataset.nome, preco: Number(btn.dataset.preco), origem: btn.dataset.origem };
+          const tipoCatalogo = String(btn.dataset.tipo || '').toUpperCase();
+          const tipoItem = tipoCatalogo === 'VENDA' ? 'VENDA' : 'ALUGUEL';
+          const podeAlternar = btn.dataset.origem === "COMBO" || tipoCatalogo === "AMBOS";
+          const precoVenda = Number(btn.dataset.precoVenda || 0);
+          const precoAluguel = Number(btn.dataset.precoAluguel || 0);
+          const selecionado = {
+            id: btn.dataset.id,
+            nome: btn.dataset.nome,
+            preco: tipoItem === "VENDA" ? precoVenda : precoAluguel,
+            preco_venda: precoVenda,
+            preco_aluguel: precoAluguel,
+            origem: btn.dataset.origem,
+            tipo_item: tipoItem,
+            pode_alternar_tipo: podeAlternar
+          };
           state.itemSel = selecionado;
           prodQuery.value = selecionado.nome;
           prodList.style.display = "none";

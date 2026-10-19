@@ -1,0 +1,164 @@
+<form
+  class="form-card"
+  action="{{#if formAction}}{{formAction}}{{else}}{{action}}{{/if}}"
+  id="{{formId}}"
+  method="post">
+
+    <h2>
+  <i class="fas fa-user-plus"></i>
+  {{titulo}}
+</h2>
+
+    <input type="hidden" name="id" value="{{cliente.cliente_id}}">
+
+    <div class="form-grid">
+
+        <div class="form-group full">
+            <label>Nome completo *</label>
+            <input
+                id="{{prefix}}nome"
+                name="nome"
+                value="{{cliente.nome}}"
+                placeholder="Digite o nome completo"
+                minlength="3"
+                maxlength="100"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label>CPF</label>
+            <input
+                id="{{prefix}}cpf"
+                name="cpf"
+                value="{{cliente.cpf}}"
+                placeholder="000.000.000-00"
+                maxlength="14"
+                inputmode="numeric">
+        </div>
+
+        <div class="form-group">
+            <label>Email *</label>
+            <input
+                id="{{prefix}}email"
+                name="email"
+                type="email"
+                value="{{cliente.email}}"
+                placeholder="email@exemplo.com"
+                maxlength="100"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label>Telefone</label>
+            <input
+                id="{{prefix}}telefone"
+                name="telefone"
+                value="{{cliente.telefone}}"
+                placeholder="(00) 00000-0000"
+                maxlength="20">
+        </div>
+
+        <div class="form-group">
+            <label>Data de nascimento</label>
+            <input
+                id="{{prefix}}nascimento"
+                name="nascimento"
+                type="date"
+                value="{{cliente.nascimento}}">
+        </div>
+
+        <div class="form-group full">
+            <label>Rua *</label>
+            <input
+                id="{{prefix}}rua"
+                name="rua"
+                value="{{cliente.rua}}"
+                placeholder="Nome da rua"
+                maxlength="150"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label>Número *</label>
+            <input
+                id="{{prefix}}numero"
+                name="numero"
+                value="{{cliente.numero}}"
+                placeholder="Nº"
+                maxlength="10"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label>Bairro</label>
+            <input
+                id="{{prefix}}bairro"
+                name="bairro"
+                value="{{cliente.bairro}}"
+                placeholder="Bairro"
+                maxlength="100">
+        </div>
+
+        <div class="form-group">
+            <label>Cidade *</label>
+            <input
+                id="{{prefix}}cidade"
+                name="cidade"
+                value="{{cliente.cidade}}"
+                placeholder="Cidade"
+                maxlength="100"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label>Estado *</label>
+            <input
+                id="{{prefix}}estado"
+                name="estado"
+                value="{{cliente.estado}}"
+                placeholder="UF"
+                maxlength="2"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label>CEP</label>
+            <input
+                id="{{prefix}}cep"
+                name="cep"
+                value="{{cliente.cep}}"
+                placeholder="00000-000"
+                maxlength="12"
+                inputmode="numeric">
+        </div>
+
+        <div class="form-group full">
+            <label>Referência</label>
+            <input
+                id="{{prefix}}referencia"
+                name="referencia"
+                value="{{cliente.referencia}}"
+                placeholder="Complemento ou ponto de referência"
+                maxlength="150">
+        </div>
+
+    </div>
+
+    <div class="form-actions">
+
+        <button class="btn btn-primary" type="submit">
+  {{botaoSalvar}}
+</button>
+
+        <button
+            type="button"
+            class="btn btn-secondary"
+            id="{{prefix}}btn-cancelar-cliente">
+            Cancelar
+        </button>
+
+    </div>
+
+</form>
+
+<br>

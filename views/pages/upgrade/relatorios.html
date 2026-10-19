@@ -1,1032 +1,500 @@
-{{!-- Relatórios (conteúdo) — convertido para usar o layout principal --}}
-<link rel="stylesheet" href="/css/pages/upgrade-relatorios.css">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fest · Relatórios</title>
+<style>
+  :root{
+    --bg:#f4f5fb; --card:#fff; --ink:#1d1f2b; --muted:#6b7084; --line:#e6e8f2;
+    --side:#1b1633; --side-ink:#c9c6e0;
+    --brand:#6d4aff; --brand-2:#ff5c8a; --ok:#1fa971; --warn:#e8a317; --bad:#e5484d; --info:#2f7cf6;
+    --radius:14px; --shadow:0 1px 2px rgba(20,20,50,.05),0 6px 20px rgba(20,20,50,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);display:flex;min-height:100vh;font-size:14px}
+  button,input,select{font:inherit;color:inherit}
 
-<div class="wrap">
+  /* Sidebar */
+  .sidebar{width:236px;background:var(--side);color:var(--side-ink);padding:22px 14px;position:sticky;top:0;height:100vh;flex-shrink:0;display:flex;flex-direction:column;gap:6px;overflow-y:auto}
+  .logo{display:flex;align-items:center;gap:10px;padding:4px 10px 20px;color:#fff;font-weight:700;font-size:21px;letter-spacing:.3px}
+  .logo i{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;font-style:normal;font-size:18px}
+  .nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:var(--side-ink);text-decoration:none;font-weight:500;margin-bottom:2px}
+  .nav a:hover{background:rgba(255,255,255,.07)}
+  .nav a.active{background:linear-gradient(135deg,var(--brand),#8a6bff);color:#fff;box-shadow:0 6px 16px rgba(109,74,255,.35)}
+  .nav span.ic{width:20px;text-align:center}
+  .side-foot{margin-top:auto;padding:12px;font-size:12px;opacity:.6}
 
-      <!-- 1. CABEÇALHO -->
-      <div class="page-meta" data-title="Relatórios" data-subtitle="Análise completa do desempenho da empresa · Últimos 30 dias"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <div>
-          <button class="btn menu-toggle" id="menuToggle" title="Menu"><i class="fa-solid fa-bars"></i></button>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn" id="btnFilters"><i class="fa-solid fa-filter icon-sm"></i> Filtros avançados <span class="tag t-slate" id="filterCount" style="display:none">0</span></button>
-          <button class="btn" id="btnPrint"><i class="fa-solid fa-print icon-sm"></i> Imprimir relatório</button>
-          <button class="btn primary" id="btnExport"><i class="fa-solid fa-file-export icon-sm"></i> Exportar relatório</button>
-        </div>
-      </div>
+  /* Main */
+  .main{flex:1;min-width:0;padding:26px 30px 50px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+  .topbar h1{font-size:26px;letter-spacing:-.3px}
+  .topbar p{color:var(--muted);margin-top:2px}
+  .actions{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:var(--card);padding:9px 15px;border-radius:10px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:.15s}
+  .btn:hover{border-color:var(--brand);color:var(--brand)}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  .btn.primary:hover{background:#5a39e6;color:#fff}
+  .menu-toggle{display:none}
 
-      <!-- Filtro de período -->
-      <div class="card pad periodbar">
-        <div class="chips" id="periodChips">
-          <button class="chip" data-period="hoje">Hoje</button>
-          <button class="chip" data-period="7d">Últimos 7 dias</button>
-          <button class="chip active" data-period="30d">Últimos 30 dias</button>
-          <button class="chip" data-period="mes">Este mês</button>
-          <button class="chip" data-period="custom">Personalizado</button>
-        </div>
-        <div class="range" id="customRange">
-          <input type="date" id="dtIni" style="width:160px" />
-          <span>até</span>
-          <input type="date" id="dtFim" style="width:160px" />
-          <button class="btn" id="btnApplyRange">Aplicar</button>
-        </div>
-        <div class="muted" style="font-size:12.5px">Atualizado em <b id="updatedAt">—</b></div>
-      </div>
+  /* Tabs */
+  .tabs{display:flex;gap:6px;background:var(--card);padding:6px;border-radius:12px;box-shadow:var(--shadow);width:max-content;max-width:100%;overflow-x:auto;margin-bottom:18px}
+  .tab{border:0;background:transparent;padding:9px 16px;border-radius:9px;cursor:pointer;font-weight:600;color:var(--muted);white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab.active{background:var(--ink);color:#fff}
 
-      <!-- 2. INDICADORES -->
-      <div class="sec-title"><i class="fa-solid fa-dollar-sign"></i> Financeiro</div>
-      <section class="kpis" id="kpiFin"></section>
+  /* Filters */
+  .filters{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:18px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .field input,.field select{border:1px solid var(--line);background:#fff;padding:9px 11px;border-radius:9px;min-width:150px;outline:none}
+  .field input:focus,.field select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(109,74,255,.15)}
+  .field select:disabled{background:#f1f2f8;color:#a0a4b8}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{border:1px solid var(--line);background:#fff;padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:600;font-size:12.5px;color:var(--muted)}
+  .chip:hover{border-color:var(--brand);color:var(--brand)}
+  .chip.active{background:rgba(109,74,255,.1);border-color:var(--brand);color:var(--brand)}
+  .grow{flex:1;min-width:200px}
+  .grow input{width:100%}
+  .note{font-size:12px;color:var(--muted);margin:-8px 0 14px;display:none}
 
-      <div class="sec-title"><i class="fa-solid fa-cart-shopping"></i> Pedidos</div>
-      <section class="kpis" id="kpiPed"></section>
+  /* KPIs */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
+  .kpi{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,var(--brand))}
+  .kpi .l{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .kpi .v{font-size:26px;font-weight:750;margin:6px 0 4px;letter-spacing:-.5px}
+  .kpi .d{font-size:12.5px;color:var(--muted)}
+  .up{color:var(--ok);font-weight:700}.down{color:var(--bad);font-weight:700}
 
-      <div class="sec-title"><i class="fa-solid fa-users"></i> Clientes &nbsp;·&nbsp; <i class="fa-solid fa-box"></i> Estoque</div>
-      <section class="kpis" id="kpiCli"></section>
-      <section class="kpis" id="kpiEst"></section>
+  /* Charts */
+  .charts{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:18px}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+  .card h3{font-size:15px;margin-bottom:14px}
+  .bars{display:flex;align-items:flex-end;gap:5px;height:210px;padding-top:10px}
+  .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
+  .bar div{width:100%;max-width:38px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--brand),#a58cff);transition:height .4s;min-height:2px}
+  .bar div:hover{filter:brightness(1.1)}
+  .bar small{font-size:10px;color:var(--muted);margin-top:6px;height:14px;white-space:nowrap}
+  .donut-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .donut{width:150px;height:150px;border-radius:50%;position:relative;flex-shrink:0}
+  .donut::after{content:attr(data-total);position:absolute;inset:26px;background:var(--card);border-radius:50%;display:grid;place-items:center;font-weight:750;font-size:15px;text-align:center;line-height:1.2}
+  .legend{display:flex;flex-direction:column;gap:7px;font-size:13px;flex:1;min-width:130px}
+  .legend div{display:flex;align-items:center;gap:8px}
+  .legend i{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+  .legend b{margin-left:auto;padding-left:10px}
+  .hbars{display:flex;flex-direction:column;gap:11px}
+  .hbar .t{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+  .hbar .tr{height:9px;background:#eef0f8;border-radius:99px;overflow:hidden}
+  .hbar .tr div{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+  .empty{color:var(--muted);padding:30px 0;text-align:center}
 
-      <!-- 3. GRÁFICOS -->
-      <div class="sec-title"><i class="fa-solid fa-chart-line"></i> Indicadores visuais</div>
+  /* Table */
+  .table-card{padding:0;overflow:hidden}
+  .table-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;gap:10px;flex-wrap:wrap}
+  .table-head h3{margin:0}
+  .table-head span{color:var(--muted);font-size:13px}
+  .scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;min-width:640px}
+  th{background:#f8f9fd;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:11px 18px;cursor:pointer;user-select:none;white-space:nowrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  th:hover{color:var(--brand)}
+  th .ar{opacity:.5;margin-left:4px}
+  td{padding:12px 18px;border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody tr:hover{background:#faf9ff}
+  .r{text-align:right}
+  .badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700}
+  .b-ok{background:#e3f7ee;color:#127a52}.b-info{background:#e3eeff;color:#1d5fc9}
+  .b-warn{background:#fdf1d6;color:#9a6a00}.b-bad{background:#fde5e6;color:#b4282d}.b-def{background:#eef0f8;color:#555a73}
+  .pager{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;color:var(--muted);font-size:13px;gap:10px;flex-wrap:wrap}
+  .pager div{display:flex;gap:6px}
+  .pager button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:600}
+  .pager button:disabled{opacity:.4;cursor:default}
+  .print-head{display:none}
 
-      <section class="grid-2">
-        <div class="card">
-          <div class="card-title">
-            <h2><i class="fa-solid fa-chart-line icon-sm"></i> Faturamento por mês</h2>
-            <span class="count" id="revSummary">—</span>
-          </div>
-          <div class="chart-box"><div id="chartRevenue"></div></div>
-          <div class="legend">
-            <div><i class="dot" style="background:#2563eb"></i> Faturado</div>
-            <div><i class="dot" style="background:#059669"></i> Recebido</div>
-          </div>
-        </div>
+  @media(max-width:1000px){.charts{grid-template-columns:1fr}}
+  @media(max-width:860px){
+    .sidebar{position:fixed;z-index:20;left:-250px;transition:left .25s}
+    .sidebar.open{left:0}
+    .menu-toggle{display:inline-flex}
+    .main{padding:18px 16px 40px}
+  }
+  @media print{
+    .sidebar,.filters,.actions,.tabs,.pager,.menu-toggle,.note{display:none!important}
+    body{background:#fff}.main{padding:0}
+    .card,.kpi{box-shadow:none;border:1px solid #ddd}
+    .print-head{display:block;margin-bottom:12px;color:#555}
+    .charts{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
 
-        <div class="card">
-          <div class="card-title">
-            <h2><i class="fa-solid fa-chart-column icon-sm"></i> Pedidos por período</h2>
-            <span class="count" id="ordSummary">—</span>
-          </div>
-          <div class="chart-box"><div id="chartOrders"></div></div>
-          <div class="legend"><div><i class="dot" style="background:#7c3aed"></i> Pedidos fechados no mês</div></div>
-        </div>
-      </section>
-
-      <section class="grid-3">
-        <div class="card">
-          <div class="card-title"><h2><i class="fa-solid fa-box icon-sm"></i> Produtos mais alugados</h2></div>
-          <div class="bar-row" id="chartTopProducts"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-title"><h2><i class="fa-solid fa-credit-card icon-sm"></i> Formas de pagamento</h2></div>
-          <div class="chart-box" style="padding:8px 12px 0"><div id="chartPayments"></div></div>
-          <div class="legend" id="legendPayments"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-title"><h2><i class="fa-solid fa-puzzle-piece icon-sm"></i> Tipos de pedido</h2></div>
-          <div class="chart-box" style="padding:8px 12px 0"><div id="chartTypes"></div></div>
-          <div class="legend" id="legendTypes"></div>
-        </div>
-      </section>
-
-      <!-- 8. ALERTAS INTELIGENTES -->
-      <div class="sec-title"><i class="fa-solid fa-bell"></i> Alertas inteligentes</div>
-      <section class="card">
-        <div class="card-title">
-          <h2><i class="fa-solid fa-triangle-exclamation icon-sm"></i> Pontos de atenção</h2>
-          <span class="count" id="alertCount">—</span>
-        </div>
-        <div class="alerts" id="alertList"></div>
-      </section>
-
-      <!-- 4. RELATÓRIO FINANCEIRO -->
-      <div class="sec-title"><i class="fa-solid fa-dollar-sign"></i> Relatório financeiro detalhado</div>
-      <section class="card">
-        <div class="card-title">
-          <h2><i class="fa-solid fa-file-invoice icon-sm"></i> Movimentações do período</h2>
-          <span class="count" id="finCount">—</span>
-        </div>
-        <div class="toolbar">
-          <div class="search"><i class="fa-solid fa-magnifying-glass icon-sm"></i><input type="search" id="finSearch" placeholder="Pesquisar por cliente, pedido ou tipo..." /></div>
-          <select id="finStatus">
-            <option value="">Todos os status</option>
-            <option value="Pago">Pago</option>
-            <option value="Parcial">Parcial</option>
-            <option value="Pendente">Pendente</option>
-            <option value="Atrasado">Atrasado</option>
-          </select>
-          <select id="finType">
-            <option value="">Todos os tipos</option>
-            <option value="Aluguel">Aluguel</option>
-            <option value="Venda">Venda</option>
-            <option value="Misto">Misto</option>
-          </select>
-        </div>
-        <div class="tscroll">
-          <table id="finTable">
-            <thead>
-              <tr>
-                <th class="sortable" data-k="date">Data <span class="arrow">↕</span></th>
-                <th class="sortable" data-k="client">Cliente <span class="arrow">↕</span></th>
-                <th class="sortable" data-k="type">Tipo <span class="arrow">↕</span></th>
-                <th class="sortable num" data-k="total">Valor total <span class="arrow">↕</span></th>
-                <th class="sortable num" data-k="paid">Pago <span class="arrow">↕</span></th>
-                <th class="sortable num" data-k="due">Pendente <span class="arrow">↕</span></th>
-                <th class="sortable" data-k="status">Status <span class="arrow">↕</span></th>
-              </tr>
-            </thead>
-            <tbody id="finBody"></tbody>
-          </table>
-        </div>
-        <div class="pad" style="display:flex;justify-content:space-between;border-top:1px solid var(--border);font-size:13px">
-          <span class="muted">Totais filtrados</span>
-          <span id="finTotals" class="strong">—</span>
-        </div>
-      </section>
-
-      <!-- 5. RELATÓRIO DE PRODUTOS -->
-      <div class="sec-title"><i class="fa-solid fa-box"></i> Relatório de produtos</div>
-      <section class="card">
-        <div class="card-title">
-          <h2><i class="fa-solid fa-box icon-sm"></i> Desempenho do catálogo</h2>
-          <span class="count" id="prodCount">—</span>
-        </div>
-        <div class="toolbar">
-          <div class="search"><i class="fa-solid fa-magnifying-glass icon-sm"></i><input type="search" id="prodSearch" placeholder="Pesquisar produto..." /></div>
-          <select id="prodCat"><option value="">Todas as categorias</option></select>
-          <select id="prodFlag">
-            <option value="">Todos os produtos</option>
-            <option value="low">Somente estoque baixo</option>
-            <option value="top">Somente mais utilizados</option>
-          </select>
-        </div>
-        <div class="tscroll">
-          <table id="prodTable">
-            <thead>
-              <tr>
-                <th class="sortable" data-k="name">Produto <span class="arrow">↕</span></th>
-                <th class="sortable" data-k="cat">Categoria <span class="arrow">↕</span></th>
-                <th class="sortable num" data-k="total">Qtd. total <span class="arrow">↕</span></th>
-                <th class="sortable num" data-k="available">Disponível <span class="arrow">↕</span></th>
-                <th class="sortable num" data-k="rented">Alugada <span class="arrow">↕</span></th>
-                <th class="sortable num" data-k="revenue">Valor gerado <span class="arrow">↕</span></th>
-              </tr>
-            </thead>
-            <tbody id="prodBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- 6. RELATÓRIO DE CLIENTES -->
-      <div class="sec-title"><i class="fa-solid fa-users"></i> Relatório de clientes</div>
-      <section class="grid-2">
-        <div class="card">
-          <div class="card-title">
-            <h2><i class="fa-solid fa-ranking-star"></i> Ranking de clientes</h2>
-            <span class="count" id="cliCount">—</span>
-          </div>
-          <div class="toolbar" style="grid-template-columns:minmax(0,1fr) 190px">
-            <div class="search"><i class="fa-solid fa-magnifying-glass icon-sm"></i><input type="search" id="cliSearch" placeholder="Pesquisar cliente..." /></div>
-            <select id="cliSort">
-              <option value="spent">Ordenar por valor gasto</option>
-              <option value="orders">Ordenar por nº de pedidos</option>
-              <option value="last">Ordenar por último pedido</option>
-            </select>
-          </div>
-          <div class="tscroll">
-            <table id="cliTable">
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th class="num">Pedidos</th>
-                  <th class="num">Valor gasto</th>
-                  <th>Último pedido</th>
-                </tr>
-              </thead>
-              <tbody id="cliBody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title"><h2><i class="fa-solid fa-fire icon-sm"></i> Clientes que mais alugam</h2><span class="count">Top 6 do período</span></div>
-          <div class="bar-row" id="chartTopClients"></div>
-        </div>
-      </section>
-
-      <!-- 7. RELATÓRIO DE ENTREGAS -->
-      <div class="sec-title"><i class="fa-solid fa-truck"></i> Relatório de entregas</div>
-      <section class="card">
-        <div class="card-title"><h2><i class="fa-solid fa-location-dot icon-sm"></i> Logística do período</h2><span class="count" id="delivCount">—</span></div>
-        <div class="deliv" id="delivGrid"></div>
-        <div class="gauge">
-          <div id="gaugeChart"></div>
-          <div class="txt">
-            <b id="gaugeValue">—</b>
-            <span class="muted">Taxa de conclusão das entregas e retiradas programadas no período.</span>
-          </div>
-        </div>
-      </section>
-
-      <div class="footnote">Serve Festa ERP · Módulo de Relatórios · Dados demonstrativos</div>
-    </div>
-  </main>
-</div>
-
-<!-- 9. FILTROS AVANÇADOS -->
-<div class="overlay" id="overlay"></div>
-<aside class="drawer" id="drawer">
-  <header>
-    <h3><i class="fa-solid fa-gear icon-sm"></i> Filtros avançados</h3>
-    <button class="iconbtn" id="drawerClose"><i class="fa-solid fa-xmark"></i></button>
-  </header>
-  <div class="body">
-    <div class="two">
-      <div class="field"><label>Data inicial</label><input type="date" id="fDtIni" /></div>
-      <div class="field"><label>Data final</label><input type="date" id="fDtFim" /></div>
-    </div>
-    <div class="field"><label>Cliente</label><select id="fClient"><option value="">Todos os clientes</option></select></div>
-    <div class="field"><label>Produto</label><select id="fProduct"><option value="">Todos os produtos</option></select></div>
-    <div class="field"><label>Tipo de pedido</label>
-      <select id="fType"><option value="">Todos</option><option>Aluguel</option><option>Venda</option><option>Misto</option></select>
-    </div>
-    <div class="field"><label>Status</label>
-      <select id="fStatus"><option value="">Todos</option><option>Pago</option><option>Parcial</option><option>Pendente</option><option>Atrasado</option></select>
-    </div>
-    <div class="field"><label>Forma de pagamento</label>
-      <select id="fPayment"><option value="">Todas</option><option>Pix</option><option>Dinheiro</option><option>Cartão</option><option>Parcelado</option></select>
-    </div>
-  </div>
-  <footer>
-    <button class="btn" id="btnClearFilters">Limpar</button>
-    <button class="btn primary" id="btnApplyFilters">Aplicar filtros</button>
-  </footer>
+<aside class="sidebar" id="sidebar">
+  <div class="logo"><i>🎉</i> Fest</div>
+  <nav class="nav">
+    <a href="#"><span class="ic">📊</span> Dashboard</a>
+    <a href="#"><span class="ic">📑</span> Pedidos</a>
+    <a href="#"><span class="ic">👥</span> Clientes</a>
+    <a href="#"><span class="ic">📦</span> Produtos</a>
+    <a href="#"><span class="ic">🚚</span> Entregas</a>
+    <a href="#"><span class="ic">💰</span> Financeiro</a>
+    <a href="#"><span class="ic">🏢</span> Fornecedores</a>
+    <a href="#" class="active"><span class="ic">📈</span> Relatórios</a>
+    <a href="#"><span class="ic">👤</span> Usuários</a>
+  </nav>
+  <div class="side-foot">Prévia · dados fictícios</div>
 </aside>
 
-<!-- MODAL DETALHES -->
-<div class="modal" id="modal">
-  <header><h3 id="modalTitle">Detalhes</h3><button class="iconbtn" id="modalClose"><i class="fa-solid fa-xmark"></i></button></header>
-  <div class="body" id="modalBody"></div>
-  <footer>
-    <button class="btn" id="modalPrint"><i class="fa-solid fa-print"></i> Imprimir</button>
-    <button class="btn primary" id="modalOk">Fechar</button>
-  </footer>
-</div>
+<main class="main">
+  <div class="topbar">
+    <div style="display:flex;gap:12px;align-items:center">
+      <button class="btn menu-toggle" id="menuBtn" aria-label="Menu">☰</button>
+      <div>
+        <h1>Relatórios</h1>
+        <p id="subtitle">Acompanhe o desempenho da sua empresa</p>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="btnPrint">🖨️ Imprimir / PDF</button>
+      <button class="btn primary" id="btnCsv">⬇️ Exportar CSV</button>
+    </div>
+  </div>
 
-<div class="toasts" id="toasts"></div>
+  <div class="tabs" id="tabs"></div>
+
+  <div class="filters">
+    <div class="field">
+      <label>Período rápido</label>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="field"><label for="from">De</label><input type="date" id="from"></div>
+    <div class="field"><label for="to">Até</label><input type="date" id="to"></div>
+    <div class="field"><label for="status" id="statusLabel">Situação</label>
+      <select id="status"></select>
+    </div>
+    <div class="field grow"><label for="q">Buscar</label><input type="search" id="q" placeholder="Cliente, produto, número..."></div>
+  </div>
+  <div class="note" id="note"></div>
+
+  <div class="print-head" id="printHead"></div>
+
+  <section class="kpis" id="kpis"></section>
+  <section class="charts" id="charts"></section>
+
+  <section class="card table-card">
+    <div class="table-head"><h3 id="tableTitle">Detalhamento</h3><span id="count"></span></div>
+    <div class="scroll"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+    <div class="pager">
+      <span id="pageInfo"></span>
+      <div><button id="prev">← Anterior</button><button id="next">Próxima →</button></div>
+    </div>
+  </section>
+</main>
 
 <script>
-/* =========================================================================
-   SERVE FESTA · MÓDULO DE RELATÓRIOS
-   Estrutura:
-     1. MockAPI      -> camada de dados (trocar por fetch() da API real)
-     2. Utils        -> formatação e helpers
-     3. Charts       -> renderizadores SVG puros
-     4. State        -> filtros e período ativos
-     5. Render*      -> renderização de cada bloco da tela
-     6. Eventos      -> ligações da UI
-   ========================================================================= */
+/* ============ Dados fictícios (na versão real, virão do MySQL via API) ============ */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rand = rng(2026);
+const pick = a => a[Math.floor(rand()*a.length)];
+const weighted = (items) => { let x=rand(), acc=0; for (const [v,w] of items){acc+=w; if(x<acc) return v;} return items[0][0]; };
 
-/* ----------------------------------------------------------------------
-   1. CAMADA DE DADOS (MOCK)
-   Para integrar com a API real, basta substituir o corpo de cada método
-   por: return fetch(`/api/relatorios/...`).then(r => r.json());
-   A assinatura das funções (async + shape do retorno) já está pronta.
----------------------------------------------------------------------- */
-const MockDB = {
-  months: ['Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez','Jan'],
-  revenue:  [42800, 51200, 47600, 63900, 58400, 71250, 66800, 79400, 84100, 96300, 128500, 71900],
-  received: [41100, 49800, 45200, 60100, 55900, 68300, 62700, 74800, 79600, 88200, 112400, 58300],
-  orders:   [38, 46, 41, 55, 51, 62, 58, 69, 73, 84, 108, 61],
+const CLIENTES = [
+  ['Ana Paula Ribeiro','PF'],['Buffet Estrela do Sul','PJ'],['Carlos Eduardo Lima','PF'],['Doce Encanto Eventos','PJ'],
+  ['Fernanda Martins','PF'],['Igreja Batista Central','PJ'],['João Pedro Souza','PF'],['Luciana Prado','PF'],
+  ['Escola Pequeno Príncipe','PJ'],['Marcos Vinícius Alves','PF'],['Patrícia Gomes','PF'],['Salão Festa Real','PJ'],
+  ['Renata Oliveira','PF'],['Tiago Nogueira','PF'],['Clube Atlético Tupã','PJ'],['Vanessa Cardoso','PF']
+].map(([nome,tipo])=>({nome,tipo}));
 
-  payments: [
-    { label:'Pix',       value: 186400, color:'#059669' },
-    { label:'Cartão',    value: 128900, color:'#2563eb' },
-    { label:'Parcelado', value:  94300, color:'#7c3aed' },
-    { label:'Dinheiro',  value:  52700, color:'#d97706' },
-  ],
+const PRODUTOS = [
+  ['Mesa redonda 8 lugares','Mobiliário',60,45],['Cadeira Tiffany','Mobiliário',300,6],['Toalha branca 3m','Têxtil',90,18],
+  ['Jogo de pratos (12)','Louças',70,35],['Taças de cristal (12)','Louças',50,30],['Painel redondo','Decoração',25,80],
+  ['Arranjo de flores','Decoração',40,55],['Caixa de som 500W','Som e luz',12,150],['Refletor LED','Som e luz',30,40],
+  ['Pula-pula','Brinquedos',6,200],['Piscina de bolinhas','Brinquedos',8,120],['Cama elástica','Brinquedos',5,160],
+  ['Churrasqueira','Equipamentos',10,90],['Freezer horizontal','Equipamentos',14,100],['Tenda 5x5','Estruturas',18,170],['Balões (pacote)','Consumíveis',200,25]
+].map(([nome,categoria,estoque,preco])=>({nome,categoria,estoque,preco,alugados:Math.floor(rand()*estoque*0.7)}));
 
-  orderTypes: [
-    { label:'Aluguel', value: 412, color:'#2563eb' },
-    { label:'Misto',   value: 138, color:'#7c3aed' },
-    { label:'Venda',   value:  96, color:'#059669' },
-  ],
+const BAIRROS = ['Centro','Jardim Aeroporto','Vila Nova','Jardim Primavera','Parque Industrial','Santa Luzia','Cohab'];
+const FORMAS = ['Pix','Cartão','Dinheiro','Boleto'];
+const HOJE = new Date(); HOJE.setHours(0,0,0,0);
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
 
-    products: [
-    { id:'P-001', icon:'fa-solid fa-box', name:'Cadeira Tiffany Branca',      cat:'Mobiliário',   total:400, rented:286, revenue: 48720, uses:186 },
-    { id:'P-002', icon:'fa-solid fa-box', name:'Cadeira Plástica Branca',     cat:'Mobiliário',   total:600, rented:212, revenue: 21400, uses:158 },
-    { id:'P-003', icon:'fa-solid fa-box', name:'Mesa Redonda 1,50m',          cat:'Mobiliário',   total: 90, rented: 74, revenue: 33150, uses:142 },
-    { id:'P-004', icon:'fa-solid fa-box', name:'Tenda Piramidal 5x5',          cat:'Estruturas',   total: 24, rented: 21, revenue: 62800, uses: 88 },
-    { id:'P-005', icon:'fa-solid fa-box', name:'Tenda Chapéu de Bruxa 8x8',    cat:'Estruturas',   total:  8, rented:  7, revenue: 41200, uses: 46 },
-    { id:'P-006', icon:'fa-solid fa-box', name:'Toalha Redonda Cetim',         cat:'Enxoval',      total:180, rented:126, revenue: 15840, uses:131 },
-    { id:'P-007', icon:'fa-solid fa-box', name:'Kit Balões Metalizados',       cat:'Decoração',    total:120, rented: 34, revenue:  8920, uses: 62 },
-    { id:'P-008', icon:'fa-solid fa-box', name:'Iluminação LED Ambiente',      cat:'Iluminação',   total: 60, rented: 52, revenue: 27650, uses: 97 },
-    { id:'P-009', icon:'fa-solid fa-box', name:'Caixa de Som Ativa 15"',       cat:'Som e Vídeo',  total: 16, rented: 14, revenue: 31900, uses: 71 },
-    { id:'P-010', icon:'fa-solid fa-box', name:'Kit Microfone Sem Fio',        cat:'Som e Vídeo',  total: 12, rented: 10, revenue: 12400, uses: 53 },
-    { id:'P-011', icon:'fa-solid fa-box', name:'Taça de Vidro Champagne',      cat:'Utensílios',   total:480, rented:318, revenue: 14200, uses:124 },
-    { id:'P-012', icon:'fa-solid fa-box', name:'Mesa Provençal para Bolo',     cat:'Mobiliário',   total: 14, rented: 12, revenue: 18900, uses: 68 },
-    { id:'P-013', icon:'fa-solid fa-box', name:'Cooler / Refrigerador 300L',   cat:'Utensílios',   total:  6, rented:  5, revenue:  7300, uses: 29 },
-    { id:'P-014', icon:'fa-solid fa-box', name:'Arranjo Floral Provençal',     cat:'Decoração',    total: 40, rented: 33, revenue: 16750, uses: 74 },
-    { id:'P-015', icon:'fa-solid fa-box', name:'Painel Redondo Decorativo',    cat:'Decoração',    total: 10, rented:  9, revenue: 21300, uses: 59 },
-    { id:'P-016', icon:'fa-solid fa-box', name:'Churrasqueira Industrial',     cat:'Utensílios',   total:  5, rented:  4, revenue:  6100, uses: 22 },
-  ],
-
-  clients: [
-    { id:'C-01', name:'Buffet Encanto Festas',   doc:'12.345.678/0001-90', orders: 42, spent: 148900, last:'2026-07-28', type:'PJ' },
-    { id:'C-02', name:'Espaço Villa Real',       doc:'23.456.789/0001-11', orders: 35, spent: 121350, last:'2026-07-26', type:'PJ' },
-    { id:'C-03', name:'Mariana Albuquerque',     doc:'123.456.789-00',     orders: 18, spent:  46800, last:'2026-07-29', type:'PF' },
-    { id:'C-04', name:'Chácara Recanto Azul',    doc:'34.567.890/0001-22', orders: 27, spent:  93400, last:'2026-07-21', type:'PJ' },
-    { id:'C-05', name:'Ricardo Menezes',         doc:'234.567.890-11',     orders: 12, spent:  31250, last:'2026-07-18', type:'PF' },
-    { id:'C-06', name:'Colégio Novo Saber',      doc:'45.678.901/0001-33', orders: 15, spent:  58200, last:'2026-07-15', type:'PJ' },
-    { id:'C-07', name:'Juliana Prado Eventos',   doc:'56.789.012/0001-44', orders: 22, spent:  74600, last:'2026-07-27', type:'PJ' },
-    { id:'C-08', name:'Fernando Castro',         doc:'345.678.901-22',     orders:  8, spent:  19700, last:'2026-07-09', type:'PF' },
-    { id:'C-09', name:'Associação Bairro Sul',   doc:'67.890.123/0001-55', orders: 10, spent:  26400, last:'2026-07-05', type:'PJ' },
-    { id:'C-10', name:'Patrícia Fontes',         doc:'456.789.012-33',     orders:  6, spent:  14200, last:'2026-06-30', type:'PF' },
-  ],
-
-  finance: [
-    { id:'PED-2841', date:'2026-07-29', client:'Mariana Albuquerque',   type:'Aluguel', total: 4850,  paid: 4850,  payment:'Pix',       items:'Cadeiras Tiffany, Mesas Redondas, Toalhas' },
-    { id:'PED-2840', date:'2026-07-28', client:'Buffet Encanto Festas', type:'Misto',   total: 12400, paid: 6200,  payment:'Parcelado', items:'Tenda 8x8, Iluminação LED, Taças' },
-    { id:'PED-2839', date:'2026-07-27', client:'Juliana Prado Eventos', type:'Aluguel', total: 8300,  paid: 8300,  payment:'Cartão',    items:'Painel Redondo, Arranjos, Mesa Provençal' },
-    { id:'PED-2838', date:'2026-07-26', client:'Espaço Villa Real',     type:'Aluguel', total: 15600, paid: 9000,  payment:'Pix',       items:'Tendas Piramidais, Cadeiras Plásticas' },
-    { id:'PED-2837', date:'2026-07-24', client:'Chácara Recanto Azul',  type:'Misto',   total: 9750,  paid: 0,     payment:'Parcelado', items:'Som, Microfones, Iluminação' },
-    { id:'PED-2836', date:'2026-07-23', client:'Ricardo Menezes',       type:'Venda',   total: 2380,  paid: 2380,  payment:'Dinheiro',  items:'Kit Balões, Arranjos Florais' },
-    { id:'PED-2835', date:'2026-07-21', client:'Colégio Novo Saber',    type:'Aluguel', total: 11200, paid: 5600,  payment:'Cartão',    items:'Tendas, Cadeiras, Som' },
-    { id:'PED-2834', date:'2026-07-19', client:'Fernando Castro',       type:'Aluguel', total: 3100,  paid: 0,     payment:'Pix',       items:'Mesas, Toalhas, Taças' },
-    { id:'PED-2833', date:'2026-07-18', client:'Buffet Encanto Festas', type:'Aluguel', total: 18900, paid: 18900, payment:'Pix',       items:'Pacote completo 300 convidados' },
-    { id:'PED-2832', date:'2026-07-16', client:'Associação Bairro Sul', type:'Misto',   total: 5400,  paid: 2700,  payment:'Dinheiro',  items:'Tenda 5x5, Cadeiras, Churrasqueira' },
-    { id:'PED-2831', date:'2026-07-14', client:'Espaço Villa Real',     type:'Aluguel', total: 13750, paid: 13750, payment:'Cartão',    items:'Mobiliário completo + Iluminação' },
-    { id:'PED-2830', date:'2026-07-12', client:'Patrícia Fontes',       type:'Venda',   total: 1890,  paid: 1890,  payment:'Pix',       items:'Kit decoração infantil' },
-    { id:'PED-2829', date:'2026-07-10', client:'Juliana Prado Eventos', type:'Misto',   total: 7650,  paid: 3800,  payment:'Parcelado', items:'Painéis, Arranjos, Taças' },
-    { id:'PED-2828', date:'2026-07-08', client:'Chácara Recanto Azul',  type:'Aluguel', total: 16200, paid: 16200, payment:'Pix',       items:'Tendas + Mobiliário + Som' },
-    { id:'PED-2827', date:'2026-07-05', client:'Mariana Albuquerque',   type:'Aluguel', total: 4200,  paid: 2100,  payment:'Cartão',    items:'Mesa Provençal, Cadeiras Tiffany' },
-    { id:'PED-2826', date:'2026-07-03', client:'Colégio Novo Saber',    type:'Aluguel', total: 9900,  paid: 0,     payment:'Parcelado', items:'Tendas + Som para formatura' },
-    { id:'PED-2825', date:'2026-07-01', client:'Ricardo Menezes',       type:'Aluguel', total: 5300,  paid: 5300,  payment:'Dinheiro',  items:'Cadeiras, Mesas, Toalhas' },
-    { id:'PED-2824', date:'2026-06-28', client:'Buffet Encanto Festas', type:'Aluguel', total: 21400, paid: 21400, payment:'Pix',       items:'Casamento 400 convidados' },
-  ],
-
-  deliveries: { done: 142, pending: 23, pickupPending: 17, late: 6, scheduled: 188 },
-
-  summary: {
-    revenue: 462300, received: 381900, pending: 80400, avgTicket: 8942,
-    orders: 646, inProgress: 38, finished: 592, quotes: 87,
-    clients: 284, newClients: 26, recurring: 143,
-    productsTotal: 2065, productsRented: 1183, productsAvailable: 882, lowStock: 5,
-  },
-};
-
-/** Camada de acesso — trocar por chamadas HTTP mantendo o mesmo retorno. */
-const API = {
-  async getReport(filters) {
-    // return fetch('/api/relatorios?' + new URLSearchParams(filters)).then(r => r.json());
-    await new Promise(r => setTimeout(r, 60));       // latência simulada
-    return JSON.parse(JSON.stringify(MockDB));       // cópia imutável
-  },
-  async exportReport(format, filters) {
-    // return fetch('/api/relatorios/export', {method:'POST', body: JSON.stringify({format, filters})});
-    await new Promise(r => setTimeout(r, 900));
-    return { ok:true, file:`relatorio-servefesta-${format}.${format}` };
-  },
-};
-
-/* ----------------------------------------------------------------------
-   2. UTILITÁRIOS
----------------------------------------------------------------------- */
-const BRL = new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits:0 });
-const BRL2 = new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' });
-const NUM = new Intl.NumberFormat('pt-BR');
-const money  = v => BRL.format(v || 0);
-const money2 = v => BRL2.format(v || 0);
-const num    = v => NUM.format(v || 0);
-const pct    = (a,b) => b ? Math.round((a/b)*100) : 0;
-const $  = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fmtDate = iso => { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
-const daysAgo = iso => Math.round((Date.now() - new Date(iso+'T12:00:00')) / 86400000);
-const el = (tag, attrs={}) => {
-  const n = document.createElementNS('http://www.w3.org/2000/svg', tag);
-  for (const k in attrs) n.setAttribute(k, attrs[k]);
-  return n;
-};
-function toast(msg) {
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.innerHTML = msg;
-  $('#toasts').appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; t.style.transition = '.3s'; }, 2600);
-  setTimeout(() => t.remove(), 3000);
-}
-
-/* ----------------------------------------------------------------------
-   3. GRÁFICOS (SVG puro, sem dependências)
----------------------------------------------------------------------- */
-const Charts = {
-  /** Linha dupla com área — faturamento x recebido */
-  line(mount, labels, series) {
-    const W = 640, H = 250, P = { t:16, r:14, b:26, l:52 };
-    const iw = W - P.l - P.r, ih = H - P.t - P.b;
-    const max = Math.max(...series.flatMap(s => s.data)) * 1.12;
-    const x = i => P.l + (iw * i) / (labels.length - 1);
-    const y = v => P.t + ih - (v / max) * ih;
-
-    const svg = el('svg', { viewBox:`0 0 ${W} ${H}`, role:'img' });
-
-    // grid + eixo Y
-    for (let g = 0; g <= 4; g++) {
-      const gy = P.t + (ih * g) / 4;
-      svg.appendChild(el('line', { x1:P.l, x2:W-P.r, y1:gy, y2:gy, class:'g-axis' }));
-      const lbl = el('text', { x:P.l-10, y:gy+4, class:'g-lbl', 'text-anchor':'end' });
-      lbl.textContent = money(Math.round((max * (4-g)) / 4 / 1000) * 1000).replace('R$', '').trim();
-      svg.appendChild(lbl);
-    }
-    // eixo X
-    labels.forEach((l, i) => {
-      const t = el('text', { x:x(i), y:H-6, class:'g-lbl', 'text-anchor':'middle' });
-      t.textContent = l; svg.appendChild(t);
-    });
-
-    series.forEach((s, si) => {
-      const path = s.data.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-      if (si === 0) {
-        const gid = 'grad-line';
-        const defs = el('defs');
-        const lg = el('linearGradient', { id:gid, x1:0, y1:0, x2:0, y2:1 });
-        lg.appendChild(el('stop', { offset:'0%',   'stop-color':s.color, 'stop-opacity':'.22' }));
-        lg.appendChild(el('stop', { offset:'100%', 'stop-color':s.color, 'stop-opacity':'0' }));
-        defs.appendChild(lg); svg.appendChild(defs);
-        svg.appendChild(el('path', { d:`${path} L${x(s.data.length-1)},${P.t+ih} L${P.l},${P.t+ih} Z`, fill:`url(#${gid})` }));
-      }
-      svg.appendChild(el('path', {
-        d:path, fill:'none', stroke:s.color, 'stroke-width':2.6,
-        'stroke-linejoin':'round', 'stroke-linecap':'round',
-        'stroke-dasharray': s.dashed ? '5 4' : 'none'
-      }));
-      s.data.forEach((v, i) => {
-        const c = el('circle', { cx:x(i), cy:y(v), r:3.4, fill:'#fff', stroke:s.color, 'stroke-width':2.2 });
-        const ttl = el('title'); ttl.textContent = `${labels[i]} · ${s.name}: ${money2(v)}`;
-        c.appendChild(ttl); svg.appendChild(c);
-      });
-    });
-    mount.innerHTML = ''; mount.appendChild(svg);
-  },
-
-  /** Barras verticais — pedidos por período */
-  bars(mount, labels, data, color) {
-    const W = 520, H = 250, P = { t:22, r:10, b:26, l:40 };
-    const iw = W - P.l - P.r, ih = H - P.t - P.b;
-    const max = Math.max(...data) * 1.18;
-    const step = iw / data.length, bw = Math.min(28, step * 0.56);
-    const svg = el('svg', { viewBox:`0 0 ${W} ${H}` });
-
-    for (let g = 0; g <= 4; g++) {
-      const gy = P.t + (ih * g) / 4;
-      svg.appendChild(el('line', { x1:P.l, x2:W-P.r, y1:gy, y2:gy, class:'g-axis' }));
-      const lbl = el('text', { x:P.l-9, y:gy+4, class:'g-lbl', 'text-anchor':'end' });
-      lbl.textContent = Math.round((max * (4-g)) / 4); svg.appendChild(lbl);
-    }
-    data.forEach((v, i) => {
-      const h = (v / max) * ih;
-      const bx = P.l + step * i + (step - bw) / 2;
-      const by = P.t + ih - h;
-      const r = el('rect', { x:bx, y:by, width:bw, height:Math.max(h,2), rx:5, fill:color, opacity: i === data.length-1 ? 1 : .82 });
-      const ttl = el('title'); ttl.textContent = `${labels[i]}: ${v} pedidos`;
-      r.appendChild(ttl); svg.appendChild(r);
-      const t = el('text', { x:bx+bw/2, y:by-7, class:'g-val', 'text-anchor':'middle' });
-      t.textContent = v; svg.appendChild(t);
-      const xl = el('text', { x:bx+bw/2, y:H-6, class:'g-lbl', 'text-anchor':'middle' });
-      xl.textContent = labels[i]; svg.appendChild(xl);
-    });
-    mount.innerHTML = ''; mount.appendChild(svg);
-  },
-
-  /** Donut / pizza */
-  donut(mount, legendMount, data, unitFmt) {
-    const S = 220, R = 92, r = 56, C = S / 2;
-    const total = data.reduce((a, d) => a + d.value, 0);
-    const svg = el('svg', { viewBox:`0 0 ${S} ${S}`, style:'max-width:230px;margin:0 auto' });
-    let ang = -Math.PI / 2;
-
-    data.forEach(d => {
-      const slice = (d.value / total) * Math.PI * 2;
-      const end = ang + slice;
-      const big = slice > Math.PI ? 1 : 0;
-      const p1 = [C + R*Math.cos(ang),  C + R*Math.sin(ang)];
-      const p2 = [C + R*Math.cos(end),  C + R*Math.sin(end)];
-      const p3 = [C + r*Math.cos(end),  C + r*Math.sin(end)];
-      const p4 = [C + r*Math.cos(ang),  C + r*Math.sin(ang)];
-      const path = el('path', {
-        d:`M${p1} A${R},${R} 0 ${big} 1 ${p2} L${p3} A${r},${r} 0 ${big} 0 ${p4} Z`,
-        fill:d.color, stroke:'#fff', 'stroke-width':2
-      });
-      const ttl = el('title'); ttl.textContent = `${d.label}: ${unitFmt(d.value)} (${pct(d.value,total)}%)`;
-      path.appendChild(ttl); svg.appendChild(path);
-      ang = end;
-    });
-
-    const t1 = el('text', { x:C, y:C-2, 'text-anchor':'middle', style:'font-size:20px;font-weight:800;fill:#0f172a' });
-    t1.textContent = unitFmt(total);
-    const t2 = el('text', { x:C, y:C+16, 'text-anchor':'middle', class:'g-lbl' });
-    t2.textContent = 'TOTAL';
-    svg.appendChild(t1); svg.appendChild(t2);
-    mount.innerHTML = ''; mount.appendChild(svg);
-
-    legendMount.innerHTML = data.map(d => `
-      <div><i class="dot" style="background:${d.color}"></i>
-        ${esc(d.label)} · <b style="color:var(--text)">${pct(d.value,total)}%</b></div>`).join('');
-  },
-
-  /** Barras horizontais com ranking */
-  hbars(mount, items) {
-    const max = Math.max(...items.map(i => i.value));
-    mount.innerHTML = items.map((it, i) => `
-      <div class="bar-item">
-        <div class="l">
-          <span><i class="rank ${i === 0 ? 'top' : ''}">${i+1}</i><b>${esc(it.label)}</b></span>
-          <span class="muted">${esc(it.right)}</span>
-        </div>
-        <div class="bar-track"><div class="bar-fill" style="width:${(it.value/max*100).toFixed(1)}%;background:${it.color}"></div></div>
-      </div>`).join('');
-  },
-
-  /** Medidor circular de progresso */
-  gauge(mount, value) {
-    const S = 130, C = S/2, R = 52, SW = 13;
-    const circ = 2 * Math.PI * R;
-    const svg = el('svg', { viewBox:`0 0 ${S} ${S}`, style:`width:${S}px;flex:none` });
-    svg.appendChild(el('circle', { cx:C, cy:C, r:R, fill:'none', stroke:'#f1f5f9', 'stroke-width':SW }));
-    svg.appendChild(el('circle', {
-      cx:C, cy:C, r:R, fill:'none', stroke:'#059669', 'stroke-width':SW, 'stroke-linecap':'round',
-      'stroke-dasharray':`${(circ*value/100).toFixed(1)} ${circ}`, transform:`rotate(-90 ${C} ${C})`
-    }));
-    const t = el('text', { x:C, y:C+6, 'text-anchor':'middle', style:'font-size:22px;font-weight:800;fill:#0f172a' });
-    t.textContent = value + '%';
-    svg.appendChild(t);
-    mount.innerHTML = ''; mount.appendChild(svg);
-  },
-};
-
-/* ----------------------------------------------------------------------
-   4. ESTADO
----------------------------------------------------------------------- */
-const PERIODS = { hoje:'Hoje', '7d':'Últimos 7 dias', '30d':'Últimos 30 dias', mes:'Este mês', custom:'Período personalizado' };
-/** Multiplicadores para simular a variação dos números por período. */
-const PERIOD_FACTOR = { hoje:0.035, '7d':0.24, '30d':1, mes:0.86, custom:0.62 };
-
-const State = {
-  period: '30d',
-  factor: 1,
-  data: null,
-  filters: { dtIni:'', dtFim:'', client:'', product:'', type:'', status:'', payment:'' },
-  fin:  { q:'', status:'', type:'', sort:'date', dir:'desc' },
-  prod: { q:'', cat:'', flag:'', sort:'revenue', dir:'desc' },
-  cli:  { q:'', sort:'spent' },
-};
-
-/* ----------------------------------------------------------------------
-   5. REGRAS DE NEGÓCIO / DERIVAÇÕES
----------------------------------------------------------------------- */
-function scale(v, decimals = 0) {
-  const r = v * State.factor;
-  return decimals ? +r.toFixed(decimals) : Math.round(r);
-}
-function financeRows() {
-  const f = State.fin, adv = State.filters;
-  let rows = State.data.finance.map(o => {
-    const due = o.total - o.paid;
-    let status = 'Pago';
-    if (due > 0 && o.paid > 0) status = 'Parcial';
-    else if (due > 0) status = daysAgo(o.date) > 20 ? 'Atrasado' : 'Pendente';
-    return { ...o, due, status };
+const ORDERS = [];
+for (let i=1;i<=170;i++){
+  const ago = Math.floor(Math.pow(rand(),1.25)*365);
+  const date = addDays(HOJE,-ago);
+  const cli = pick(CLIENTES);
+  const status = weighted([['Concluído',.6],['Em andamento',.18],['Orçamento',.12],['Cancelado',.10]]);
+  const valor = Math.round((160+rand()*2900)/5)*5;
+  const forma = pick(FORMAS);
+  let fin;
+  if (status==='Concluído') fin = rand()<.9?'Pago':'Atrasado';
+  else if (status==='Em andamento') fin = rand()<.5?'Parcial':'Pendente';
+  else if (status==='Cancelado') fin = 'Cancelado';
+  else fin = 'Pendente';
+  if (fin==='Pendente' && ago>25) fin='Atrasado';
+  let ent;
+  if (status==='Concluído') ent='Concluída';
+  else if (status==='Em andamento') ent = rand()<.5?'Agendada':'Em rota';
+  else ent = status==='Cancelado'?'Cancelada':'Aguardando';
+  ORDERS.push({
+    num: 1000+i, date, cliente:cli.nome, cliTipo:cli.tipo,
+    tipo: rand()<.78?'Locação':'Venda', status, valor, forma, fin,
+    entTipo: rand()<.55?'Entrega':'Retirada', bairro: pick(BAIRROS), ent
   });
-  const q = f.q.trim().toLowerCase();
-  rows = rows.filter(r =>
-    (!q || (r.client + r.id + r.type + r.payment).toLowerCase().includes(q)) &&
-    (!f.status || r.status === f.status) &&
-    (!f.type   || r.type === f.type) &&
-    (!adv.client  || r.client === adv.client) &&
-    (!adv.type    || r.type === adv.type) &&
-    (!adv.status  || r.status === adv.status) &&
-    (!adv.payment || r.payment === adv.payment) &&
-    (!adv.dtIni   || r.date >= adv.dtIni) &&
-    (!adv.dtFim   || r.date <= adv.dtFim)
-  );
-  const dir = f.dir === 'asc' ? 1 : -1;
-  rows.sort((a, b) => {
-    const A = a[f.sort], B = b[f.sort];
-    return (typeof A === 'number' ? A - B : String(A).localeCompare(String(B), 'pt-BR')) * dir;
-  });
-  return rows;
 }
-function productRows() {
-  const p = State.prod, adv = State.filters;
-  const topIds = [...State.data.products].sort((a,b) => b.uses - a.uses).slice(0,5).map(x => x.id);
-  let rows = State.data.products.map(x => ({
-    ...x,
-    available: x.total - x.rented,
-    low: (x.total - x.rented) <= Math.max(2, Math.round(x.total * 0.08)),
-    top: topIds.includes(x.id),
-  }));
-  const q = p.q.trim().toLowerCase();
-  rows = rows.filter(r =>
-    (!q || (r.name + r.cat).toLowerCase().includes(q)) &&
-    (!p.cat  || r.cat === p.cat) &&
-    (!p.flag || (p.flag === 'low' ? r.low : r.top)) &&
-    (!adv.product || r.name === adv.product)
-  );
-  const dir = p.dir === 'asc' ? 1 : -1;
-  rows.sort((a, b) => {
-    const A = a[p.sort], B = b[p.sort];
-    return (typeof A === 'number' ? A - B : String(A).localeCompare(String(B), 'pt-BR')) * dir;
-  });
-  return rows;
+ORDERS.sort((a,b)=>b.date-a.date);
+
+/* ============ Utilitários ============ */
+const $ = s => document.querySelector(s);
+const brl = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const brlShort = v => v>=1000 ? 'R$ '+(v/1000).toFixed(1).replace('.',',')+' mil' : brl(v);
+const fdate = d => d.toLocaleDateString('pt-BR');
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const parseIso = s => new Date(s+'T00:00:00');
+const sum = (a,f) => a.reduce((t,x)=>t+f(x),0);
+const COLORS = ['#6d4aff','#ff5c8a','#2f7cf6','#1fa971','#e8a317','#8a6bff','#14b8c6','#e5484d'];
+const BADGE = {'Concluído':'ok','Pago':'ok','Concluída':'ok','Entregue':'ok','Em andamento':'info','Agendada':'info','Em rota':'info','Parcial':'info',
+  'Orçamento':'warn','Pendente':'warn','Aguardando':'warn','Cancelado':'bad','Cancelada':'bad','Atrasado':'bad'};
+const badge = t => `<span class="badge b-${BADGE[t]||'def'}">${t}</span>`;
+const valid = o => o.status==='Concluído'||o.status==='Em andamento';
+const groupCount = (rows,f)=>{const m={};rows.forEach(r=>{const k=f(r);m[k]=(m[k]||0)+1});return Object.entries(m).map(([label,value])=>({label,value}))};
+const groupSum = (rows,f,v)=>{const m={};rows.forEach(r=>{const k=f(r);m[k]=(m[k]||0)+v(r)});return Object.entries(m).map(([label,value])=>({label,value}))};
+
+/* ============ Definição de cada relatório ============ */
+function timeSeries(rows, valueFn, from, to){
+  const days = Math.round((to-from)/864e5)+1;
+  const byDay = days<=45;
+  const m = new Map();
+  if (byDay){ for(let i=0;i<days;i++){const d=addDays(from,i);m.set(iso(d),{label:String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'),value:0});} }
+  else { const c=new Date(from.getFullYear(),from.getMonth(),1);
+    while(c<=to){const k=c.getFullYear()+'-'+(c.getMonth()+1);m.set(k,{label:c.toLocaleDateString('pt-BR',{month:'short'}).replace('.','')+'/'+String(c.getFullYear()).slice(2),value:0});c.setMonth(c.getMonth()+1);} }
+  rows.forEach(r=>{const k=byDay?iso(r.date):r.date.getFullYear()+'-'+(r.date.getMonth()+1);const e=m.get(k);if(e)e.value+=valueFn(r)});
+  return [...m.values()];
 }
-function clientRows() {
-  const c = State.cli, q = c.q.trim().toLowerCase();
-  let rows = State.data.clients.filter(x =>
-    (!q || (x.name + x.doc).toLowerCase().includes(q)) &&
-    (!State.filters.client || x.name === State.filters.client)
-  );
-  rows.sort((a, b) => c.sort === 'last' ? b.last.localeCompare(a.last) : b[c.sort] - a[c.sort]);
+
+const REPORTS = {
+  pedidos:{
+    label:'Pedidos', title:'Pedidos do período', dated:true,
+    statusKey:'status', statuses:['Concluído','Em andamento','Orçamento','Cancelado'], statusLabel:'Status',
+    source:()=>ORDERS,
+    cols:[{k:'num',l:'Nº'},{k:'date',l:'Data',f:fdate},{k:'cliente',l:'Cliente'},{k:'tipo',l:'Tipo'},{k:'status',l:'Status',b:1},{k:'valor',l:'Valor',f:brl,r:1}],
+    kpis:(rows,prev)=>{
+      const v=rows.filter(valid), pv=prev.filter(valid);
+      const fat=sum(v,o=>o.valor), pfat=sum(pv,o=>o.valor);
+      const canc=rows.filter(o=>o.status==='Cancelado').length;
+      return [
+        {l:'Faturamento',v:brl(fat),d:delta(fat,pfat),c:'#6d4aff'},
+        {l:'Pedidos',v:rows.length,d:delta(rows.length,prev.length),c:'#2f7cf6'},
+        {l:'Ticket médio',v:brl(v.length?fat/v.length:0),d:delta(v.length?fat/v.length:0,pv.length?pfat/pv.length:0),c:'#1fa971'},
+        {l:'Cancelamentos',v:canc,d:rows.length?(canc/rows.length*100).toFixed(1).replace('.',',')+'% dos pedidos':'—',c:'#e5484d'}];
+    },
+    charts:(rows,from,to)=>[
+      {type:'bars',title:'Faturamento ao longo do período',data:timeSeries(rows.filter(valid),o=>o.valor,from,to),fmt:brlShort},
+      {type:'donut',title:'Pedidos por status',data:groupCount(rows,o=>o.status)}]
+  },
+  financeiro:{
+    label:'Financeiro', title:'Movimentação financeira', dated:true,
+    statusKey:'fin', statuses:['Pago','Parcial','Pendente','Atrasado','Cancelado'], statusLabel:'Situação',
+    source:()=>ORDERS.filter(o=>o.status!=='Orçamento'),
+    cols:[{k:'num',l:'Pedido'},{k:'date',l:'Data',f:fdate},{k:'cliente',l:'Cliente'},{k:'forma',l:'Forma pgto.'},{k:'fin',l:'Situação',b:1},{k:'valor',l:'Valor',f:brl,r:1}],
+    kpis:(rows,prev)=>{
+      const rec=rows.filter(o=>o.fin==='Pago'), prec=prev.filter(o=>o.fin==='Pago');
+      const pend=rows.filter(o=>o.fin==='Pendente'||o.fin==='Parcial'), atr=rows.filter(o=>o.fin==='Atrasado');
+      return [
+        {l:'Recebido',v:brl(sum(rec,o=>o.valor)),d:delta(sum(rec,o=>o.valor),sum(prec,o=>o.valor)),c:'#1fa971'},
+        {l:'A receber',v:brl(sum(pend,o=>o.valor)),d:pend.length+' lançamentos',c:'#e8a317'},
+        {l:'Em atraso',v:brl(sum(atr,o=>o.valor)),d:atr.length+' lançamentos',c:'#e5484d'},
+        {l:'Inadimplência',v:(rows.length?atr.length/rows.length*100:0).toFixed(1).replace('.',',')+'%',d:'sobre o total de lançamentos',c:'#6d4aff'}];
+    },
+    charts:(rows,from,to)=>[
+      {type:'bars',title:'Recebimentos ao longo do período',data:timeSeries(rows.filter(o=>o.fin==='Pago'),o=>o.valor,from,to),fmt:brlShort},
+      {type:'donut',title:'Valor por forma de pagamento',data:groupSum(rows,o=>o.forma,o=>o.valor),fmt:brlShort}]
+  },
+  entregas:{
+    label:'Entregas', title:'Entregas e retiradas', dated:true,
+    statusKey:'ent', statuses:['Concluída','Agendada','Em rota','Aguardando','Cancelada'], statusLabel:'Situação',
+    source:()=>ORDERS.filter(o=>o.status!=='Orçamento'),
+    cols:[{k:'num',l:'Pedido'},{k:'date',l:'Data',f:fdate},{k:'cliente',l:'Cliente'},{k:'bairro',l:'Bairro'},{k:'entTipo',l:'Operação'},{k:'ent',l:'Situação',b:1}],
+    kpis:(rows,prev)=>{
+      const ok=rows.filter(o=>o.ent==='Concluída'), ag=rows.filter(o=>o.ent==='Agendada'||o.ent==='Em rota');
+      return [
+        {l:'Total de operações',v:rows.length,d:delta(rows.length,prev.length),c:'#6d4aff'},
+        {l:'Concluídas',v:ok.length,d:(rows.length?ok.length/rows.length*100:0).toFixed(0)+'% do total',c:'#1fa971'},
+        {l:'Em andamento',v:ag.length,d:'agendadas ou em rota',c:'#2f7cf6'},
+        {l:'Entregas / Retiradas',v:rows.filter(o=>o.entTipo==='Entrega').length+' / '+rows.filter(o=>o.entTipo==='Retirada').length,d:'no período',c:'#e8a317'}];
+    },
+    charts:(rows)=>[
+      {type:'hbars',title:'Operações por bairro',data:groupCount(rows,o=>o.bairro).sort((a,b)=>b.value-a.value)},
+      {type:'donut',title:'Situação das operações',data:groupCount(rows,o=>o.ent)}]
+  },
+  clientes:{
+    label:'Clientes', title:'Ranking de clientes', dated:true,
+    statusKey:null,
+    source:(from,to)=>{
+      const m={};
+      ORDERS.filter(o=>valid(o)&&o.date>=from&&o.date<=to).forEach(o=>{
+        const c=m[o.cliente]||(m[o.cliente]={cliente:o.cliente,tipo:o.cliTipo,pedidos:0,total:0,date:o.date});
+        c.pedidos++;c.total+=o.valor;if(o.date>c.date)c.date=o.date;});
+      return Object.values(m).sort((a,b)=>b.total-a.total);
+    },
+    prebuilt:true,
+    cols:[{k:'cliente',l:'Cliente'},{k:'tipo',l:'Tipo'},{k:'pedidos',l:'Pedidos',r:1},{k:'total',l:'Total gasto',f:brl,r:1},{k:'date',l:'Último pedido',f:fdate}],
+    kpis:(rows)=>{
+      const t=sum(rows,c=>c.total);
+      return [
+        {l:'Clientes ativos',v:rows.length,d:'com pedidos no período',c:'#6d4aff'},
+        {l:'Receita total',v:brl(t),d:'de clientes ativos',c:'#1fa971'},
+        {l:'Média por cliente',v:brl(rows.length?t/rows.length:0),d:'no período',c:'#2f7cf6'},
+        {l:'Cliente destaque',v:rows[0]?rows[0].cliente.split(' ').slice(0,2).join(' '):'—',d:rows[0]?brl(rows[0].total):'',c:'#ff5c8a'}];
+    },
+    charts:(rows)=>[
+      {type:'hbars',title:'Top 8 clientes por valor',data:rows.slice(0,8).map(c=>({label:c.cliente,value:c.total})),fmt:brl},
+      {type:'donut',title:'Pessoa física x jurídica',data:groupCount(rows,c=>c.tipo==='PF'?'Pessoa física':'Pessoa jurídica')}]
+  },
+  estoque:{
+    label:'Estoque', title:'Posição de estoque', dated:false,
+    statusKey:'situacao', statuses:['Disponível','Estoque baixo','Esgotado'], statusLabel:'Situação',
+    source:()=>PRODUTOS.map(p=>{const disp=p.estoque-p.alugados;const pct=disp/p.estoque;
+      return {...p,disp,situacao:disp===0?'Esgotado':pct<.3?'Estoque baixo':'Disponível'}}),
+    cols:[{k:'nome',l:'Produto'},{k:'categoria',l:'Categoria'},{k:'estoque',l:'Total',r:1},{k:'alugados',l:'Alugados',r:1},{k:'disp',l:'Disponível',r:1},{k:'preco',l:'Locação (diária)',f:brl,r:1},{k:'situacao',l:'Situação',b:1}],
+    kpis:(rows)=>{
+      const tot=sum(rows,p=>p.estoque), al=sum(rows,p=>p.alugados);
+      return [
+        {l:'Itens cadastrados',v:rows.length,d:tot+' unidades no total',c:'#6d4aff'},
+        {l:'Unidades alugadas',v:al,d:(tot?al/tot*100:0).toFixed(0)+'% do estoque',c:'#2f7cf6'},
+        {l:'Estoque baixo',v:rows.filter(p=>p.situacao==='Estoque baixo').length,d:'abaixo de 30% disponível',c:'#e8a317'},
+        {l:'Valor em estoque',v:brl(sum(rows,p=>p.estoque*p.preco)),d:'diária × unidades',c:'#1fa971'}];
+    },
+    charts:(rows)=>[
+      {type:'hbars',title:'Itens mais alugados agora',data:[...rows].sort((a,b)=>b.alugados-a.alugados).slice(0,8).map(p=>({label:p.nome,value:p.alugados}))},
+      {type:'donut',title:'Unidades por categoria',data:groupSum(rows,p=>p.categoria,p=>p.estoque)}]
+  }
+};
+
+function delta(cur,prev){
+  if(!prev) return 'sem período anterior';
+  const p=(cur-prev)/prev*100;
+  return `<span class="${p>=0?'up':'down'}">${p>=0?'▲':'▼'} ${Math.abs(p).toFixed(1).replace('.',',')}%</span> vs. período anterior`;
+}
+
+/* ============ Estado e renderização ============ */
+const state={tab:'pedidos',from:addDays(HOJE,-89),to:HOJE,status:'',q:'',sort:null,dir:1,page:1,size:10,chip:90};
+let currentRows=[], currentDef=null;
+
+function setRange(days){
+  state.to=HOJE; state.from=days==='mes'?new Date(HOJE.getFullYear(),HOJE.getMonth(),1):addDays(HOJE,-(days-1));
+  state.chip=days; syncInputs(); state.page=1; render();
+}
+function syncInputs(){
+  $('#from').value=iso(state.from); $('#to').value=iso(state.to);
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',String(c.dataset.d)===String(state.chip)));
+}
+
+function buildStatic(){
+  $('#tabs').innerHTML=Object.entries(REPORTS).map(([k,r])=>`<button class="tab" data-k="${k}">${r.label}</button>`).join('');
+  $('#chips').innerHTML=[[7,'7 dias'],[30,'30 dias'],['mes','Este mês'],[90,'90 dias'],[365,'12 meses']]
+    .map(([d,l])=>`<button class="chip" data-d="${d}">${l}</button>`).join('');
+  $('#tabs').onclick=e=>{const b=e.target.closest('.tab');if(!b)return;state.tab=b.dataset.k;state.status='';state.sort=null;state.page=1;render();};
+  $('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const d=b.dataset.d;setRange(d==='mes'?'mes':+d);};
+  $('#from').onchange=e=>{state.from=parseIso(e.target.value);state.chip=null;state.page=1;syncInputs();render();};
+  $('#to').onchange=e=>{state.to=parseIso(e.target.value);state.chip=null;state.page=1;syncInputs();render();};
+  $('#status').onchange=e=>{state.status=e.target.value;state.page=1;render();};
+  $('#q').oninput=e=>{state.q=e.target.value.trim().toLowerCase();state.page=1;render();};
+  $('#thead').onclick=e=>{const th=e.target.closest('th');if(!th)return;const k=th.dataset.k;
+    if(state.sort===k)state.dir*=-1;else{state.sort=k;state.dir=1;} render();};
+  $('#prev').onclick=()=>{state.page--;render();};
+  $('#next').onclick=()=>{state.page++;render();};
+  $('#btnCsv').onclick=exportCsv;
+  $('#btnPrint').onclick=()=>window.print();
+  $('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');
+}
+
+function rowsFor(def,from,to){
+  let rows=def.source(from,to);
+  if(def.dated&&!def.prebuilt) rows=rows.filter(o=>o.date>=from&&o.date<=to);
   return rows;
 }
 
-/* ----------------------------------------------------------------------
-   6. RENDERIZAÇÃO
----------------------------------------------------------------------- */
-function kpiCard(k) {
-  return `
-  <article class="kpi ${k.tint ? 'tint-' + k.tint : ''}">
-    <div class="top">
-      <div class="label">${esc(k.label)}</div>
-      <div class="ico ${k.color}">${k.icon}</div>
-    </div>
-    <div class="value">${k.value}</div>
-    <div class="sub">${k.trend !== undefined
-      ? `<span class="trend ${k.trend >= 0 ? 'up' : 'down'}">${k.trend >= 0 ? '▲' : '▼'} ${Math.abs(k.trend)}%</span>` : ''}
-      <span>${esc(k.sub)}</span></div>
-  </article>`;
+function render(){
+  const def=REPORTS[state.tab]; currentDef=def;
+  if(state.from>state.to){const t=state.from;state.from=state.to;state.to=t;syncInputs();}
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.k===state.tab));
+
+  // Filtros
+  const st=$('#status');
+  if(def.statusKey){
+    st.disabled=false; $('#statusLabel').textContent=def.statusLabel;
+    st.innerHTML='<option value="">Todos</option>'+def.statuses.map(s=>`<option ${s===state.status?'selected':''}>${s}</option>`).join('');
+  } else { st.disabled=true; st.innerHTML='<option>—</option>'; }
+  const dateInputs=[$('#from'),$('#to')]; dateInputs.forEach(i=>i.disabled=!def.dated);
+  document.querySelectorAll('.chip').forEach(c=>c.disabled=!def.dated);
+  const note=$('#note'); note.style.display=def.dated?'none':'block';
+  note.textContent='Este relatório mostra a posição atual do estoque e não depende do período selecionado.';
+
+  // Dados
+  const span=Math.round((state.to-state.from)/864e5)+1;
+  const prevTo=addDays(state.from,-1), prevFrom=addDays(prevTo,-(span-1));
+  const base=rowsFor(def,state.from,state.to);
+  const prevRows=def.dated?rowsFor(def,prevFrom,prevTo):[];
+  let rows=base;
+  if(def.statusKey&&state.status) rows=rows.filter(r=>r[def.statusKey]===state.status);
+  if(state.q) rows=rows.filter(r=>def.cols.some(c=>String(c.f?c.f(r[c.k]):r[c.k]).toLowerCase().includes(state.q))||String(r.num||'').includes(state.q));
+  currentRows=rows;
+
+  $('#subtitle').textContent=def.dated?`${def.label} · ${fdate(state.from)} a ${fdate(state.to)}`:`${def.label} · posição atual`;
+  $('#printHead').textContent=`Fest — Relatório de ${def.label} · gerado em ${new Date().toLocaleString('pt-BR')}`;
+
+  // KPIs
+  $('#kpis').innerHTML=def.kpis(rows,prevRows).map(k=>`<div class="kpi" style="--c:${k.c}"><div class="l">${k.l}</div><div class="v">${k.v}</div><div class="d">${k.d}</div></div>`).join('');
+
+  // Gráficos
+  const ch=def.charts(rows,state.from,state.to);
+  $('#charts').innerHTML=ch.map(c=>`<div class="card"><h3>${c.title}</h3>${chartHtml(c)}</div>`).join('');
+
+  // Tabela
+  const sorted=[...rows];
+  if(state.sort){const k=state.sort;sorted.sort((a,b)=>{const x=a[k],y=b[k];return (x>y?1:x<y?-1:0)*state.dir;});}
+  const pages=Math.max(1,Math.ceil(sorted.length/state.size)); state.page=Math.min(state.page,pages);
+  const slice=sorted.slice((state.page-1)*state.size,state.page*state.size);
+  $('#tableTitle').textContent=def.title;
+  $('#count').textContent=`${rows.length} registro${rows.length===1?'':'s'}`;
+  $('#thead').innerHTML='<tr>'+def.cols.map(c=>`<th data-k="${c.k}" class="${c.r?'r':''}">${c.l}<span class="ar">${state.sort===c.k?(state.dir>0?'▲':'▼'):'↕'}</span></th>`).join('')+'</tr>';
+  $('#tbody').innerHTML=slice.length?slice.map(r=>'<tr>'+def.cols.map(c=>{
+    const raw=r[c.k], txt=c.f?c.f(raw):raw;
+    return `<td class="${c.r?'r':''}">${c.b?badge(txt):txt}</td>`;}).join('')+'</tr>').join('')
+    :`<tr><td colspan="${def.cols.length}" class="empty">Nenhum registro encontrado para os filtros selecionados.</td></tr>`;
+  $('#pageInfo').textContent=`Página ${state.page} de ${pages}`;
+  $('#prev').disabled=state.page<=1; $('#next').disabled=state.page>=pages;
 }
 
-function renderKPIs() {
-  const s = State.data.summary;
-  $('#kpiFin').innerHTML = [
-    { label:'Faturamento total', icon:'<i class="fa-solid fa-money-bill-wave"></i>', color:'green', tint:'green', value:money(scale(s.revenue)),   sub:'vs. período anterior', trend:14.2 },
-    { label:'Valor recebido',    icon:'<i class="fa-solid fa-circle-check"></i>', color:'blue',  value:money(scale(s.received)),  sub:`${pct(s.received,s.revenue)}% do faturado`, trend:9.6 },
-    { label:'Valores pendentes', icon:'<i class="fa-solid fa-hourglass-half"></i>', color:'amber', tint:'amber', value:money(scale(s.pending)),   sub:'a receber de 24 pedidos', trend:-4.1 },
-    { label:'Ticket médio',      icon:'<i class="fa-solid fa-bullseye"></i>', color:'purple',value:money(s.avgTicket),        sub:'média por pedido fechado', trend:6.8 },
-  ].map(kpiCard).join('');
-
-  $('#kpiPed').innerHTML = [
-    { label:'Total de pedidos',    icon:'<i class="fa-solid fa-receipt"></i>', color:'slate', value:num(scale(s.orders)),      sub:'no período selecionado', trend:11.5 },
-    { label:'Em andamento',        icon:'fa-solid fa-rotate', color:'blue',  tint:'blue', value:num(scale(s.inProgress)),  sub:'aguardando entrega ou retorno' },
-    { label:'Finalizados',         icon:'<i class="fa-solid fa-flag-checkered"></i>', color:'green', value:num(scale(s.finished)),    sub:`${pct(s.finished,s.orders)}% de conclusão`, trend:8.3 },
-    { label:'Orçamentos gerados',  icon:'<i class="fa-solid fa-file-lines"></i>', color:'orange',value:num(scale(s.quotes)),      sub:'32% convertidos em pedido', trend:-2.4 },
-  ].map(kpiCard).join('');
-
-  $('#kpiCli').innerHTML = [
-    { label:'Total de clientes',   icon:'<i class="fa-solid fa-users"></i>', color:'slate', value:num(s.clients),            sub:'base cadastrada' },
-    { label:'Novos no período',    icon:'<i class="fa-solid fa-sparkles"></i>', color:'purple',value:num(scale(s.newClients)),  sub:'primeiro pedido registrado', trend:18.9 },
-    { label:'Clientes recorrentes',icon:'<i class="fa-solid fa-repeat"></i>', color:'green', tint:'green', value:num(s.recurring), sub:`${pct(s.recurring,s.clients)}% da base ativa`, trend:5.2 },
-    { label:'Inativos há 90 dias', icon:'<i class="fa-solid fa-moon"></i>', color:'amber', value:num(41),                   sub:'oportunidade de reativação' },
-  ].map(kpiCard).join('');
-
-  $('#kpiEst').innerHTML = [
-    { label:'Produtos em catálogo',   icon:'fa-solid fa-box', color:'slate', value:num(s.productsTotal),     sub:`${State.data.products.length} itens distintos` },
-    { label:'Alugados atualmente',    icon:'fa-solid fa-truck', color:'blue',  tint:'blue', value:num(s.productsRented), sub:`${pct(s.productsRented,s.productsTotal)}% do estoque em uso` },
-    { label:'Disponíveis',            icon:'<i class="fa-solid fa-circle-check"></i>', color:'green', value:num(s.productsAvailable), sub:'prontos para locação' },
-    { label:'Com estoque baixo',      icon:'<i class="fa-solid fa-triangle-exclamation"></i>', color:'red',   tint:'red', value:num(productRows().filter(p => p.low).length), sub:'abaixo do mínimo operacional' },
-  ].map(kpiCard).join('');
+function chartHtml(c){
+  const data=c.data, fmt=c.fmt||(v=>v);
+  if(!data.length||data.every(d=>!d.value)) return '<div class="empty">Sem dados para o período.</div>';
+  if(c.type==='bars'){
+    const max=Math.max(...data.map(d=>d.value))||1, step=Math.ceil(data.length/10);
+    return '<div class="bars">'+data.map((d,i)=>`<div class="bar"><div style="height:${d.value/max*100}%" title="${d.label}: ${fmt(d.value)}"></div><small>${i%step===0?d.label:''}</small></div>`).join('')+'</div>';
+  }
+  if(c.type==='donut'){
+    const total=sum(data,d=>d.value); let acc=0;
+    const grad=data.map((d,i)=>{const s=acc/total*100;acc+=d.value;return `${COLORS[i%COLORS.length]} ${s}% ${acc/total*100}%`}).join(',');
+    return `<div class="donut-wrap"><div class="donut" style="background:conic-gradient(${grad})" data-total="${c.fmt?fmt(total):total}"></div>
+      <div class="legend">${data.map((d,i)=>`<div><i style="background:${COLORS[i%COLORS.length]}"></i>${d.label}<b>${c.fmt?fmt(d.value):d.value}</b></div>`).join('')}</div></div>`;
+  }
+  const max=Math.max(...data.map(d=>d.value))||1;
+  return '<div class="hbars">'+data.map(d=>`<div class="hbar"><div class="t"><span>${d.label}</span><b>${fmt(d.value)}</b></div><div class="tr"><div style="width:${d.value/max*100}%"></div></div></div>`).join('')+'</div>';
 }
 
-function renderCharts() {
-  const d = State.data;
-  const cut = State.period === 'hoje' ? 6 : State.period === '7d' ? 8 : 12;
-  const labels = d.months.slice(-cut);
-  const rev = d.revenue.slice(-cut), rec = d.received.slice(-cut), ord = d.orders.slice(-cut);
-
-  Charts.line($('#chartRevenue'), labels, [
-    { name:'Faturado', data:rev, color:'#2563eb' },
-    { name:'Recebido', data:rec, color:'#059669', dashed:true },
-  ]);
-  $('#revSummary').textContent = `Acumulado ${money(rev.reduce((a,b)=>a+b,0))}`;
-
-  Charts.bars($('#chartOrders'), labels, ord, '#7c3aed');
-  $('#ordSummary').textContent = `${num(ord.reduce((a,b)=>a+b,0))} pedidos`;
-
-  const tops = [...d.products].sort((a,b) => b.uses - a.uses).slice(0,7);
-  const colors = ['#2563eb','#059669','#7c3aed','#d97706','#db2777','#0891b2','#64748b'];
-  Charts.hbars($('#chartTopProducts'), tops.map((p,i) => ({
-    label:`${p.icon} ${p.name}`, value:p.uses, right:`${p.uses}x · ${money(p.revenue)}`, color:colors[i]
-  })));
-
-  Charts.donut($('#chartPayments'), $('#legendPayments'), d.payments, money);
-  Charts.donut($('#chartTypes'),    $('#legendTypes'),    d.orderTypes, num);
-
-  const topC = [...d.clients].sort((a,b) => b.orders - a.orders).slice(0,6);
-  Charts.hbars($('#chartTopClients'), topC.map((c,i) => ({
-    label:c.name, value:c.orders, right:`${c.orders}x · ${money(c.spent)}`, color:colors[i]
-  })));
+function exportCsv(){
+  const def=currentDef;
+  const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const lines=[def.cols.map(c=>esc(c.l)).join(';')];
+  currentRows.forEach(r=>lines.push(def.cols.map(c=>esc(c.f?c.f(r[c.k]):r[c.k])).join(';')));
+  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`relatorio-${state.tab}-${iso(HOJE)}.csv`; a.click(); URL.revokeObjectURL(a.href);
 }
 
-function renderFinance() {
-  const rows = financeRows();
-  const tone = { Pago:'t-green', Parcial:'t-amber', Pendente:'t-blue', Atrasado:'t-red' };
-  $('#finBody').innerHTML = rows.length ? rows.map(r => `
-    <tr data-id="${r.id}">
-      <td><div class="strong">${fmtDate(r.date)}</div><div class="code">${r.id}</div></td>
-      <td class="strong">${esc(r.client)}</td>
-      <td><span class="tag ${r.type === 'Aluguel' ? 't-blue' : r.type === 'Venda' ? 't-green' : 't-purple'}">${r.type}</span></td>
-      <td class="num strong">${money2(r.total)}</td>
-      <td class="num green-t">${money2(r.paid)}</td>
-      <td class="num ${r.due > 0 ? 'red-t' : 'muted'}">${money2(r.due)}</td>
-      <td><span class="tag ${tone[r.status]}">${r.status}</span></td>
-    </tr>`).join('')
-    : `<tr><td colspan="7" class="empty">Nenhuma movimentação encontrada com os filtros atuais.</td></tr>`;
-
-  const t  = rows.reduce((a,r) => a + r.total, 0);
-  const p  = rows.reduce((a,r) => a + r.paid,  0);
-  $('#finCount').textContent  = `${rows.length} registro(s)`;
-  $('#finTotals').innerHTML   = `Total ${money2(t)} · <span class="green-t">Pago ${money2(p)}</span> · <span class="red-t">Pendente ${money2(t-p)}</span>`;
-}
-
-function renderProducts() {
-  const rows = productRows();
-  $('#prodBody').innerHTML = rows.length ? rows.map(r => `
-    <tr class="${r.low ? 'row-low' : ''}" data-id="${r.id}">
-      <td>
-        <div class="cellflex">
-          <div class="thumb">${r.icon}</div>
-          <div><b>${esc(r.name)} ${r.top ? '<span class="tag t-purple" style="margin-left:4px"><i class="fa-solid fa-fire"></i> Top</span>' : ''}</b>
-          <small class="code">${r.id} · ${r.uses} locações</small></div>
-        </div>
-      </td>
-      <td><span class="tag t-slate">${esc(r.cat)}</span></td>
-      <td class="num">${num(r.total)}</td>
-      <td class="num ${r.low ? 'amber-t' : ''}">${num(r.available)} ${r.low ? '<i class="fa-solid fa-triangle-exclamation"></i>' : ''}</td>
-      <td class="num strong">${num(r.rented)}</td>
-      <td class="num green-t">${money2(r.revenue)}</td>
-    </tr>`).join('')
-    : `<tr><td colspan="6" class="empty">Nenhum produto encontrado.</td></tr>`;
-  $('#prodCount').textContent = `${rows.length} produto(s) · ${rows.filter(r => r.low).length} com estoque baixo`;
-}
-
-function renderClients() {
-  const rows = clientRows();
-  $('#cliBody').innerHTML = rows.length ? rows.map((c, i) => `
-    <tr data-id="${c.id}">
-      <td>
-        <div class="cellflex">
-          <i class="rank ${i === 0 ? 'top' : ''}">${i+1}</i>
-          <div><b>${esc(c.name)}</b><small class="code">${c.doc} · ${c.type}</small></div>
-        </div>
-      </td>
-      <td class="num strong">${c.orders}</td>
-      <td class="num green-t">${money2(c.spent)}</td>
-      <td>${fmtDate(c.last)}<div class="code">há ${daysAgo(c.last)} dias</div></td>
-    </tr>`).join('')
-    : `<tr><td colspan="4" class="empty">Nenhum cliente encontrado.</td></tr>`;
-  $('#cliCount').textContent = `${rows.length} cliente(s)`;
-}
-
-function renderDeliveries() {
-  const d = State.data.deliveries;
-  const items = [
-    { label:'Entregas realizadas', v:scale(d.done),          icon:'<i class="fa-solid fa-circle-check"></i>', color:'green', tone:'green-t' },
-    { label:'Entregas pendentes',  v:scale(d.pending),       icon:'fa-solid fa-box', color:'amber', tone:'amber-t' },
-    { label:'Retiradas pendentes', v:scale(d.pickupPending), icon:'↩️', color:'blue',  tone:'' },
-    { label:'Atrasos',             v:scale(d.late),          icon:'⏰', color:'red',   tone:'red-t' },
-  ];
-  $('#delivGrid').innerHTML = items.map(i => `
-    <div class="d">
-      <div class="top" style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div class="label" style="font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:700">${i.label}</div>
-        <div class="ico ${i.color}">${i.icon}</div>
-      </div>
-      <div class="v ${i.tone}">${num(i.v)}</div>
-    </div>`).join('');
-  const rate = pct(d.done, d.scheduled);
-  Charts.gauge($('#gaugeChart'), rate);
-  $('#gaugeValue').textContent = rate + '% de conclusão';
-  $('#delivCount').textContent = `${num(scale(d.scheduled))} operações programadas`;
-}
-
-function renderAlerts() {
-  const low = productRows().filter(p => p.low);
-  const overdue = financeRows().filter(r => r.status === 'Atrasado' || r.status === 'Pendente');
-  const overdueSum = overdue.reduce((a,r) => a + r.due, 0);
-  const alerts = [
-    { cls:'a-red', icon:'<i class="fa-solid fa-triangle-exclamation"></i>', ico:'red',
-      title:`${low.length} produto(s) com estoque baixo`,
-      text: low.slice(0,3).map(p => `${p.name} (${p.available} disp.)`).join(' · ') || 'Nenhum item crítico.',
-      action:'Ver estoque', target:'#prodTable', flag:['prodFlag','low'] },
-    { cls:'a-amber', icon:'<i class="fa-solid fa-money-bill-transfer"></i>', ico:'amber',
-      title:`${overdue.length} cliente(s) com pagamentos pendentes`,
-      text:`Total em aberto de ${money2(overdueSum)}. Priorize os pedidos com mais de 20 dias.`,
-      action:'Ver financeiro', target:'#finTable', flag:['finStatus','Pendente'] },
-    { cls:'a-blue', icon:'fa-solid fa-truck', ico:'blue',
-      title:'7 pedidos com entrega nas próximas 48h',
-      text:'Confirme rota, equipe de montagem e conferência de itens antes do carregamento.',
-      action:'Ver entregas', target:'#delivGrid' },
-    { cls:'a-purple', icon:'↩️', ico:'purple',
-      title:`${State.data.deliveries.pickupPending} produtos aguardando devolução`,
-      text:'6 retiradas estão em atraso e bloqueiam a disponibilidade para novos pedidos.',
-      action:'Ver retiradas', target:'#delivGrid' },
-  ];
-  $('#alertCount').textContent = `${alerts.length} alertas ativos`;
-  $('#alertList').innerHTML = alerts.map((a, i) => `
-    <div class="alert ${a.cls}">
-      <div class="a-ico ${a.ico}">${a.icon}</div>
-      <div><b>${esc(a.title)}</b><p>${esc(a.text)}</p></div>
-      <button class="go" data-alert="${i}">${a.action} →</button>
-    </div>`).join('');
-  $$('#alertList .go').forEach(btn => btn.onclick = () => {
-    const a = alerts[+btn.dataset.alert];
-    if (a.flag) { const [id, val] = a.flag; $('#' + id).value = val; $('#' + id).dispatchEvent(new Event('change')); }
-    document.querySelector(a.target).scrollIntoView({ behavior:'smooth', block:'center' });
-  });
-}
-
-function renderAll() {
-  renderKPIs();
-  renderCharts();
-  renderAlerts();
-  renderFinance();
-  renderProducts();
-  renderClients();
-  renderDeliveries();
-  $('#updatedAt').textContent = new Date().toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
-}
-
-/* ----------------------------------------------------------------------
-   7. MODAL DE DETALHES
----------------------------------------------------------------------- */
-function openModal(title, pairs) {
-  $('#modalTitle').textContent = title;
-  $('#modalBody').innerHTML = pairs.map(([k, v]) => `<div class="kv"><span>${esc(k)}</span><b>${v}</b></div>`).join('');
-  $('#modal').classList.add('show');
-  $('#overlay').classList.add('show');
-}
-function closeAllLayers() {
-  $('#modal').classList.remove('show');
-  $('#drawer').classList.remove('show');
-  $('#overlay').classList.remove('show');
-}
-
-/* ----------------------------------------------------------------------
-   8. EVENTOS
----------------------------------------------------------------------- */
-function bindSorting(tableSel, stateKey, rerender) {
-  $$(`${tableSel} th.sortable`).forEach(th => {
-    th.onclick = () => {
-      const k = th.dataset.k, st = State[stateKey];
-      st.dir = st.sort === k ? (st.dir === 'asc' ? 'desc' : 'asc') : 'desc';
-      st.sort = k;
-      $$(`${tableSel} th`).forEach(x => { x.classList.remove('sorted'); const a = x.querySelector('.arrow'); if (a) a.textContent = '↕'; });
-      th.classList.add('sorted');
-      th.querySelector('.arrow').textContent = st.dir === 'asc' ? '↑' : '↓';
-      rerender();
-    };
-  });
-}
-
-function bind() {
-  /* Menu mobile */
-  $('#menuToggle').onclick = () => $('#sidebar').classList.toggle('show');
-
-  /* Período */
-  $$('#periodChips .chip').forEach(chip => chip.onclick = () => {
-    $$('#periodChips .chip').forEach(c => c.classList.remove('active'));
-    chip.classList.add('active');
-    State.period = chip.dataset.period;
-    State.factor = PERIOD_FACTOR[State.period];
-    $('#customRange').classList.toggle('show', State.period === 'custom');
-    $('#periodLabel').textContent = PERIODS[State.period];
-    renderAll();
-    toast(`<i class="fa-solid fa-calendar-days"></i> Período alterado: <b>${PERIODS[State.period]}</b>`);
-  });
-  $('#btnApplyRange').onclick = () => {
-    const a = $('#dtIni').value, b = $('#dtFim').value;
-    if (!a || !b) return toast('<i class="fa-solid fa-triangle-exclamation"></i> Informe as duas datas.');
-    State.filters.dtIni = a; State.filters.dtFim = b;
-    $('#periodLabel').textContent = `${fmtDate(a)} a ${fmtDate(b)}`;
-    renderAll(); toast('<i class="fa-solid fa-circle-check"></i> Período personalizado aplicado.');
-  };
-
-  /* Exportar / imprimir */
-  $('#btnExport').onclick = async e => {
-    const btn = e.currentTarget;
-    btn.disabled = true; btn.textContent = '⏳ Gerando...';
-    toast('⏳ Gerando relatório consolidado...');
-    const res = await API.exportReport('pdf', { period:State.period, ...State.filters });
-    btn.disabled = false; btn.innerHTML = '⬇️ Exportar relatório';
-    toast(`<i class="fa-solid fa-circle-check"></i> Relatório gerado: <b>${res.file}</b>`);
-  };
-  $('#btnPrint').onclick = () => window.print();
-  $('#modalPrint').onclick = () => window.print();
-
-  /* Drawer de filtros */
-  $('#btnFilters').onclick = () => { $('#drawer').classList.add('show'); $('#overlay').classList.add('show'); };
-  $('#drawerClose').onclick = closeAllLayers;
-  $('#overlay').onclick = closeAllLayers;
-  $('#modalClose').onclick = closeAllLayers;
-  $('#modalOk').onclick = closeAllLayers;
-  document.addEventListener('keydown', e => e.key === 'Escape' && closeAllLayers());
-
-  $('#btnApplyFilters').onclick = () => {
-    State.filters = {
-      dtIni:$('#fDtIni').value, dtFim:$('#fDtFim').value,
-      client:$('#fClient').value, product:$('#fProduct').value,
-      type:$('#fType').value, status:$('#fStatus').value, payment:$('#fPayment').value,
-    };
-    const n = Object.values(State.filters).filter(Boolean).length;
-    const badge = $('#filterCount');
-    badge.style.display = n ? 'inline-flex' : 'none';
-    badge.textContent = n;
-    closeAllLayers(); renderAll();
-    toast(n ? `<i class="fa-solid fa-magnifying-glass"></i> ${n} filtro(s) aplicado(s).` : '<i class="fa-solid fa-filter-circle-xmark"></i> Filtros removidos.');
-  };
-  $('#btnClearFilters').onclick = () => {
-    ['fDtIni','fDtFim','fClient','fProduct','fType','fStatus','fPayment'].forEach(id => $('#' + id).value = '');
-    State.filters = { dtIni:'', dtFim:'', client:'', product:'', type:'', status:'', payment:'' };
-    $('#filterCount').style.display = 'none';
-    renderAll(); toast('<i class="fa-solid fa-broom"></i> Filtros limpos.');
-  };
-
-  /* Tabela financeira */
-  $('#finSearch').oninput  = e => { State.fin.q = e.target.value; renderFinance(); };
-  $('#finStatus').onchange = e => { State.fin.status = e.target.value; renderFinance(); };
-  $('#finType').onchange   = e => { State.fin.type = e.target.value; renderFinance(); };
-  bindSorting('#finTable', 'fin', renderFinance);
-  $('#finBody').onclick = e => {
-    const tr = e.target.closest('tr[data-id]'); if (!tr) return;
-    const r = financeRows().find(x => x.id === tr.dataset.id); if (!r) return;
-    openModal(`Pedido ${r.id}`, [
-      ['Data', fmtDate(r.date)], ['Cliente', esc(r.client)], ['Tipo', r.type],
-      ['Itens', esc(r.items)], ['Forma de pagamento', r.payment],
-      ['Valor total', money2(r.total)], ['Valor pago', `<span class="green-t">${money2(r.paid)}</span>`],
-      ['Valor pendente', `<span class="${r.due ? 'red-t' : 'muted'}">${money2(r.due)}</span>`],
-      ['Status', r.status],
-    ]);
-  };
-
-  /* Tabela de produtos */
-  $('#prodSearch').oninput = e => { State.prod.q = e.target.value; renderProducts(); };
-  $('#prodCat').onchange   = e => { State.prod.cat = e.target.value; renderProducts(); };
-  $('#prodFlag').onchange  = e => { State.prod.flag = e.target.value; renderProducts(); };
-  bindSorting('#prodTable', 'prod', renderProducts);
-  $('#prodBody').onclick = e => {
-    const tr = e.target.closest('tr[data-id]'); if (!tr) return;
-    const p = productRows().find(x => x.id === tr.dataset.id); if (!p) return;
-    openModal(`${p.icon} ${p.name}`, [
-      ['Código', p.id], ['Categoria', esc(p.cat)],
-      ['Quantidade total', num(p.total)], ['Disponível', num(p.available)], ['Alugada', num(p.rented)],
-      ['Taxa de utilização', pct(p.rented, p.total) + '%'],
-      ['Locações no período', num(p.uses)], ['Valor gerado', `<span class="green-t">${money2(p.revenue)}</span>`],
-      ['Situação', p.low ? '<span class="amber-t">Estoque baixo</span>' : 'Normal'],
-    ]);
-  };
-
-  /* Clientes */
-  $('#cliSearch').oninput = e => { State.cli.q = e.target.value; renderClients(); };
-  $('#cliSort').onchange  = e => { State.cli.sort = e.target.value; renderClients(); };
-  $('#cliBody').onclick = e => {
-    const tr = e.target.closest('tr[data-id]'); if (!tr) return;
-    const c = State.data.clients.find(x => x.id === tr.dataset.id); if (!c) return;
-    openModal(c.name, [
-      ['Documento', c.doc], ['Tipo', c.type === 'PJ' ? 'Pessoa jurídica' : 'Pessoa física'],
-      ['Pedidos no período', num(c.orders)], ['Valor gasto', `<span class="green-t">${money2(c.spent)}</span>`],
-      ['Ticket médio', money2(c.spent / c.orders)],
-      ['Último pedido', `${fmtDate(c.last)} (há ${daysAgo(c.last)} dias)`],
-    ]);
-  };
-
-  /* Navegação lateral simulada */
-  $$('.nav-item').forEach(b => b.onclick = () => {
-    if (b.classList.contains('active')) return;
-    toast(`<i class="fa-solid fa-link"></i> Módulo <b>${b.textContent.trim()}</b> — navegação simulada.`);
-  });
-}
-
-/* ----------------------------------------------------------------------
-   9. BOOTSTRAP
----------------------------------------------------------------------- */
-function fillSelects() {
-  const cats = [...new Set(State.data.products.map(p => p.cat))].sort();
-  $('#prodCat').innerHTML += cats.map(c => `<option>${esc(c)}</option>`).join('');
-  $('#fClient').innerHTML += State.data.clients.map(c => `<option>${esc(c.name)}</option>`).join('');
-  $('#fProduct').innerHTML += State.data.products.map(p => `<option>${esc(p.name)}</option>`).join('');
-}
-
-(async function init() {
-  State.data = await API.getReport({ period:State.period });
-  State.factor = PERIOD_FACTOR[State.period];
-  fillSelects();
-  bind();
-  renderAll();
-  setTimeout(() => toast('<i class="fa-solid fa-chart-column"></i> Relatórios carregados com dados demonstrativos.'), 400);
-  // Redesenha os gráficos SVG ao redimensionar (mantém proporção fluida)
-  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(renderCharts, 200); });
-})();
+buildStatic(); setRange(90);
 </script>
+</body>
+</html>

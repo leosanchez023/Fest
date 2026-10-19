@@ -7,45 +7,51 @@
 
 <div class="page-meta" data-title="Clientes" data-subtitle="Gerencie seus clientes e informações de contato"></div>
 
-<!-- BOTÃO NOVO CLIENTE -->
-<div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-    <button type="button" class="btn btn-primary" onclick="openForm()"><i class="fa-solid fa-plus icon-sm"></i> Novo Cliente</button>
-</div>
+<!-- BARRA DE FERRAMENTAS -->
+<section class="client-toolbar">
+    <form class="filter-form" onsubmit="submitFilter(event)">
+        <input
+            id="searchInput"
+            name="q"
+            type="search"
+            placeholder="Pesquisar nome, email ou CPF"
+            value="{{q}}">
+        <select id="limitSelect" name="limit" aria-label="Clientes por página">
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+        <button class="btn btn-secondary" type="submit">Buscar</button>
+    </form>
+    <button type="button" class="btn btn-primary" onclick="openForm()">
+        <i class="fa-solid fa-plus icon-sm"></i> Novo Cliente
+    </button>
+</section>
 
-<!--  FORMULÁRIO DE CADASTRO -->
-<div id="formContainer" style="display:none;">
+{{#if pageError}}
+    <p class="client-page-error" role="alert">{{pageError}}</p>
+{{/if}}
+{{#if error_msg}}
+    <p class="client-page-error" role="alert">{{error_msg}}</p>
+{{/if}}
+{{#if success_msg}}
+    <p class="client-page-success" role="status">{{success_msg}}</p>
+{{/if}}
+
+<!-- FORMULÁRIO DE CADASTRO -->
+<div id="formContainer" {{#if mostrarFormulario}}class="client-form-container is-open"{{else}}class="client-form-container"{{/if}}>
     {{> cadastro_cliente
         action="/clientes/criar"
+        formAction=formAction
+        formTitle=formTitle
+        submitLabel=submitLabel
         formId="formulariocard"
-        titulo="Novo Cliente"
-        botaoSalvar="Salvar"
+        titulo=formTitle
+        botaoSalvar=submitLabel
     }}
 </div>
 
 <main>
-    <!-- FILTRO E PESQUISA DE CLIENTES -->
-    <section class="client-filter-row">
-        <form
-            class="filter-form"
-            onsubmit="submitFilter(event)">
-
-            <input
-                id="searchInput"
-                name="q"
-                type="search"
-                placeholder="Pesquisar nome, email ou CPF"
-                value="{{q}}">
-
-                <select id="limitSelect" name="limit">
-                    <option value="10"> 10 por página</option>
-                    <option value="25">25 por página</option>
-                    <option value="50">50 por página</option>
-
-                </select>
-            <button class="btn btn-secondary"type="submit">Buscar</button>
-        </form>
-    </section>
-
     <!-- TABELA DE CLIENTES -->
     <div class="table-wrap">
         <table class="client-table">
@@ -76,30 +82,24 @@
 
                                 <!-- AÇÕES -->
                                 <td>
-                                    <!-- BOTÃO EDITAR -->
                                     <button
                                         type="button"
-                                        class="btn btn-secondary btn-sm"
-                                        onclick="editClient(this)"
-                                        data-id="{{this.cliente_id}}"
-                                        data-nome="{{this.nome}}"
-                                        data-email="{{this.email}}"
-                                        data-telefone="{{this.telefone}}"
-                                        data-cpf="{{this.cpf}}"
-                                        data-nascimento="{{this.nascimento}}"
-                                        data-rua="{{this.rua}}"
-                                        data-numero="{{this.numero}}"
-                                        data-cidade="{{this.cidade}}"
-                                        data-estado="{{this.estado}}">
-                                        Editar
+                                        class="btn btn-secondary btn-sm js-client-details"
+                                        data-client-id="{{this.cliente_id}}">
+                                        Detalhes
                                     </button>
+                                    <a
+                                        class="btn btn-secondary btn-sm"
+                                        href="/clientes/editar/{{this.cliente_id}}">
+                                        Editar
+                                    </a>
 
                                     <!-- BOTÃO EXCLUIR -->
                                     <form
-                                        class="inline-form"
+                                        class="inline-form js-delete-client"
                                         method="post"
                                         action="/clientes/excluir/{{this.cliente_id}}"
-                                        onsubmit="return confirm('Deseja excluir este cliente?')">
+                                        data-client-name="{{this.nome}}">
 
                                         <button
                                             type="submit"
@@ -147,6 +147,26 @@
         </button>
     </div>
 </main>
+
+<dialog id="clientDetailsDialog" class="client-details-dialog" aria-labelledby="clientDetailsTitle">
+    <div class="client-details-header">
+        <h2 id="clientDetailsTitle">Detalhes do cliente</h2>
+        <button type="button" class="btn btn-secondary btn-sm" data-close-details aria-label="Fechar detalhes">Fechar</button>
+    </div>
+    <p class="client-details-error" role="alert" hidden></p>
+    <dl class="client-details-grid">
+        <div><dt>Nome</dt><dd data-detail="nome"></dd></div>
+        <div><dt>CPF</dt><dd data-detail="cpf"></dd></div>
+        <div><dt>E-mail</dt><dd data-detail="email"></dd></div>
+        <div><dt>Telefone</dt><dd data-detail="telefone"></dd></div>
+        <div><dt>Nascimento</dt><dd data-detail="nascimento"></dd></div>
+        <div><dt>Rua e número</dt><dd data-detail="rua_numero"></dd></div>
+        <div><dt>Bairro</dt><dd data-detail="bairro"></dd></div>
+        <div><dt>Cidade/Estado</dt><dd data-detail="cidade_estado"></dd></div>
+        <div><dt>CEP</dt><dd data-detail="cep"></dd></div>
+        <div><dt>Referência</dt><dd data-detail="referencia"></dd></div>
+    </dl>
+</dialog>
 
 <!-- JAVASCRIPT DA PÁGINA -->
 <script src="/js/clientes.js"></script>

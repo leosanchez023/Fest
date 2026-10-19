@@ -1,5 +1,21 @@
 import db from '../../../database/connection.js';
 
+function validarQuantidadePositiva(valor, campo = 'Quantidade') {
+  const quantidade = Number(valor);
+  if (!Number.isSafeInteger(quantidade) || quantidade <= 0) {
+    throw new Error(`${campo} deve ser um inteiro positivo.`);
+  }
+  return quantidade;
+}
+
+function validarIdPositivo(valor, campo = 'Identificador') {
+  const id = Number(valor);
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw new Error(`${campo} inválido.`);
+  }
+  return id;
+}
+
 export const TIPOS_MOVIMENTACAO = {
   ENTRADA: 'ENTRADA',
   SAIDA: 'SAIDA',
@@ -46,10 +62,13 @@ export function statusEstoque(produto) {
   const disponivel = calcularDisponibilidade(produto);
   const minimo = Number(produto?.estoque_minimo ?? 0);
 
-  if (Number(produto?.ativo ?? 1) === 0) return 'INATIVO';
-  if (disponivel <= 0) return 'CRITICO';
-  if (minimo > 0 && disponivel <= minimo) return 'BAIXO';
-  return 'NORMAL';
+  if (disponivel <= 0) return 'INDISPONIVEL';
+  if (Number(produto?.estoque_manutencao ?? 0) > 0) return 'MANUTENCAO';
+  if (Number(produto?.estoque_danificado ?? 0) > 0) return 'DANIFICADO';
+  if (Number(produto?.estoque_em_uso ?? 0) > 0) return 'EM_USO';
+  if (Number(produto?.estoque_reservado ?? 0) > 0) return 'RESERVADO';
+  if (disponivel <= minimo) return 'BAIXO_ESTOQUE';
+  return 'DISPONIVEL';
 }
 
 async function buscarProduto(conn, produtoId, bloquear = false) {
@@ -86,10 +105,8 @@ async function registrarMovimentacao(conn, dados) {
 }
 
 export async function registrarEntrada({ produtoId, quantidade, usuarioId = null, observacao = '' }) {
-  const qtd = Number(quantidade || 0);
-  if (!produtoId || qtd <= 0) {
-    throw new Error('Quantidade de entrada inválida.');
-  }
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtd = validarQuantidadePositiva(quantidade, 'Quantidade de entrada');
 
   const conn = await db.getConnection();
   try {
@@ -121,10 +138,8 @@ export async function registrarEntrada({ produtoId, quantidade, usuarioId = null
 }
 
 export async function registrarSaida({ produtoId, quantidade, usuarioId = null, observacao = '' }) {
-  const qtd = Number(quantidade || 0);
-  if (!produtoId || qtd <= 0) {
-    throw new Error('Quantidade de saída inválida.');
-  }
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtd = validarQuantidadePositiva(quantidade, 'Quantidade de saída');
 
   const conn = await db.getConnection();
   try {
@@ -217,10 +232,9 @@ export async function calcularDisponibilidadeCombo(comboId) {
 }
 
 export async function reservarEstoque({ produtoId, quantidade, pedidoId = null, usuarioId = null, observacao = '' }) {
-  const qtd = Number(quantidade || 0);
-  if (!produtoId || qtd <= 0) {
-    throw new Error('Quantidade para reserva inválida.');
-  }
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtd = validarQuantidadePositiva(quantidade, 'Quantidade para reserva');
+  if (pedidoId !== null) validarIdPositivo(pedidoId, 'Pedido');
 
   const conn = await db.getConnection();
   try {
@@ -494,8 +508,9 @@ async function liberarReservaNaTransacao(conn, {
   usuarioId = null,
   observacao = ''
 }) {
-  const qtd = Number(quantidade || 0);
-  if (!produtoId || qtd <= 0) throw new Error('Quantidade para liberação inválida.');
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtd = validarQuantidadePositiva(quantidade, 'Quantidade para liberação');
+  if (pedidoId !== null) validarIdPositivo(pedidoId, 'Pedido');
 
   const produto = await buscarProduto(conn, produtoId, true);
   if (!produto) throw new Error('Produto não encontrado.');
@@ -616,8 +631,9 @@ export async function liberarReservasPedidoNaTransacao(conn, {
 }
 
 export async function liberarReserva({ produtoId, quantidade, pedidoId = null, usuarioId = null, observacao = '' }) {
-  const qtd = Number(quantidade || 0);
-  if (!produtoId || qtd <= 0) throw new Error('Quantidade para liberação inválida.');
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtd = validarQuantidadePositiva(quantidade, 'Quantidade para liberação');
+  if (pedidoId !== null) validarIdPositivo(pedidoId, 'Pedido');
 
   const conn = await db.getConnection();
   try {
@@ -694,10 +710,9 @@ export async function cancelarPedido({ pedidoId, usuarioId = null, observacao = 
 }
 
 export async function alterarQuantidadeItemPedido({ pedidoId, produtoId, novaQuantidade, usuarioId = null, observacao = '' }) {
-  const qtdNova = Number(novaQuantidade || 0);
-  if (!pedidoId || !produtoId || qtdNova <= 0) {
-    throw new Error('Quantidade inválida para alteração do item do pedido.');
-  }
+  pedidoId = validarIdPositivo(pedidoId, 'Pedido');
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtdNova = validarQuantidadePositiva(novaQuantidade, 'Quantidade do item');
 
   const conn = await db.getConnection();
   try {
@@ -791,8 +806,9 @@ export async function alterarQuantidadeItemPedido({ pedidoId, produtoId, novaQua
 }
 
 export async function confirmarEntrega({ produtoId, quantidade, pedidoId = null, usuarioId = null, observacao = '' }) {
-  const qtd = Number(quantidade || 0);
-  if (!produtoId || qtd <= 0) throw new Error('Quantidade para entrega inválida.');
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtd = validarQuantidadePositiva(quantidade, 'Quantidade para entrega');
+  if (pedidoId !== null) validarIdPositivo(pedidoId, 'Pedido');
 
   const conn = await db.getConnection();
   try {
@@ -816,6 +832,9 @@ export async function confirmarEntregaNaTransacao(conn, {
   usuarioId = null,
   observacao = ''
 }) {
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  quantidade = validarQuantidadePositiva(quantidade, 'Quantidade para entrega');
+  if (pedidoId !== null) validarIdPositivo(pedidoId, 'Pedido');
   const produto = await buscarProduto(conn, produtoId, true);
   if (!produto) throw new Error('Produto não encontrado.');
   if (Number(produto.estoque_reservado || 0) < quantidade) {
@@ -947,8 +966,9 @@ export async function confirmarEntregasPedido({ pedidoId, itens = [], usuarioId 
 }
 
 export async function registrarDevolucao({ produtoId, quantidade, tipo = 'BOA', pedidoId = null, usuarioId = null, observacao = '' }) {
-  const qtd = Number(quantidade || 0);
-  if (!produtoId || qtd <= 0) throw new Error('Quantidade de devolução inválida.');
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtd = validarQuantidadePositiva(quantidade, 'Quantidade de devolução');
+  if (pedidoId !== null) validarIdPositivo(pedidoId, 'Pedido');
 
   const conn = await db.getConnection();
   try {
@@ -980,6 +1000,12 @@ export async function registrarDevolucaoNaTransacao(conn, {
   usuarioId,
   observacao
 }) {
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  quantidade = validarQuantidadePositiva(quantidade, 'Quantidade de devolução');
+  if (pedidoId !== null) validarIdPositivo(pedidoId, 'Pedido');
+  if (!['BOA', 'DANIFICADA', 'PENDENTE'].includes(tipo)) {
+    throw new Error('Tipo de devolução inválido.');
+  }
   const produto = await buscarProduto(conn, produtoId, true);
   if (!produto) throw new Error('Produto não encontrado.');
   if (Number(produto.estoque_em_uso || 0) < quantidade) {
@@ -1035,14 +1061,17 @@ export async function registrarDevolucaoDetalhada({
   usuarioId = null,
   observacao = ''
 }) {
-  const entregue = Number(quantidadeEntregue || 0);
-  const boas = Number(quantidadeBoa || 0);
-  const danificadas = Number(quantidadeDanificada || 0);
-  const pendentes = Number(quantidadePendente || 0);
-
-  if (!pedidoId || !produtoId) {
-    throw new Error('Pedido e produto são obrigatórios para a devolução.');
-  }
+  pedidoId = validarIdPositivo(pedidoId, 'Pedido');
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const entregue = validarQuantidadePositiva(quantidadeEntregue, 'Quantidade entregue');
+  const quantidadesDevolvidas = [quantidadeBoa, quantidadeDanificada, quantidadePendente].map((valor) => {
+    const quantidade = Number(valor ?? 0);
+    if (!Number.isSafeInteger(quantidade) || quantidade < 0) {
+      throw new Error('As quantidades devolvidas devem ser inteiros não negativos.');
+    }
+    return quantidade;
+  });
+  const [boas, danificadas, pendentes] = quantidadesDevolvidas;
 
   const total = boas + danificadas + pendentes;
   if (total <= 0 || total > entregue) {
@@ -1120,8 +1149,8 @@ export async function registrarDevolucaoDetalhada({
 }
 
 export async function enviarParaManutencao({ produtoId, quantidade, usuarioId = null, observacao = '' }) {
-  const qtd = Number(quantidade || 0);
-  if (!produtoId || qtd <= 0) throw new Error('Quantidade inválida.');
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtd = validarQuantidadePositiva(quantidade);
 
   const conn = await db.getConnection();
   try {
@@ -1164,14 +1193,16 @@ export async function enviarParaManutencao({ produtoId, quantidade, usuarioId = 
 }
 
 export async function finalizarManutencao({ produtoId, quantidade, status = 'REPARADO', usuarioId = null, observacao = '' }) {
-  const qtd = Number(quantidade || 0);
-  if (!produtoId || qtd <= 0) throw new Error('Quantidade inválida.');
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtd = validarQuantidadePositiva(quantidade);
+  if (status !== 'REPARADO') throw new Error('Estado de finalização da manutenção inválido.');
 
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
     const produto = await buscarProduto(conn, produtoId, true);
     if (!produto) throw new Error('Produto não encontrado.');
+    if (!validarEstoque(produto)) throw new Error('Produto com dados de estoque inválidos.');
     if (Number(produto.estoque_manutencao || 0) < qtd) throw new Error('Quantidade em manutenção insuficiente.');
 
     if (status === 'REPARADO') {
@@ -1190,23 +1221,6 @@ export async function finalizarManutencao({ produtoId, quantidade, status = 'REP
         quantidade: qtd,
         observacao: observacao || 'Manutenção concluída com sucesso'
       });
-    } else {
-      await conn.query(
-        `UPDATE produtos
-         SET estoque_manutencao = estoque_manutencao - ?,
-             estoque = GREATEST(estoque - ?, 0),
-             updatedAt = NOW()
-         WHERE id = ?`,
-        [qtd, qtd, produtoId]
-      );
-
-      await registrarMovimentacao(conn, {
-        produto_id: produtoId,
-        usuario_id: usuarioId,
-        tipo: TIPOS_MOVIMENTACAO.DESCARTE,
-        quantidade: qtd,
-        observacao: observacao || 'Produto descartado após manutenção'
-      });
     }
 
     await conn.commit();
@@ -1220,18 +1234,21 @@ export async function finalizarManutencao({ produtoId, quantidade, status = 'REP
 }
 
 export async function registrarAjuste({ produtoId, quantidade, usuarioId = null, observacao = '' }) {
-  const qtd = Number(quantidade || 0);
-  if (!produtoId) throw new Error('Produto inválido.');
-  if (!Number.isFinite(qtd)) throw new Error('Quantidade inválida.');
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtd = Number(quantidade);
+  if (!Number.isSafeInteger(qtd) || qtd === 0) throw new Error('Ajuste deve ser um inteiro não nulo.');
 
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
     const produto = await buscarProduto(conn, produtoId, true);
     if (!produto) throw new Error('Produto não encontrado.');
+    if (!validarEstoque(produto)) throw new Error('Produto com dados de estoque inválidos.');
 
     const novoEstoque = Number(produto.estoque || 0) + qtd;
-    if (novoEstoque < 0) throw new Error('Ajuste não pode deixar o estoque negativo.');
+    if (!validarDisponibilidade({ ...produto, estoque: novoEstoque })) {
+      throw new Error('Ajuste não pode deixar o estoque ou a disponibilidade negativos.');
+    }
 
     await conn.query(
       `UPDATE produtos SET estoque = ?, updatedAt = NOW() WHERE id = ?`,
@@ -1256,9 +1273,105 @@ export async function registrarAjuste({ produtoId, quantidade, usuarioId = null,
   }
 }
 
+export async function atualizarQuantidadesProduto({
+  produtoId,
+  estoque,
+  estoque_reservado,
+  estoque_danificado,
+  estoque_minimo,
+  usuarioId = null
+}) {
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const quantidades = { estoque, estoque_reservado, estoque_danificado, estoque_minimo };
+  for (const [campo, valor] of Object.entries(quantidades)) {
+    if (!Number.isSafeInteger(Number(valor)) || Number(valor) < 0) {
+      throw new Error(`${campo} deve ser um inteiro não negativo.`);
+    }
+    quantidades[campo] = Number(valor);
+  }
+
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const produto = await buscarProduto(conn, produtoId, true);
+    if (!produto) throw new Error('Produto não encontrado.');
+    if (!validarEstoque(produto)) throw new Error('Produto com dados de estoque inválidos.');
+
+    const [[reservasAtivas]] = await conn.query(
+      `SELECT COALESCE(SUM(quantidade), 0) AS quantidade
+       FROM reservas_estoque
+       WHERE produto_id = ? AND UPPER(status) IN ('ATIVA', 'ATIVO', 'RESERVADA')`,
+      [produtoId]
+    );
+    if (quantidades.estoque_reservado !== Number(produto.estoque_reservado || 0)
+        && Number(reservasAtivas.quantidade || 0) > 0) {
+      throw new Error('A quantidade reservada possui reservas de pedidos ativas e só pode ser alterada pelos fluxos de reserva.');
+    }
+
+    const atualizado = {
+      ...produto,
+      estoque: quantidades.estoque,
+      estoque_reservado: quantidades.estoque_reservado,
+      estoque_danificado: quantidades.estoque_danificado,
+      estoque_minimo: quantidades.estoque_minimo
+    };
+    if (!validarDisponibilidade(atualizado)) {
+      throw new Error('O estoque físico não pode ser menor que as quantidades reservadas, em uso, em manutenção e danificadas.');
+    }
+
+    const alterado = ['estoque', 'estoque_reservado', 'estoque_danificado', 'estoque_minimo']
+      .some((campo) => Number(produto[campo] || 0) !== quantidades[campo]);
+    if (!alterado) {
+      await conn.commit();
+      return {
+        sucesso: true,
+        disponivel: calcularDisponibilidade(atualizado),
+        produto: atualizado
+      };
+    }
+
+    await conn.query(
+      `UPDATE produtos
+       SET estoque = ?, estoque_reservado = ?, estoque_danificado = ?,
+           estoque_minimo = ?, updatedAt = NOW()
+       WHERE id = ?`,
+      [
+        quantidades.estoque,
+        quantidades.estoque_reservado,
+        quantidades.estoque_danificado,
+        quantidades.estoque_minimo,
+        produtoId
+      ]
+    );
+    const deltaEstoque = quantidades.estoque - Number(produto.estoque || 0);
+    const deltaReservado = quantidades.estoque_reservado - Number(produto.estoque_reservado || 0);
+    const deltaDanificado = quantidades.estoque_danificado - Number(produto.estoque_danificado || 0);
+    await registrarMovimentacao(conn, {
+      produto_id: produtoId,
+      usuario_id: usuarioId,
+      tipo: TIPOS_MOVIMENTACAO.AJUSTE,
+      quantidade: deltaEstoque || deltaReservado || deltaDanificado
+        || quantidades.estoque_minimo - Number(produto.estoque_minimo || 0),
+      observacao: `Edição de estoque: físico ${produto.estoque}→${quantidades.estoque}, reservado ${produto.estoque_reservado}→${quantidades.estoque_reservado}, danificado ${produto.estoque_danificado}→${quantidades.estoque_danificado}, mínimo ${produto.estoque_minimo}→${quantidades.estoque_minimo}`
+    });
+    await conn.commit();
+    return {
+      sucesso: true,
+      disponivel: calcularDisponibilidade(atualizado),
+      produto: atualizado
+    };
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
+}
+
 export async function registrarVenda({ produtoId, quantidade, pedidoId = null, usuarioId = null, observacao = '' }) {
-  const qtd = Number(quantidade || 0);
-  if (!produtoId || qtd <= 0) throw new Error('Quantidade da venda inválida.');
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  const qtd = validarQuantidadePositiva(quantidade, 'Quantidade da venda');
+  if (pedidoId !== null) validarIdPositivo(pedidoId, 'Pedido');
 
   const conn = await db.getConnection();
   try {
@@ -1282,6 +1395,9 @@ export async function registrarVendaNaTransacao(conn, {
   usuarioId = null,
   observacao = ''
 }) {
+  produtoId = validarIdPositivo(produtoId, 'Produto');
+  quantidade = validarQuantidadePositiva(quantidade, 'Quantidade da venda');
+  if (pedidoId !== null) validarIdPositivo(pedidoId, 'Pedido');
   const produto = await buscarProduto(conn, produtoId, true);
   if (!produto) throw new Error('Produto não encontrado.');
 
@@ -1385,38 +1501,75 @@ export async function resumoEstoque() {
 
 export async function historicoMovimentacoes(filtros = {}) {
   const { tipo = '', produto = '', usuario = '', de = '', ate = '' } = filtros;
-  const params = [];
-  let sql = `
-    SELECT m.data_movimentacao, m.produto_id, p.nome AS produto_nome,
+  const paginaValor = Number(filtros.pagina || 1);
+  const limiteValor = Number(filtros.limite || 25);
+  const pagina = Number.isSafeInteger(paginaValor) && paginaValor > 0 ? paginaValor : 1;
+  const limite = [10, 25, 50, 100].includes(limiteValor) ? limiteValor : 25;
+  const condicoes = [];
+  const parametros = [];
+
+  if (tipo) {
+    if (!Object.values(TIPOS_MOVIMENTACAO).includes(tipo)) {
+      throw new Error('Tipo de movimentação inválido.');
+    }
+    condicoes.push('m.tipo = ?');
+    parametros.push(tipo);
+  }
+  if (produto) {
+    condicoes.push('(p.nome LIKE ? OR p.codigo LIKE ?)');
+    parametros.push(`%${produto}%`, `%${produto}%`);
+  }
+  if (usuario) {
+    const idUsuario = Number(usuario);
+    if (!Number.isSafeInteger(idUsuario) || idUsuario <= 0) throw new Error('Responsável inválido.');
+    condicoes.push('m.usuario_id = ?');
+    parametros.push(idUsuario);
+  }
+  const validarData = (valor) => /^\d{4}-\d{2}-\d{2}$/.test(valor)
+    && !Number.isNaN(Date.parse(`${valor}T00:00:00Z`));
+  if (de && !validarData(de)) throw new Error('Data inicial inválida.');
+  if (ate && !validarData(ate)) throw new Error('Data final inválida.');
+  if (de && ate && de > ate) throw new Error('A data inicial não pode ser posterior à data final.');
+  if (de) {
+    condicoes.push('m.data_movimentacao >= ?');
+    parametros.push(`${de} 00:00:00`);
+  }
+  if (ate) {
+    condicoes.push('m.data_movimentacao < DATE_ADD(?, INTERVAL 1 DAY)');
+    parametros.push(ate);
+  }
+  const where = condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '';
+  const [[contagem]] = await db.query(`
+    SELECT COUNT(*) AS total
+    FROM movimentacao_estoque m
+    INNER JOIN produtos p ON p.id = m.produto_id
+    ${where}
+  `, parametros);
+  const total = Number(contagem.total || 0);
+  const totalPaginas = Math.ceil(total / limite);
+  const paginaAtual = totalPaginas ? Math.min(pagina, totalPaginas) : 1;
+  const offset = (paginaAtual - 1) * limite;
+  const [rows] = await db.query(`
+    SELECT m.id, m.data_movimentacao, m.produto_id, p.nome AS produto_nome,
            m.tipo, m.quantidade, m.observacao, u.nome AS usuario_nome
     FROM movimentacao_estoque m
     INNER JOIN produtos p ON p.id = m.produto_id
     LEFT JOIN usuario u ON u.id = m.usuario_id
-    WHERE 1 = 1
-  `;
-
-  if (tipo) {
-    sql += ' AND m.tipo = ?';
-    params.push(tipo);
-  }
-  if (produto) {
-    sql += ' AND (p.nome LIKE ? OR p.codigo LIKE ?)';
-    params.push(`%${produto}%`, `%${produto}%`);
-  }
-  if (usuario) {
-    sql += ' AND m.usuario_id = ?';
-    params.push(usuario);
-  }
-  if (de) {
-    sql += ' AND m.data_movimentacao >= ?';
-    params.push(`${de} 00:00:00`);
-  }
-  if (ate) {
-    sql += ' AND m.data_movimentacao < DATE_ADD(?, INTERVAL 1 DAY)';
-    params.push(ate);
-  }
-
-  sql += ' ORDER BY m.data_movimentacao DESC, m.id DESC LIMIT 200';
-  const [rows] = await db.query(sql, params);
-  return rows;
+    ${where}
+    ORDER BY m.data_movimentacao DESC, m.id DESC
+    LIMIT ? OFFSET ?
+  `, [...parametros, limite, offset]);
+  const [tipos] = await db.query(
+    'SELECT DISTINCT tipo FROM movimentacao_estoque ORDER BY tipo'
+  );
+  return {
+    items: rows,
+    tipos: tipos.map((row) => row.tipo),
+    pagination: {
+      pagina: paginaAtual,
+      limite,
+      total,
+      totalPaginas
+    }
+  };
 }

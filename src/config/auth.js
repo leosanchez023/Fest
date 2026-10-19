@@ -1,6 +1,7 @@
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcrypt";
 import db from "../../database/connection.js";
+import { GENERIC_AUTH_ERROR, normalizarEmail } from "./security.js";
 
 export default function (passport) {
 
@@ -12,13 +13,15 @@ export default function (passport) {
 
     async (email, senha, done) => {
       try {
+        const emailNormalizado = normalizarEmail(email);
+
         const [users] = await db.query(
           "SELECT * FROM usuario WHERE email = ?",
-          [email]
+          [emailNormalizado]
         );
 
         if (users.length === 0) {
-          return done(null, false, { message: "Usuário não encontrado" });
+          return done(null, false, { message: GENERIC_AUTH_ERROR });
         }
 
         const user = users[0];
@@ -26,7 +29,7 @@ export default function (passport) {
         const senhaValida = await bcrypt.compare(senha, user.senha);
 
         if (!senhaValida) {
-          return done(null, false, { message: "Senha inválida" });
+          return done(null, false, { message: GENERIC_AUTH_ERROR });
         }
 
         return done(null, user);

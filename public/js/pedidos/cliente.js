@@ -141,8 +141,13 @@ function renderCadastroCliente() {
 
   form.onsubmit = async (event) => {
     event.preventDefault();
+    if (form.dataset.saving === "true") return;
+    if (!form.reportValidity()) return;
 
     const dados = Object.fromEntries(new FormData(form));
+    const submit = form.querySelector('button[type="submit"]');
+    form.dataset.saving = "true";
+    if (submit) submit.disabled = true;
 
     try {
         const res = await fetch(form.action, {
@@ -154,19 +159,14 @@ function renderCadastroCliente() {
             body: JSON.stringify(dados)
         });
 
-        const texto = await res.text();
-
-        console.log("Status:", res.status);
-        console.log("Resposta:", texto);
-
-       const cliente = texto ? JSON.parse(texto) : {};
+        const cliente = await res.json();
 
 if (!res.ok) {
     throw new Error(cliente.erro || "Erro ao cadastrar cliente.");
 }
 
 state.clienteSelecionado = {
-    id: cliente.cliente_id,
+    id: cliente.id,
     nome: cliente.nome,
     cpf: cliente.cpf,
     email: cliente.email,
@@ -181,7 +181,10 @@ togglePainel(false);
 form.reset();
 
     } catch (err) {
-        alert(err.message);
+        window.FestAlert?.error?.("Erro no cadastro", err.message || "Não foi possível cadastrar o cliente.");
+    } finally {
+        form.dataset.saving = "false";
+        if (submit) submit.disabled = false;
     }
 };
 }

@@ -1,5 +1,6 @@
 // usuarios.controller.js
 import * as service from "./usuarios.service.js";
+import { PASSWORD_MIN_LENGTH } from "../../config/security.js";
 
 export async function listarUsuarios(req, res) {
   try {
@@ -30,8 +31,8 @@ export async function criarUsuario(req, res) {
   if (!email) erros.push({ texto: "E-mail inválido" });
   if (!senha) erros.push({ texto: "Senha inválida" });
 
-  if (senha && senha.length < 4) {
-    erros.push({ texto: "A senha deve ter pelo menos 4 caracteres" });
+  if (senha && senha.length < PASSWORD_MIN_LENGTH) {
+    erros.push({ texto: `A senha deve ter pelo menos ${PASSWORD_MIN_LENGTH} caracteres` });
   }
 
   if (senha !== senha2) {

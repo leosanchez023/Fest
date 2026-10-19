@@ -15,11 +15,11 @@
 {{/if}}
 
 <div class="tabs">
-    <button type="button" class="tab active" data-tab="produtos">
+    <button type="button" class="tab{{#unless produto}} active{{/unless}}" data-tab="produtos">
         <i class="fa-solid fa-clipboard icon-sm"></i> Produtos Cadastrados
     </button>
 
-    <button type="button" class="tab" data-tab="cadastro">
+    <button type="button" class="tab{{#if produto}} active{{/if}}" data-tab="cadastro">
         <i class="fa-solid fa-box icon-sm"></i> Cadastro de Produtos
     </button>
 </div>
@@ -27,7 +27,7 @@
 <!-- =======================
      ABA PRODUTOS
 ======================= -->
-<div id="aba-produtos" class="tab-content">
+<div id="aba-produtos" class="tab-content"{{#if produto}} style="display:none;"{{/if}}>
 
     <div class="wrap">
 
@@ -293,7 +293,7 @@
 
         </div>
 
-        
+
 
   <div class="card estoque-panel">
         <h2>Resumo por Produto</h2>
@@ -332,19 +332,13 @@
 
             <div class="historico-filtros">
                 <input id="historico-produto" type="search" placeholder="Produto ou código">
-                <select id="historico-tipo">
-                    <option value="">Todos</option>
-                    <option value="ENTRADA">Entradas</option>
-                    <option value="SAIDA">Saídas</option>
-                    <option value="RESERVA">Reservas</option>
-                    <option value="LIBERACAO_RESERVA">Liberações</option>
-                    <option value="ENTREGA">Entregas</option>
-                    <option value="RETORNO">Devoluções</option>
-                    <option value="AJUSTE">Ajustes</option>
+                <select id="historico-tipo" aria-label="Tipo de movimentação">
+                    <option value="">Todos os tipos</option>
                 </select>
                 <input id="historico-de" type="date" aria-label="Data inicial">
                 <input id="historico-ate" type="date" aria-label="Data final">
-                <button id="historico-limpar" type="button" class="btn btn-secondary">Todos</button>
+                <button id="historico-aplicar" type="button" class="btn btn-primary">Aplicar filtros</button>
+                <button id="historico-limpar" type="button" class="btn btn-secondary">Limpar</button>
             </div>
 
             <div class="scroll">
@@ -367,25 +361,39 @@
                 </table>
 
             </div>
+            <div class="historico-paginacao">
+                <label for="historico-limite">Registros por página</label>
+                <select id="historico-limite">
+                    <option value="10">10</option>
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <span id="historico-resumo" aria-live="polite"></span>
+                <nav id="historico-paginas" aria-label="Paginação do histórico"></nav>
+            </div>
 
         </div>
 
     </div>
 
-</div>
-
-
-
-<div id="aba-cadastro" class="tab-content" style="display:none;">
+<div id="aba-cadastro" class="tab-content"{{#unless produto}} style="display:none;"{{/unless}}>
 
     <div class="container">
 
-        <div class="page-meta" data-title="Produtos" data-subtitle="Gerencie produtos, preços e disponibilidade"></div>
+        <div class="page-meta" data-title="{{#if produto}}Editar produto{{else}}Produtos{{/if}}" data-subtitle="{{#if produto}}Altere os dados do produto selecionado.{{else}}Gerencie produtos, preços e disponibilidade{{/if}}"></div>
 
         <!-- FORM -->
         <div class="card">
 
-            <form action="{{#if produto}}/produtos/editar/{{produto.id}}{{else}}/produtos/criar{{/if}}" method="POST">
+            <form id="produto-form" action="{{#if produto}}/produtos/editar/{{produto.id}}{{else}}/produtos/criar{{/if}}" method="POST">
+
+                {{#if produto}}
+                    <div class="edit-mode-banner" role="status">
+                        Editando: <strong>{{produto.nome}}</strong>
+                    </div>
+                {{/if}}
+                <input type="hidden" name="tipo_produto" value="{{#if produto}}{{produto.tipo_produto}}{{else}}PRODUTO{{/if}}">
 
                 <div class="form-grid">
 
@@ -457,11 +465,6 @@
                     </div>
 
                     <div>
-                        <label>Localização</label>
-                        <input name="localizacao" value="{{produto.localizacao}}" placeholder="Ex: Galpão A">
-                    </div>
-
-                    <div>
                         <label>Estoque</label>
 
                         <input
@@ -507,13 +510,13 @@
 
                     <button class="btn btn-primary" type="submit">
                         {{#if produto}}
-                            Atualizar
+                            Salvar alterações
                         {{else}}
-                            Salvar
+                            Cadastrar
                         {{/if}}
                     </button>
 
-                    <a href="/produtos" class="btn btn-secondary">
+                    <a href="{{#if produto}}/produtos#cadastro{{else}}/produtos{{/if}}" class="btn btn-secondary">
                         Cancelar
                     </a>
 
@@ -561,6 +564,7 @@
 
             </form>
 
+            <div class="table-wrap">
             <table>
 
                 <thead>
@@ -611,6 +615,7 @@
                 </tbody>
 
             </table>
+            </div>
 
             {{#unless produtos.length}}
 
@@ -657,13 +662,6 @@ const brl = v =>
 
                 <div class="pname">
                     ${p.nome}
-                </div>
-
-
-                <div class="ploc">
-
-                    ${p.localizacao || "-"}
-
                 </div>
 
 
@@ -966,14 +964,14 @@ function editarProduto(id) {
 async function visualizarProduto(id) {
     const resposta = await fetch(`/produtos/api/${id}`);
     const produto = await resposta.json();
-    if (!resposta.ok) return alert(produto.erro || "Produto não encontrado.");
-    alert(`${produto.nome}\nCategoria: ${produto.categoria || "-"}\nFornecedor: ${produto.fornecedor || "-"}\nEstoque: ${produto.estoque || 0}`);
+    if (!resposta.ok) return window.FestAlert?.error?.("Produto", produto.erro || "Produto não encontrado.");
+    await window.FestAlert?.info?.("Produto", `${produto.nome}\nCategoria: ${produto.categoria || "-"}\nFornecedor: ${produto.fornecedor || "-"}\nEstoque: ${produto.estoque || 0}`);
 }
 
 async function alterarPrecoProduto(id) {
     const resposta = await fetch(`/produtos/api/${id}`);
     const produto = await resposta.json();
-    if (!resposta.ok) return alert(produto.erro || "Produto não encontrado.");
+    if (!resposta.ok) return window.FestAlert?.error?.("Produto", produto.erro || "Produto não encontrado.");
     const preco = prompt("Novo preço de locação:", produto.preco_aluguel || 0);
     if (preco === null) return;
     const dados = new URLSearchParams({
@@ -993,7 +991,7 @@ async function alterarPrecoProduto(id) {
         body: dados
     });
     if (atualizacao.ok) window.location.reload();
-    else alert("Não foi possível alterar o preço.");
+    else await window.FestAlert?.error?.("Erro no preço", "Não foi possível alterar o preço.");
 }
 
 

@@ -139,15 +139,15 @@ async function executarAcao(url, quantidade, mensagem) {
   if (!res.ok || resposta.success === false || resposta.sucesso === false) {
     throw new Error(resposta.message || resposta.erro || 'Operação não realizada.');
   }
-  alert(mensagem);
+  await window.FestAlert?.success?.('Operação concluída', mensagem);
   await Promise.all([carregarResumo(), carregarProdutosEstoque()]);
 }
 
 async function entradaEstoque(id){
   const quantidade = prompt('Quantidade para entrada:');
   if(!quantidade) return;
-  try { await executarAcao(`/produtos/${id}/entrada`, quantidade, 'Entrada registrada.'); }
-  catch (error) { alert(error.message); }
+  try { await executarAcao(`/produtos/${id}/entrada`, quantidade, 'Entrada registrada com sucesso.'); }
+  catch (error) { await window.FestAlert?.error?.('Erro na entrada', error.message || 'Não foi possível registrar a entrada.'); }
 }
 
 async function reservarProduto(id){
@@ -155,35 +155,35 @@ async function reservarProduto(id){
   if(!quantidade) return;
 
   try{
-    await executarAcao(`/produtos/${id}/reservar`, quantidade, 'Reserva registrada.');
+    await executarAcao(`/produtos/${id}/reservar`, quantidade, 'Reserva registrada com sucesso.');
   }catch(err){
-    alert(err.message);
+    await window.FestAlert?.error?.('Erro na reserva', err.message || 'Não foi possível registrar a reserva.');
   }
 }
 
 async function enviarManutencao(id){
-  const confirmar = confirm('Enviar 1 unidade para manutenção?');
-  if(!confirmar) return;
+  const confirmar = await window.FestAlert?.confirm?.('Manutenção', 'Enviar 1 unidade para manutenção?');
+  if(!confirmar || !confirmar.isConfirmed) return;
 
   try{
     await executarAcao(`/produtos/${id}/manutencao`, 1, 'Produto enviado para manutenção.');
   }catch(err){
-    alert(err.message);
+    await window.FestAlert?.error?.('Erro na manutenção', err.message || 'Não foi possível enviar para manutenção.');
   }
 }
 
 async function devolverReserva(id){
   const quantidade = prompt('Quantidade para liberar:');
   if(!quantidade) return;
-  try { await executarAcao(`/produtos/${id}/devolver`, quantidade, 'Reserva liberada.'); }
-  catch (error) { alert(error.message); }
+  try { await executarAcao(`/produtos/${id}/devolver`, quantidade, 'Reserva liberada com sucesso.'); }
+  catch (error) { await window.FestAlert?.error?.('Erro ao liberar reserva', error.message || 'Não foi possível liberar a reserva.'); }
 }
 
 async function finalizarManutencao(id){
   const quantidade = prompt('Quantidade reparada:');
   if(!quantidade) return;
-  try { await executarAcao(`/produtos/${id}/finalizar-manutencao`, quantidade, 'Manutenção finalizada.'); }
-  catch (error) { alert(error.message); }
+  try { await executarAcao(`/produtos/${id}/finalizar-manutencao`, quantidade, 'Manutenção finalizada com sucesso.'); }
+  catch (error) { await window.FestAlert?.error?.('Erro ao finalizar manutenção', error.message || 'Não foi possível finalizá-la.'); }
 }
 
 function visualizarProduto(id){

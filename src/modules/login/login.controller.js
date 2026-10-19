@@ -1,4 +1,5 @@
 export function telaLogin(req, res) {
-  res.render("pages/login", { layout: false });
+  const error = res.locals.error_msg?.[0] || req.flash("error_msg")[0] || null;
+  res.render("pages/login", { layout: false, error });
 }
 

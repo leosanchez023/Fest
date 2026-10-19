@@ -4,16 +4,93 @@ import {
   confirmarEntregaNaTransacao
 } from "../estoque/estoque.service.js";
 
-export async function buscarPedidos({ search, from, to, status, pay, delivery, sort }) {
-  const hoje = new Date().toISOString().split("T")[0];
+const valorRecebidoSql = `COALESCE((
+  SELECT SUM(CASE WHEN pg.valor > 0 THEN pg.valor ELSE 0 END)
+  FROM pagamentos pg
+  WHERE pg.pedido_id = p.id
+), 0)`;
+const valorReembolsadoSql = `COALESCE((
+  SELECT SUM(CASE WHEN pg.valor < 0 THEN ABS(pg.valor) ELSE 0 END)
+  FROM pagamentos pg
+  WHERE pg.pedido_id = p.id
+), 0)`;
+const valorCreditadoSql = `(${valorRecebidoSql} + ${valorReembolsadoSql})`;
 
-  let sql = `
+const buildPedidosWhere = ({ search, from, to, status, pay, delivery, kpi }) => {
+  const clauses = ["p.status_documento = 'PEDIDO'"];
+  const params = [];
+
+  if (search) {
+    clauses.push("(c.nome LIKE ? OR c.telefone LIKE ? OR p.telefone_contato LIKE ? OR CAST(p.id AS CHAR) LIKE ?)");
+    const term = `%${search}%`;
+    params.push(term, term, term, term);
+  }
+  if (from) {
+    clauses.push("p.data_evento >= ?");
+    params.push(from);
+  }
+  if (to) {
+    clauses.push("p.data_evento <= ?");
+    params.push(to);
+  }
+  if (status) {
+    clauses.push("p.status = ?");
+    params.push(status);
+  }
+
+  if (delivery === "Aguardando Entrega") {
+    clauses.push("p.status IN ('ORCAMENTO','CONFIRMADO') AND (p.data_entrega IS NULL OR p.data_entrega >= CURDATE())");
+  } else if (delivery === "Em Rota") {
+    clauses.push("p.status = 'EM_PREPARO'");
+  } else if (delivery === "Entregue") {
+    clauses.push("p.status = 'ENTREGUE'");
+  } else if (delivery === "Entrega Atrasada") {
+    clauses.push(`p.data_entrega < CURDATE()
+      AND p.status NOT IN ('ENTREGUE','RETIRADO','CONFERENCIA','PENDENTE','FINALIZADO','CANCELADO')`);
+  }
+
+  if (pay === "Não Pago") {
+    clauses.push(`${valorCreditadoSql} <= 0`);
+  } else if (pay === "Parcialmente Pago") {
+    clauses.push(`${valorCreditadoSql} > 0 AND ${valorCreditadoSql} < p.valor_total`);
+  } else if (pay === "Pago Integralmente") {
+    clauses.push(`${valorCreditadoSql} >= p.valor_total AND p.valor_total > 0`);
+  }
+
+  if (kpi === "active") {
+    clauses.push("p.status NOT IN ('FINALIZADO','CANCELADO')");
+  } else if (kpi === "delivery") {
+    clauses.push("DATE(p.data_entrega) = CURDATE()");
+  } else if (kpi === "pickup") {
+    clauses.push("DATE(p.data_retirada) = CURDATE()");
+  } else if (kpi === "late") {
+    clauses.push(`${valorCreditadoSql} < p.valor_total AND p.status NOT IN ('FINALIZADO','CANCELADO')`);
+  }
+
+  return { sql: clauses.join(" AND "), params };
+};
+
+export async function buscarPedidos({ search, from, to, status, pay, delivery, sort, kpi, page = 1, limit = 25 }) {
+  const where = buildPedidosWhere({ search, from, to, status, pay, delivery, kpi });
+  const joins = `
+    FROM pedidos p
+    LEFT JOIN cliente c ON c.id = p.cliente_id
+    LEFT JOIN endereco e ON e.id = p.endereco_id
+    WHERE ${where.sql}
+  `;
+  const [[count]] = await db.query(`SELECT COUNT(*) AS total ${joins}`, where.params);
+  const offset = (page - 1) * limit;
+  const orderClause = sort === "event_asc"
+    ? "ORDER BY p.data_evento ASC, p.id ASC"
+    : "ORDER BY p.data_evento DESC, p.id DESC";
+  const [rows] = await db.query(`
     SELECT
       p.id,
       p.status,
       p.data_evento,
       p.data_entrega,
       p.data_retirada,
+      p.telefone_contato,
       p.valor_total,
       c.nome AS cliente,
       c.telefone AS telefone,
@@ -22,97 +99,13 @@ export async function buscarPedidos({ search, from, to, status, pay, delivery, s
       e.bairro AS endereco_bairro,
       e.cidade AS endereco_cidade,
       e.estado AS endereco_estado,
-      COALESCE((
-        SELECT SUM(pg.valor)
-        FROM pagamentos pg
-        WHERE pg.pedido_id = p.id
-      ), 0) AS valor_pago
-    FROM pedidos p
-    LEFT JOIN cliente c ON c.id = p.cliente_id
-    LEFT JOIN endereco e ON e.id = p.endereco_id
-    WHERE p.status_documento = 'PEDIDO'
-  `;
-
-  const params = [];
-
-  // 🔎 Busca por cliente ou número do pedido
-  if (search) {
-    sql += ` AND (c.nome LIKE ? OR c.telefone LIKE ? OR CAST(p.id AS CHAR) LIKE ?)`;
-    params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-  }
-
-  // 📅 Intervalo de datas
-  if (from) {
-    sql += ` AND p.data_evento >= ?`;
-    params.push(from);
-  }
-
-  if (to) {
-    sql += ` AND p.data_evento <= ?`;
-    params.push(to);
-  }
-
-  // 📌 Status
-  if (status) {
-    sql += ` AND p.status = ?`;
-    params.push(status);
-  }
-
-  // 🚚 Filtro de entrega
-  if (delivery === "Aguardando Entrega") {
-
-    sql += `
-      AND p.status IN ('ORCAMENTO','CONFIRMADO')
-      AND (p.data_entrega IS NULL OR p.data_entrega >= ?)
-    `;
-    params.push(hoje);
-
-  } else if (delivery === "Entregue") {
-
-    sql += ` AND p.status = 'ENTREGUE'`;
-
-  } else if (delivery === "Entrega Atrasada") {
-
-    sql += `
-      AND p.data_entrega < ?
-      AND p.status NOT IN (
-        'ENTREGUE',
-        'RETIRADO',
-        'CONFERENCIA',
-        'PENDENTE',
-        'FINALIZADO',
-        'CANCELADO'
-      )
-    `;
-    params.push(hoje);
-
-  }
-
-  // 💰 Pagamento
-  let having = "";
-
-  if (pay === "Não Pago") {
-    having = `HAVING valor_pago = 0`;
-
-  } else if (pay === "Parcialmente Pago") {
-    having = `HAVING valor_pago > 0 AND valor_pago < p.valor_total`;
-
-  } else if (pay === "Pago Integralmente") {
-    having = `HAVING valor_pago >= p.valor_total AND p.valor_total > 0`;
-  }
-
-  const orderClause = sort === 'event_asc'
-    ? `ORDER BY p.data_evento ASC, p.id ASC`
-    : `ORDER BY p.data_evento DESC, p.id DESC`;
-
-  sql += `
-    GROUP BY p.id
-    ${having}
+      ${valorRecebidoSql} AS valor_pago,
+      ${valorCreditadoSql} AS valor_creditado
+    ${joins}
     ${orderClause}
-  `;
-
-  const [rows] = await db.query(sql, params);
-  return rows;
+    LIMIT ? OFFSET ?
+  `, [...where.params, limit, offset]);
+  return { rows, total: Number(count.total), page, limit };
 }
 
 export async function buscarPedidoPorId(id) {
@@ -129,7 +122,10 @@ export async function buscarPedidoPorId(id) {
       e.cidade AS endereco_cidade,
       e.estado AS endereco_estado,
       e.cep AS endereco_cep,
-      COALESCE((SELECT SUM(valor) FROM pagamentos WHERE pedido_id = p.id), 0) AS valor_pago
+      e.referencia AS endereco_referencia,
+      ${valorRecebidoSql} AS valor_pago,
+      ${valorReembolsadoSql} AS valor_reembolsado,
+      ${valorCreditadoSql} AS valor_creditado
     FROM pedidos p
     LEFT JOIN cliente c ON c.id = p.cliente_id
     LEFT JOIN endereco e ON e.id = p.endereco_id
@@ -193,20 +189,15 @@ export async function atualizarStatusAposPagamento(pedidoId) {
         p.status_documento,
         p.valor_total,
         p.conferencia_finalizada,
+        ${valorCreditadoSql} AS valor_pago,
         COALESCE(
-            (SELECT SUM(valor)
-             FROM pagamentos
-             WHERE pedido_id = p.id),
-            0
-        ) AS valor_pago,
-        COALESCE(
-            (SELECT SUM(quantidade)
+          (SELECT SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade ELSE 0 END)
              FROM pedido_itens
              WHERE pedido_id = p.id),
             0
         ) AS qtd_total,
         COALESCE(
-            (SELECT SUM(quantidade_devolvida)
+          (SELECT SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade_devolvida ELSE 0 END)
              FROM pedido_itens
              WHERE pedido_id = p.id),
             0
@@ -237,21 +228,57 @@ export async function atualizarStatusAposPagamento(pedidoId) {
 
 export async function inserirPagamento(pedidoId, dados) {
   const { valor, forma_pagamento, observacao, usuario_id } = dados;
-  const [result] = await db.query(
-    `INSERT INTO pagamentos (pedido_id, usuario_id, valor, forma_pagamento, observacao) VALUES (?, ?, ?, ?, ?)`,
-    [pedidoId, usuario_id || null, valor, forma_pagamento || null, observacao || null]
-  );
-  await atualizarStatusAposPagamento(pedidoId);
-
-  if (result.affectedRows) {
-    await db.query(
-      `INSERT INTO ocorrencias (pedido_id, usuario_id, tipo, descricao, valor, status, data_ocorrencia)
-       VALUES (?, ?, 'Pagamento', ?, ?, 'RESOLVIDO', NOW())`,
-      [pedidoId, usuario_id || null, `Pagamento registrado no valor de ${Number(valor || 0).toFixed(2)}${forma_pagamento ? ` via ${forma_pagamento}` : ''}`, valor || 0]
-    );
+  const pagamento = Number(valor);
+  if (!Number.isSafeInteger(Math.round(pagamento * 100)) || !Number.isFinite(pagamento) || pagamento <= 0) {
+    throw new Error('Valor de pagamento inválido.');
   }
 
-  return result;
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [pedidos] = await conn.query(
+      'SELECT id, status, valor_total FROM pedidos WHERE id = ? FOR UPDATE',
+      [pedidoId]
+    );
+    const pedido = pedidos[0];
+    if (!pedido) throw new Error('Pedido não encontrado.');
+    if (['CANCELADO', 'FINALIZADO'].includes(pedido.status)) {
+      throw new Error('Não é possível registrar pagamento para este pedido.');
+    }
+
+    const [[totais]] = await conn.query(
+      `SELECT COALESCE(SUM(CASE WHEN valor > 0 THEN valor ELSE 0 END), 0) AS pagos,
+              COALESCE(SUM(CASE WHEN valor < 0 THEN ABS(valor) ELSE 0 END), 0) AS reembolsado
+       FROM pagamentos WHERE pedido_id = ?`,
+      [pedidoId]
+    );
+    const saldo = Number(pedido.valor_total) - Number(totais.pagos) - Number(totais.reembolsado);
+    if (!Number.isFinite(saldo) || pagamento > saldo + 0.001) {
+      throw new Error('O pagamento não pode exceder o saldo pendente.');
+    }
+
+    const [result] = await conn.query(
+      `INSERT INTO pagamentos (pedido_id, usuario_id, valor, forma_pagamento, observacao) VALUES (?, ?, ?, ?, ?)`,
+      [pedidoId, usuario_id || null, pagamento, forma_pagamento || null, observacao || null]
+    );
+    await conn.query(
+      `INSERT INTO ocorrencias (pedido_id, usuario_id, tipo, descricao, valor, status, data_ocorrencia)
+       VALUES (?, ?, 'Pagamento', ?, ?, 'RESOLVIDO', NOW())`,
+      [pedidoId, usuario_id || null, `Pagamento registrado no valor de ${pagamento.toFixed(2)}${forma_pagamento ? ` via ${forma_pagamento}` : ''}`, pagamento]
+    );
+    await conn.commit();
+    try {
+      await atualizarStatusAposPagamento(pedidoId);
+    } catch (error) {
+      console.error('Pagamento registrado, mas falhou a atualização de status:', error);
+    }
+    return result;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
 }
 
 export async function marcarEntregue(pedidoId, dados) {
@@ -263,20 +290,36 @@ export async function marcarEntregue(pedidoId, dados) {
     usuario_id
   } = dados;
 
+  if (!String(responsavel_entrega || "").trim()) {
+    throw new Error("Informe o responsável pela entrega.");
+  }
+  if (!data_entrega || Number.isNaN(new Date(data_entrega).getTime())) {
+    throw new Error("Informe uma data e hora válidas para a entrega.");
+  }
 
   const data = data_entrega
     ? data_entrega.split("T")[0]
+    : null;
+  const dataHora = data_entrega
+    ? data_entrega.replace("T", " ").slice(0, 19)
     : null;
 
 
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-    const [pedidos] = await conn.query(`SELECT id, status FROM pedidos WHERE id = ? FOR UPDATE`, [pedidoId]);
+    const [pedidos] = await conn.query(
+      `SELECT id, status, status_documento FROM pedidos WHERE id = ? FOR UPDATE`,
+      [pedidoId]
+    );
     if (!pedidos.length) throw new Error('Pedido não encontrado.');
     if (pedidos[0].status === 'ENTREGUE') {
       await conn.rollback();
       return pedidos[0];
+    }
+    if (pedidos[0].status_documento !== 'PEDIDO' ||
+        !['CONFIRMADO', 'EM_PREPARO'].includes(pedidos[0].status)) {
+      throw new Error('O pedido não pode ser entregue no estado atual.');
     }
 
     const [itensPedido] = await conn.query(
@@ -316,7 +359,7 @@ export async function marcarEntregue(pedidoId, dados) {
       });
     }
 
-    const [result] = await conn.query(
+    await conn.query(
       `
       UPDATE pedido_itens
       SET quantidade_entregue = quantidade
@@ -327,13 +370,13 @@ export async function marcarEntregue(pedidoId, dados) {
       ]
     );
 
-    await conn.query(
+    const [result] = await conn.query(
       `
       UPDATE pedidos
       SET status='ENTREGUE', data_entrega=?, data_entrega_hora=?, responsavel_entrega=?, observacao_entrega=?
       WHERE id=?
       `,
-      [data, data_entrega || null, responsavel_entrega || null, observacao_entrega || null, pedidoId]
+      [data, dataHora, responsavel_entrega || null, observacao_entrega || null, pedidoId]
     );
 
     await conn.query(
@@ -369,9 +412,8 @@ export async function marcarEntregue(pedidoId, dados) {
 
 export async function registrarDevolucao(pedidoId, dados) {
   const conn = await db.getConnection();
-  await conn.beginTransaction();
-
   try {
+    await conn.beginTransaction();
 
     const {
       itens,
@@ -379,6 +421,17 @@ export async function registrarDevolucao(pedidoId, dados) {
       responsavel,
       usuario_id
     } = dados;
+
+    const [pedidos] = await conn.query(
+      'SELECT id, status, status_documento FROM pedidos WHERE id = ? FOR UPDATE',
+      [pedidoId]
+    );
+    if (!pedidos.length) throw new Error('Pedido não encontrado.');
+    if (pedidos[0].status_documento !== 'PEDIDO' ||
+        !['ENTREGUE', 'CONFERENCIA', 'PENDENTE'].includes(pedidos[0].status)) {
+      throw new Error('O pedido não está em uma situação que permita devolução.');
+    }
+    if (!Array.isArray(itens) || !itens.length) throw new Error('Informe itens válidos para devolução.');
 
     const [devolucaoResult] = await conn.query(
       `INSERT INTO devolucoes (
@@ -398,31 +451,44 @@ export async function registrarDevolucao(pedidoId, dados) {
 
     const devolucaoId = devolucaoResult.insertId;
 
+    const itensProcessados = new Set();
     for (const item of itens) {
-      const produtoId = Number(item.produto_id || item.id || 0);
-      const quantidadeEntregue = Number(item.quantidade_entregue || item.quantidade || 0);
-      const quantidadeBoa = Number(item.quantidade_boa || item.quantidade_devolvida || 0);
-      const quantidadeDanificada = Number(item.quantidade_danificada || 0);
-      const quantidadePendente = Number(item.quantidade_faltando || item.quantidade_pendente || 0);
-      const totalDevolvido = quantidadeBoa + quantidadeDanificada + quantidadePendente;
+      const itemId = Number(item.id);
+      if (!Number.isSafeInteger(itemId) || itemId <= 0 || itensProcessados.has(itemId)) {
+        throw new Error('Item inválido ou duplicado na devolução.');
+      }
+      itensProcessados.add(itemId);
 
-      if (item.combo_id && quantidadeEntregue > 0 && totalDevolvido > 0) {
-        const [comboItemRows] = await conn.query(
-          `SELECT quantidade, quantidade_entregue, quantidade_devolvida
-           FROM pedido_itens WHERE id = ? FOR UPDATE`,
-          [item.id]
-        );
-        const comboItem = comboItemRows[0];
-        if (!comboItem) throw new Error('Item de combo não encontrado para devolução.');
-        const entregueCombo = Number(comboItem.quantidade_entregue || comboItem.quantidade || 0);
-        const devolvidoCombo = Number(comboItem.quantidade_devolvida || 0);
-        if (totalDevolvido > Math.max(0, entregueCombo - devolvidoCombo)) {
-          throw new Error(`Quantidade devolvida excede o restante do combo ${item.combo_id}.`);
-        }
+      const [pedidoItemRows] = await conn.query(
+        `SELECT id, pedido_id, produto_id, combo_id, tipo_item, quantidade, quantidade_entregue, quantidade_devolvida
+         FROM pedido_itens WHERE id = ? AND pedido_id = ? FOR UPDATE`,
+        [itemId, pedidoId]
+      );
+      const pedidoItem = pedidoItemRows[0];
+      if (!pedidoItem) throw new Error('O item não pertence a este pedido.');
+      if ((pedidoItem.tipo_item || '').toUpperCase() === 'VENDA') {
+        throw new Error('Itens de venda não podem ser registrados como devolução de estoque alugado.');
+      }
+
+      const produtoId = Number(pedidoItem.produto_id || 0);
+      const quantidadeBoa = Number(item.quantidade_boa ?? item.quantidade_devolvida ?? 0);
+      const quantidadeDanificada = Number(item.quantidade_danificada ?? 0);
+      const quantidadePendente = Number(item.quantidade_faltando ?? item.quantidade_pendente ?? 0);
+      const quantidades = [quantidadeBoa, quantidadeDanificada, quantidadePendente];
+      if (quantidades.some((quantidade) => !Number.isSafeInteger(quantidade) || quantidade < 0)) {
+        throw new Error('As quantidades devolvidas devem ser inteiros não negativos.');
+      }
+      const quantidadeEntregue = Number(pedidoItem.quantidade_entregue || 0);
+      const totalDevolvido = quantidadeBoa + quantidadeDanificada + quantidadePendente;
+      const restanteDevolucao = quantidadeEntregue - Number(pedidoItem.quantidade_devolvida || 0);
+      if (quantidadeEntregue <= 0 || totalDevolvido <= 0 || totalDevolvido > restanteDevolucao) {
+        throw new Error('A devolução excede a quantidade ainda não devolvida.');
+      }
+
+      if (pedidoItem.combo_id) {
         await import("../estoque/estoque.service.js").then(({ registrarDevolucaoComponentesNaTransacao }) => registrarDevolucaoComponentesNaTransacao(conn, {
-          pedidoItemId: item.id,
+          pedidoItemId: itemId,
           pedidoId,
-          quantidadeEntregue,
           quantidadeBoa,
           quantidadeDanificada,
           quantidadePendente,
@@ -430,15 +496,15 @@ export async function registrarDevolucao(pedidoId, dados) {
           observacao: item.observacao || 'Devolução de componentes de combo'
         }));
         await conn.query(
-          `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE id = ?`,
-          [totalDevolvido, item.id]
+          `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE id = ? AND pedido_id = ?`,
+          [totalDevolvido, itemId, pedidoId]
         );
 
         const [componentes] = await conn.query(
           `SELECT produto_id, quantidade_por_unidade
            FROM pedido_item_componentes
-           WHERE pedido_item_id = ?`,
-          [item.id]
+           WHERE pedido_item_id = ? FOR UPDATE`,
+          [itemId]
         );
         for (const componente of componentes) {
           const fator = Number(componente.quantidade_por_unidade || 1);
@@ -459,34 +525,10 @@ export async function registrarDevolucao(pedidoId, dados) {
         continue;
       }
 
-      if (!produtoId || quantidadeEntregue <= 0 || totalDevolvido <= 0) continue;
-
-      const [pedidoItemRows] = await conn.query(
-        `SELECT quantidade, quantidade_devolvida, quantidade_entregue
-         FROM pedido_itens
-         WHERE pedido_id = ? AND produto_id = ?
-         LIMIT 1`,
-        [pedidoId, produtoId]
-      );
-
-      const pedidoItem = pedidoItemRows[0];
-      if (!pedidoItem) continue;
-
-      const entregue = Number(pedidoItem.quantidade_entregue || pedidoItem.quantidade || 0);
-      const devolvidoAtual = Number(pedidoItem.quantidade_devolvida || 0);
-      const restante = Math.max(0, entregue - devolvidoAtual);
-
-      if (totalDevolvido > restante) {
-        throw new Error(`Quantidade devolvida excede o total entregue para o produto ${produtoId}.`);
-      }
-
-      const novaDevolvida = devolvidoAtual + totalDevolvido;
-
+      if (!produtoId) throw new Error('Produto inválido no item devolvido.');
       await conn.query(
-        `UPDATE pedido_itens
-         SET quantidade_devolvida = ?
-         WHERE pedido_id = ? AND produto_id = ?`,
-        [novaDevolvida, pedidoId, produtoId]
+        `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE id = ? AND pedido_id = ?`,
+        [totalDevolvido, itemId, pedidoId]
       );
 
       if (quantidadeDanificada > 0) {
@@ -539,8 +581,8 @@ export async function registrarDevolucao(pedidoId, dados) {
 
     const [[pedido]] = await conn.query(
       `SELECT
-          COALESCE(SUM(quantidade),0) AS qtd_total,
-          COALESCE(SUM(quantidade_devolvida),0) AS qtd_devolvida
+          COALESCE(SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade ELSE 0 END),0) AS qtd_total,
+          COALESCE(SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade_devolvida ELSE 0 END),0) AS qtd_devolvida
        FROM pedido_itens
        WHERE pedido_id = ?`,
       [pedidoId]
@@ -592,74 +634,92 @@ export async function registrarDevolucao(pedidoId, dados) {
 export async function marcarRetirado(pedidoId, dados) {
   const { responsavel_retirada } = dados;
   const [result] = await db.query(
-    `UPDATE pedidos SET status = 'RETIRADO', data_retirada = CURDATE(), responsavel_retirada = ? WHERE id = ?`,
+    `UPDATE pedidos
+     SET status = 'RETIRADO', data_retirada = CURDATE(), responsavel_retirada = ?
+     WHERE id = ? AND status_documento = 'PEDIDO'
+       AND status NOT IN ('CANCELADO', 'FINALIZADO', 'RETIRADO')`,
     [responsavel_retirada || null, pedidoId]
   );
+  if (!result.affectedRows) {
+    const [rows] = await db.query('SELECT status FROM pedidos WHERE id = ?', [pedidoId]);
+    if (!rows.length) throw new Error('Pedido não encontrado.');
+    if (rows[0].status === 'RETIRADO') return result;
+    throw new Error('O pedido não pode ser marcado como retirado no estado atual.');
+  }
   return result;
 }
 
 export async function marcarConferencia(id) {
-  await db.query(
-    `
-    UPDATE pedidos
-    SET status = 'CONFERENCIA'
-    WHERE id = ?
-    `,
+  const [result] = await db.query(
+    `UPDATE pedidos SET status = 'CONFERENCIA'
+     WHERE id = ? AND status_documento = 'PEDIDO'
+       AND status IN ('ENTREGUE', 'RETIRADO', 'PENDENTE')`,
     [id]
   );
+  if (result.affectedRows) return result;
+  const [rows] = await db.query('SELECT status FROM pedidos WHERE id = ?', [id]);
+  if (!rows.length) throw new Error('Pedido não encontrado.');
+  if (rows[0].status === 'CONFERENCIA') return result;
+  throw new Error('O pedido não pode entrar em conferência no estado atual.');
 }
 
 export async function finalizarConferencia(pedidoId) {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [pedidos] = await conn.query(
+      `SELECT p.id, p.status, p.status_documento, p.valor_total,
+         ${valorCreditadoSql} AS valor_pago,
+         (SELECT COALESCE(SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade ELSE 0 END), 0)
+          FROM pedido_itens WHERE pedido_id = p.id) AS qtd_total,
+         (SELECT COALESCE(SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade_devolvida ELSE 0 END), 0)
+          FROM pedido_itens WHERE pedido_id = p.id) AS qtd_devolvida
+       FROM pedidos p WHERE p.id = ? FOR UPDATE`,
+      [pedidoId]
+    );
+    const pedido = pedidos[0];
+    if (!pedido) throw new Error('Pedido não encontrado.');
+    if (pedido.status_documento !== 'PEDIDO' || pedido.status !== 'CONFERENCIA') {
+      throw new Error('O pedido não pode finalizar a conferência no estado atual.');
+    }
 
-  const [[pedido]] = await db.query(`
-    SELECT
-      p.valor_total,
-      COALESCE((SELECT SUM(valor)
-                FROM pagamentos
-                WHERE pedido_id = p.id),0) AS valor_pago,
-
-      COALESCE((SELECT SUM(quantidade)
-                FROM pedido_itens
-                WHERE pedido_id = p.id),0) AS qtd_total,
-
-      COALESCE((SELECT SUM(quantidade_devolvida)
-                FROM pedido_itens
-                WHERE pedido_id = p.id),0) AS qtd_devolvida
-
-    FROM pedidos p
-    WHERE p.id = ?
-  `,[pedidoId]);
-
-  if (!pedido) return null;
-
-  const pagamentoOK =
-    Number(pedido.valor_pago) >= Number(pedido.valor_total);
-
-  const devolucaoOK =
-    Number(pedido.qtd_total) === Number(pedido.qtd_devolvida);
-
-  const novoStatus =
-    pagamentoOK && devolucaoOK
-      ? "FINALIZADO"
-      : "PENDENTE";
-
-  return await db.query(
-    `UPDATE pedidos
-     SET conferencia_finalizada = 1,
-         status = ?
-     WHERE id = ?`,
-    [novoStatus, pedidoId]
-  );
+    const pagamentoOK = Number(pedido.valor_pago) >= Number(pedido.valor_total);
+    const devolucaoOK = Number(pedido.qtd_total) === Number(pedido.qtd_devolvida);
+    const novoStatus = pagamentoOK && devolucaoOK ? 'FINALIZADO' : 'PENDENTE';
+    const [result] = await conn.query(
+      `UPDATE pedidos SET conferencia_finalizada = 1, status = ? WHERE id = ?`,
+      [novoStatus, pedidoId]
+    );
+    await conn.commit();
+    return result;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
 }
 
 export async function inserirOcorrencia(pedidoId, dados) {
   const conn = await db.getConnection();
-  await conn.beginTransaction();
-
   try {
+    await conn.beginTransaction();
     const { tipo, descricao, valor, usuario_id } = dados;
     const valorCobrança = Number(valor || 0);
+    if (!Number.isFinite(valorCobrança) || valorCobrança < 0 ||
+        Math.abs(valorCobrança * 100 - Math.round(valorCobrança * 100)) > 1e-7) {
+      throw new Error('Valor da ocorrência inválido.');
+    }
     const descricaoFinal = descricao || null;
+
+    const [pedidos] = await conn.query(
+      'SELECT id, status FROM pedidos WHERE id = ? FOR UPDATE',
+      [pedidoId]
+    );
+    if (!pedidos.length) throw new Error('Pedido não encontrado.');
+    if (['CANCELADO', 'FINALIZADO'].includes(pedidos[0].status)) {
+      throw new Error('Não é possível alterar ocorrências deste pedido.');
+    }
 
     const [result] = await conn.query(
       `INSERT INTO ocorrencias (pedido_id, usuario_id, tipo, descricao, valor, status)
@@ -708,28 +768,26 @@ export async function kpis() {
   `);
 
   const [[recebido]] = await db.query(`
-    SELECT COALESCE(SUM(valor),0) AS total
+    SELECT COALESCE(SUM(CASE WHEN valor > 0 THEN valor ELSE 0 END),0) AS total
     FROM pagamentos
   `);
 
   const [[saldo]] = await db.query(`
-    SELECT COALESCE(SUM(
-      p.valor_total - COALESCE((SELECT SUM(valor) FROM pagamentos pg WHERE pg.pedido_id = p.id), 0)
-    ), 0) AS total
+    SELECT COALESCE(SUM(GREATEST(
+      p.valor_total - ${valorCreditadoSql},
+      0
+    )), 0) AS total
     FROM pedidos p
     WHERE p.status_documento = 'PEDIDO'
-      AND p.status NOT IN ('CANCELADO')
+      AND p.status NOT IN ('FINALIZADO','CANCELADO')
   `);
 
   const [[atrasados]] = await db.query(`
     SELECT COUNT(*) AS total
     FROM pedidos p
     WHERE p.status_documento = 'PEDIDO'
-      AND (
-        SELECT COALESCE(SUM(pg.valor),0)
-        FROM pagamentos pg
-        WHERE pg.pedido_id = p.id
-      ) < p.valor_total
+    AND p.status NOT IN ('FINALIZADO','CANCELADO')
+    AND ${valorCreditadoSql} < p.valor_total
   `);
 
   return {
@@ -745,14 +803,24 @@ export async function kpis() {
 export async function inserirReembolso(pedidoId, dados) {
   const { valor, forma_pagamento, observacao, usuario_id } = dados;
   const valorNum = Number(valor || 0);
-  if (!Number.isFinite(valorNum) || valorNum <= 0) throw new Error('Valor de reembolso inválido.');
+  if (!Number.isFinite(valorNum) || valorNum <= 0 || !Number.isSafeInteger(Math.round(valorNum * 100))) {
+    throw new Error('Valor de reembolso inválido.');
+  }
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
+    const [pedidos] = await conn.query(
+      'SELECT id, status FROM pedidos WHERE id = ? FOR UPDATE',
+      [pedidoId]
+    );
+    if (!pedidos.length) throw new Error('Pedido não encontrado.');
+    if (['CANCELADO', 'FINALIZADO'].includes(pedidos[0].status)) {
+      throw new Error('Não é possível reembolsar este pedido no estado atual.');
+    }
     const [pagos] = await conn.query(
       `SELECT COALESCE(SUM(CASE WHEN valor > 0 THEN valor ELSE 0 END), 0) AS pagos,
               COALESCE(SUM(CASE WHEN valor < 0 THEN ABS(valor) ELSE 0 END), 0) AS reembolsado
-       FROM pagamentos WHERE pedido_id = ? FOR UPDATE`,
+       FROM pagamentos WHERE pedido_id = ?`,
       [pedidoId]
     );
     const saldoPago = Number(pagos[0].pagos) - Number(pagos[0].reembolsado);
