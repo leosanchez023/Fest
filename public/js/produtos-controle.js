@@ -41,6 +41,8 @@
       busca: document.getElementById('busca')?.value.trim() || '',
       categoria: document.getElementById('filtro-categoria')?.value || '',
       fornecedor: document.getElementById('filtro-fornecedor')?.value || '',
+      disponivelMinimo: document.getElementById('filtro-minimo')?.value || '',
+      ordenacao: document.getElementById('filtro-ordenacao')?.value || 'nome',
       status: document.querySelector('#chips .chip.active')?.dataset.status || ''
     };
   }
@@ -55,6 +57,10 @@
 
     tbody.innerHTML = produtos.map((produto) => {
       const status = produto.status_estoque || 'DISPONIVEL';
+      const disponivel = Number(produto.disponivel ?? 0);
+      const minimo = Number(produto.estoque_minimo || 0);
+      const disponibilidadeStatus = disponivel <= 0 ? 'INDISPONIVEL'
+        : disponivel <= minimo ? 'BAIXO_ESTOQUE' : 'DISPONIVEL';
       return `<tr>
         <td>${escapeHtml(produto.nome)}</td>
         <td>${Number(produto.estoque || 0)}</td>
@@ -65,6 +71,7 @@
         <td title="Calculado: estoque físico menos reservado, em uso, manutenção e danificado">${Number(produto.disponivel || 0)}</td>
         <td>${Number(produto.estoque_minimo || 0)}</td>
         <td>
+          <span class="badge ${statusClasse[disponibilidadeStatus]}">${statusLabel[disponibilidadeStatus]} (${disponivel})</span>
           <span class="badge ${statusClasse[status] || 'badge-muted'}">${statusLabel[status] || escapeHtml(status)}</span>
           <span class="badge ${Number(produto.ativo) === 1 ? 'badge-success' : 'badge-muted'}">${Number(produto.ativo) === 1 ? 'Ativo' : 'Inativo'}</span>
         </td>
@@ -102,11 +109,12 @@
         - Number(produto.estoque_danificado || 0);
       const minimo = Number(produto.estoque_minimo || 0);
       const status_estoque = disponivel <= 0 ? 'INDISPONIVEL'
-        : Number(produto.estoque_manutencao || 0) > 0 ? 'MANUTENCAO'
+        : disponivel <= minimo ? 'BAIXO_ESTOQUE'
+          : Number(produto.estoque_manutencao || 0) > 0 ? 'MANUTENCAO'
           : Number(produto.estoque_danificado || 0) > 0 ? 'DANIFICADO'
             : Number(produto.estoque_em_uso || 0) > 0 ? 'EM_USO'
               : Number(produto.estoque_reservado || 0) > 0 ? 'RESERVADO'
-                : disponivel <= minimo ? 'BAIXO_ESTOQUE' : 'DISPONIVEL';
+                : 'DISPONIVEL';
       const snapshot = { ...produto, disponivel, status_estoque };
       row.dataset.stockSnapshot = JSON.stringify(snapshot);
       row.innerHTML = linhaEdicao(snapshot);
@@ -257,7 +265,7 @@
   }
 
   function configurarControle() {
-    ['busca', 'filtro-categoria', 'filtro-fornecedor'].forEach((id) => {
+    ['busca', 'filtro-categoria', 'filtro-fornecedor', 'filtro-minimo', 'filtro-ordenacao'].forEach((id) => {
       document.getElementById(id)?.addEventListener(id === 'busca' ? 'input' : 'change', carregarProdutosControle);
     });
     document.querySelectorAll('#chips .chip').forEach((chip) => chip.addEventListener('click', () => {

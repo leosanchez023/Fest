@@ -63,11 +63,11 @@ export function statusEstoque(produto) {
   const minimo = Number(produto?.estoque_minimo ?? 0);
 
   if (disponivel <= 0) return 'INDISPONIVEL';
+  if (disponivel <= minimo) return 'BAIXO_ESTOQUE';
   if (Number(produto?.estoque_manutencao ?? 0) > 0) return 'MANUTENCAO';
   if (Number(produto?.estoque_danificado ?? 0) > 0) return 'DANIFICADO';
   if (Number(produto?.estoque_em_uso ?? 0) > 0) return 'EM_USO';
   if (Number(produto?.estoque_reservado ?? 0) > 0) return 'RESERVADO';
-  if (disponivel <= minimo) return 'BAIXO_ESTOQUE';
   return 'DISPONIVEL';
 }
 
@@ -1477,6 +1477,10 @@ export async function resumoEstoque() {
         - COALESCE(estoque_danificado, 0)
       ), 0) AS disponivel,
       COALESCE(SUM(CASE WHEN (
+        COALESCE(estoque, 0) - COALESCE(estoque_reservado, 0)
+        - COALESCE(estoque_em_uso, 0) - COALESCE(estoque_manutencao, 0)
+        - COALESCE(estoque_danificado, 0)
+      ) > 0 AND (
         COALESCE(estoque, 0) - COALESCE(estoque_reservado, 0)
         - COALESCE(estoque_em_uso, 0) - COALESCE(estoque_manutencao, 0)
         - COALESCE(estoque_danificado, 0)

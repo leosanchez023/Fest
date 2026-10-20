@@ -6,8 +6,8 @@ const { default: db } = await import("../database/connection.js");
 
 assert.equal(
   service.calcularSaldoPendente(100, [60, -25]),
-  15,
-  "Refund credits reduce pending balance without reducing the received total"
+  65,
+  "Refunds increase the outstanding balance because they reduce the amount retained"
 );
 assert.equal(service.calcularSaldoPendente(100, [110]), 0, "Pending balance cannot be negative");
 assert.equal(service.calcularSaldoPendente(100, []), 100, "No transactions leave the full amount pending");

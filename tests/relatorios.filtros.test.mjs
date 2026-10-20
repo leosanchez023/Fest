@@ -26,7 +26,7 @@ const financeiro = construirFiltros({
   extraKey: "forma",
   extra: "Pix"
 });
-assert.match(financeiro.pedidosSql, /COALESCE\(pg\.total_pago, 0\) - COALESCE\(pg\.reembolsos, 0\)/);
+assert.match(financeiro.pedidosSql, /COALESCE\(p\.valor_total, 0\) - COALESCE\(pg\.total_pago, 0\) \+ COALESCE\(pg\.reembolsos, 0\)/);
 assert.match(financeiro.pedidosSql, /pf\.forma_pagamento = \?/);
 assert.deepEqual(financeiro.pedidosParams, ["PIX"]);
 

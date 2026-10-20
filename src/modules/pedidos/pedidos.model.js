@@ -102,14 +102,14 @@ export async function buscarProdutos(termo) {
 export async function buscarItens(termo) {
   const busca = `%${String(termo || "").trim()}%`;
   const [rows] = await db.query(
-    `SELECT id, nome, preco_venda, preco_aluguel, tipo, 'PRODUTO' AS origem
+    `    SELECT id, nome, preco_venda, preco_aluguel, 'PRODUTO' AS origem
      FROM produtos
      WHERE ativo = 1 AND (nome LIKE ? OR codigo LIKE ?)
      UNION ALL
      SELECT id, nome,
             COALESCE(NULLIF(preco_aluguel, 0), preco_venda, 0) AS preco_venda,
             COALESCE(NULLIF(preco_aluguel, 0), preco_venda, 0) AS preco_aluguel,
-            'Aluguel' AS tipo, 'COMBO' AS origem
+            'COMBO' AS origem
      FROM combos
      WHERE ativo = 1 AND (nome LIKE ? OR codigo LIKE ?)
      ORDER BY nome
@@ -226,7 +226,7 @@ async function obterOuCriarEndereco(conn, dados, enderecoId = null) {
 export async function buscarProdutoPorId(id) {
   const [rows] = await db.query(
     `
-    SELECT id, nome, tipo, preco_venda, preco_aluguel, estoque, ativo
+    SELECT id, nome, preco_venda, preco_aluguel, estoque, ativo
     FROM produtos
     WHERE id = ?
     `,
@@ -240,7 +240,7 @@ export async function buscarComboPorId(id) {
   const [rows] = await db.query(
     `SELECT c.id, c.nome,
             COALESCE(NULLIF(c.preco_aluguel, 0), c.preco_venda, 0) AS preco,
-            c.preco_venda, c.preco_aluguel, c.ativo,
+            c.ativo,
             COUNT(ci.id) AS total_componentes
      FROM combos c
      LEFT JOIN combo_itens ci ON ci.combo_id = c.id
@@ -514,7 +514,7 @@ export async function buscarPedidoPorId(id) {
   const pedido = rows[0];
 
   const [itens] = await db.query(
-    `SELECT pi.*, pr.nome as produto_nome, pr.tipo AS produto_tipo,
+    `SELECT pi.*, pr.nome as produto_nome,
             pr.preco_venda AS produto_preco_venda,
             pr.preco_aluguel AS produto_preco_aluguel,
             c.nome as combo_nome,
@@ -704,20 +704,15 @@ export async function atualizarPedido(id, dados) {
         precoOficial = Number(combos[0].preco);
       } else {
         const [produtos] = await conn.query(
-          `SELECT id, ativo, tipo, preco_venda, preco_aluguel
+          `SELECT id, ativo, preco_venda, preco_aluguel
            FROM produtos WHERE id = ? FOR UPDATE`,
           [produtoId]
         );
         if (!produtos.length || Number(produtos[0].ativo) !== 1) throw new Error('Produto inexistente ou inativo.');
-        const tipoCatalogo = String(produtos[0].tipo || '').trim().toUpperCase();
         tipoItem = String(item.tipo_item || (
-          tipoCatalogo === 'VENDA' || tipoCatalogo === 'ALUGUEL'
-            ? tipoCatalogo
-            : tipoPedidoPadrao === 'VENDA' ? 'VENDA' : 'ALUGUEL'
+          tipoPedidoPadrao === 'VENDA' ? 'VENDA' : 'ALUGUEL'
         )).toUpperCase();
-        if (!['VENDA', 'ALUGUEL'].includes(tipoItem)
-            || (tipoCatalogo === 'VENDA' && tipoItem !== 'VENDA')
-            || (tipoCatalogo === 'ALUGUEL' && tipoItem !== 'ALUGUEL')) {
+        if (!['VENDA', 'ALUGUEL'].includes(tipoItem)) {
           throw new Error(`Tipo de item inválido para o produto ${produtos[0].id}.`);
         }
         precoOficial = Number(tipoItem === 'VENDA' ? produtos[0].preco_venda : produtos[0].preco_aluguel);

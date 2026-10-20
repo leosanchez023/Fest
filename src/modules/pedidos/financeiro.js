@@ -5,5 +5,5 @@ export function calcularSaldoPendente(total, pagamentos, restituicoes) {
   }
 
   const [valorTotal, totalPago, totalRestituido] = valores;
-  return Math.max(0, valorTotal - totalPago - totalRestituido);
+  return Math.max(0, valorTotal - totalPago + totalRestituido);
 }

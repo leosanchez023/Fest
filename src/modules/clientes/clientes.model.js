@@ -56,6 +56,24 @@ async function gravarEndereco(connection, dados, idEndereco = null) {
     return result.insertId;
 }
 
+async function obterEnderecoSemAlterarHistorico(connection, idEndereco, dados) {
+    if (!idEndereco) return gravarEndereco(connection, dados);
+
+    const [rows] = await connection.query(
+        `SELECT id, rua, numero, bairro, cidade, estado, cep, referencia
+         FROM endereco WHERE id = ? FOR UPDATE`,
+        [idEndereco]
+    );
+    const atual = rows[0];
+    if (!atual) throw new Error("Endereço do cliente não encontrado.");
+
+    const campos = ["rua", "numero", "bairro", "cidade", "estado", "cep", "referencia"];
+    const enderecoIgual = campos.every((campo) =>
+        String(atual[campo] ?? "").trim() === String(dados[campo] ?? "").trim()
+    );
+    return enderecoIgual ? atual.id : gravarEndereco(connection, dados);
+}
+
 async function gravarCliente(connection, dados, idEndereco, id = null) {
     const values = [
         dados.nome,
@@ -141,7 +159,7 @@ export async function criarClienteComEndereco(dados) {
 
 export async function atualizarClienteComEndereco(id, dados, idEndereco) {
     return transact(async (connection) => {
-        const enderecoId = await gravarEndereco(connection, dados, idEndereco);
+        const enderecoId = await obterEnderecoSemAlterarHistorico(connection, idEndereco, dados);
         await gravarCliente(connection, dados, enderecoId, id);
         return findByIdOn(connection, id);
     });

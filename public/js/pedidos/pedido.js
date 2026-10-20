@@ -211,7 +211,7 @@ async function carregarPedidoParaEdicao(id) {
       preco_aluguel: it.produto_preco_aluguel ?? it.preco_combo ?? it.valor_unitario ?? 0,
       quantidade: it.quantidade,
       tipo_item: it.tipo_item || pedido.tipo_pedido || "ALUGUEL",
-      pode_alternar_tipo: Boolean(it.combo_id) || String(it.produto_tipo || "").toUpperCase() === "AMBOS"
+      pode_alternar_tipo: true
     }));
 
     // Campos simples

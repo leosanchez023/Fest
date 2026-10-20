@@ -103,6 +103,10 @@ let activeKpiFilter = null;
 let currentOrderId = null;
 let currentReturnItems = [];
 let currentOrderContext = null;
+let returnSubmissionInFlight = false;
+let deliverySubmissionInFlight = false;
+let financeSubmissionInFlight = false;
+let occurrenceSubmissionInFlight = false;
 let eventOrder = 'desc'; // 'desc' = mais recentes primeiro, 'asc' = mais antigos primeiro
 let selectedOrders = new Set();
 let currentPage = 1;
@@ -146,6 +150,7 @@ const normalizeOrder = (o) => {
     valor_pago: Number(o.valor_pago || 0),
     valor_reembolsado: Number(o.valor_reembolsado || 0),
     valor_creditado: Number(o.valor_creditado ?? o.valor_pago ?? 0),
+    has_pending_return: Number(o.has_pending_return || 0) === 1,
     conferencia_finalizada: Number(o.conferencia_finalizada || 0) === 1,
     endereco_rua: o.endereco_rua || o.rua || "",
     endereco_numero: o.endereco_numero || o.numero || "",
@@ -159,6 +164,24 @@ const normalizeOrder = (o) => {
     devolucoes: Array.isArray(o.devolucoes) ? o.devolucoes : [],
   };
 };
+
+const buildReturnItems = (items = []) => items
+  .filter((item) => String(item.tipo_item || "").trim().toUpperCase() === "ALUGUEL")
+  .map((item) => ({
+    produto_id: item.produto_id,
+    nome: item.combo_nome || item.produto_nome || item.nome || "Produto",
+    quantidade: Number(item.quantidade_entregue || item.quantidade || 0),
+    combo_id: item.combo_id || null,
+    item_id: item.id,
+    quantidade_devolvida: Number(item.quantidade_devolvida || 0),
+    valor_unitario: Number(item.valor_unitario || 0),
+    quantidade_pendente: Math.max(
+      0,
+      Number(item.quantidade_entregue || item.quantidade || 0) -
+      Number(item.quantidade_devolvida || 0)
+    ),
+  }))
+  .filter((item) => item.quantidade_pendente > 0);
 
 const renderTable = () => {
   const tbody = $("orders-tbody");
@@ -212,7 +235,7 @@ const renderTable = () => {
           <td>
             <div class="delivery-actions">
               <button class="iconbtn" type="button" data-delivery-action="deliver" data-id="${o.id}" title="Marcar como entregue" aria-label="Marcar como entregue" ${canDeliver ? "" : "disabled"}><i class="fa-solid fa-truck"></i></button>
-              ${o.status === "ENTREGUE" ? `<button class="iconbtn" type="button" data-delivery-action="return" data-id="${o.id}" title="Recolher" aria-label="Recolher"><i class="fa-solid fa-box-archive"></i></button>` : ""}
+              ${o.status === "ENTREGUE" && o.has_pending_return ? `<button class="iconbtn" type="button" data-delivery-action="return" data-id="${o.id}" title="Recolher" aria-label="Recolher"><i class="fa-solid fa-box-archive"></i></button>` : ""}
             </div>
           </td>
         </tr>
@@ -310,8 +333,14 @@ const loadOrders = async () => {
     if (!res.ok) throw new Error("Erro ao carregar pedidos");
     const results = (await res.json()).map(normalizeOrder);
     if (requestId !== listRequest) return;
+    const total = Number(res.headers.get("X-Total-Count") || results.length);
+    const lastPage = Math.max(1, Math.ceil(total / pageSize));
+    if (currentPage > lastPage) {
+      currentPage = lastPage;
+      return loadOrders();
+    }
     orders = results;
-    totalOrders = Number(res.headers.get("X-Total-Count") || results.length);
+    totalOrders = total;
     renderAlerts();
     renderTable();
   } catch (error) {
@@ -359,8 +388,9 @@ const renderTimeline = (order) => {
   // A entrega deve ser considerada concluída somente pelo status do pedido
   const isDelivered = order.status === "ENTREGUE";
 
-  const totalQty = itens.reduce((sum, item) => sum + Number(item.quantidade || 0), 0);
-  const returnedQty = itens.reduce((sum, item) => sum + Number(item.quantidade_devolvida || 0), 0);
+  const rentalItems = itens.filter((item) => String(item.tipo_item || "").trim().toUpperCase() === "ALUGUEL");
+  const totalQty = rentalItems.reduce((sum, item) => sum + Number(item.quantidade || 0), 0);
+  const returnedQty = rentalItems.reduce((sum, item) => sum + Number(item.quantidade_devolvida || 0), 0);
   const pendingReturnQty = Math.max(0, totalQty - returnedQty);
   const allItemsReturned = totalQty === 0 || returnedQty >= totalQty;
   const conferenceCompleted = Boolean(order.conferencia_finalizada);
@@ -410,11 +440,12 @@ const renderTimeline = (order) => {
     },
     {
       title: "Devolução",
-      // marcada como concluída somente se houver devolução registrada e todos os itens devolvidos
-      state: devolucoes.length > 0 && allItemsReturned ? "done" : devolucoes.length > 0 && pendingReturnQty > 0 ? "pending" : "waiting",
-      label: devolucoes.length > 0 && allItemsReturned ? "Concluído" : devolucoes.length > 0 && pendingReturnQty > 0 ? "Pendência" : "Aguardando",
-      icon: devolucoes.length > 0 && allItemsReturned ? "fa-circle-check" : devolucoes.length > 0 && pendingReturnQty > 0 ? "fa-triangle-exclamation" : "fa-circle",
-      meta: devolucoes.length > 0 && allItemsReturned
+      state: rentalItems.length === 0 ? "done" : devolucoes.length > 0 && allItemsReturned ? "done" : devolucoes.length > 0 && pendingReturnQty > 0 ? "pending" : "waiting",
+      label: rentalItems.length === 0 ? "Não aplicável" : devolucoes.length > 0 && allItemsReturned ? "Concluído" : devolucoes.length > 0 && pendingReturnQty > 0 ? "Pendência" : "Aguardando",
+      icon: rentalItems.length === 0 ? "fa-minus" : devolucoes.length > 0 && allItemsReturned ? "fa-circle-check" : devolucoes.length > 0 && pendingReturnQty > 0 ? "fa-triangle-exclamation" : "fa-circle",
+      meta: rentalItems.length === 0
+        ? "Este pedido não contém itens alugados"
+        : devolucoes.length > 0 && allItemsReturned
         ? `${devolucoes[devolucoes.length - 1]?.responsavel || "Responsável não informado"} • ${formatDateTime(devolucoes[devolucoes.length - 1]?.data_devolucao || order.data_retirada)}`
         : devolucoes.length > 0 && pendingReturnQty > 0
           ? `${pendingReturnQty} item${pendingReturnQty === 1 ? "" : "s"} ainda pendente${pendingReturnQty === 1 ? "" : "s"}`
@@ -591,11 +622,12 @@ const renderOrderPanels = (order) => {
 
   const deliveryDate = order.data_entrega ? formatDateTime(order.data_entrega_hora || order.data_entrega) : "-";
   const pickupDate = order.data_retirada ? formatDateTime(order.data_retirada_hora || order.data_retirada) : "-";
-  const deliveredItems = (order.itens || []).reduce((sum, item) => sum + Number(item.quantidade_entregue || 0), 0);
-  const returnedItems = (order.itens || []).reduce((sum, item) => sum + Number(item.quantidade_devolvida || 0), 0);
+  const rentalItems = (order.itens || []).filter((item) => String(item.tipo_item || "").trim().toUpperCase() === "ALUGUEL");
+  const deliveredItems = rentalItems.reduce((sum, item) => sum + Number(item.quantidade_entregue || 0), 0);
+  const returnedItems = rentalItems.reduce((sum, item) => sum + Number(item.quantidade_devolvida || 0), 0);
   const pendingItems = Math.max(0, deliveredItems - returnedItems);
 
-  const itemRows = (order.itens || [])
+  const itemRows = rentalItems
     .map((item) => {
       const enviada = Number(item.quantidade || 0);
       const entregue = Number(item.quantidade_entregue || 0);
@@ -619,8 +651,14 @@ const renderOrderPanels = (order) => {
   if (["CONFIRMADO", "EM_PREPARO"].includes(order.status)) {
     actionButtons.push(`<button class="btn-primary btn" id="show-delivery-modal" type="button">Marcar como Entregue</button>`);
   }
-  if (order.status === "ENTREGUE") {
+  const hasRentalItems = (order.itens || []).some(
+    (item) => String(item.tipo_item || "").trim().toUpperCase() === "ALUGUEL"
+  );
+  if (order.status === "ENTREGUE" && hasRentalItems && buildReturnItems(order.itens).length > 0) {
     actionButtons.push(`<button class="btn-primary btn" id="show-return-modal" type="button">Registrar Devolução</button>`);
+  }
+  if (order.status === "ENTREGUE" && !hasRentalItems) {
+    actionButtons.push(`<button class="btn-primary btn" onclick="markConferencia(${order.id})">Iniciar Conferência</button>`);
   }
   if (["RETIRADO", "PENDENTE"].includes(order.status)) {
     actionButtons.push(`<button class="btn-primary btn" onclick="markConferencia(${order.id})">Iniciar Conferência</button>`);
@@ -730,6 +768,7 @@ const renderOrderPanels = (order) => {
     valor.focus();
 
     confirmBtn.onclick = async () => {
+      if (financeSubmissionInFlight) return;
       const value = Number(parseFloat(valor.value.replace(',', '.')) || 0);
       const text = (descricao.value || "").trim();
 
@@ -748,6 +787,8 @@ const renderOrderPanels = (order) => {
         return;
       }
 
+      financeSubmissionInFlight = true;
+      confirmBtn.disabled = true;
       try {
         if (mode === "payment") {
           const metodo = (formaPagamentoSelect.value || "").trim();
@@ -799,6 +840,9 @@ const renderOrderPanels = (order) => {
       } catch (err) {
         console.error(err);
         await window.FestAlert?.error?.("Financeiro", `Erro ao ${mode === "payment" ? "registrar pagamento" : mode === "refund" ? "registrar restituição" : "gerar cobrança"}: ${err.message}`);
+      } finally {
+        financeSubmissionInFlight = false;
+        confirmBtn.disabled = false;
       }
     };
   };
@@ -862,7 +906,7 @@ const renderOrderPanels = (order) => {
     <div style="display:flex; flex-direction:column; gap:8px; max-width:600px; margin-top:12px;">
       <div style="display:flex; gap:8px;"><input id="oco-tipo" placeholder="Tipo" style="width:200px;" /><input id="oco-valor" placeholder="Valor (opcional)" style="width:140px;" /></div>
       <textarea id="oco-desc" placeholder="Descrição" rows="2" style="width:100%;"></textarea>
-      <div style="display:flex; gap:8px;"><button class="btn-primary btn" id="oco-submit">Registrar Ocorrência</button></div>
+      <div style="display:flex; gap:8px;"><button class="btn-primary btn" id="oco-submit" type="button">Registrar Ocorrência</button></div>
     </div>
   `;
   $("m-oco").appendChild(ocoForm);
@@ -908,16 +952,7 @@ const openOrderFinanceOrDelivery = async (id, mode) => {
 
 const openReturnModal = (order) => {
   currentOrderContext = order;
-  currentReturnItems = (order.itens || []).map((item) => ({
-    produto_id: item.produto_id,
-    nome: item.combo_nome || item.produto_nome || item.nome || "Produto",
-    quantidade: Number(item.quantidade_entregue || item.quantidade || 0),
-    combo_id: item.combo_id || null,
-    item_id: item.id,
-    quantidade_devolvida: Number(item.quantidade_devolvida || 0),
-    valor_unitario: Number(item.valor_unitario || item.valor_unitario || 0),
-    quantidade_pendente: Math.max(0, Number(item.quantidade_entregue || item.quantidade || 0) - Number(item.quantidade_devolvida || 0)),
-  })).filter((item) => item.quantidade_pendente > 0);
+  currentReturnItems = buildReturnItems(order.itens || []);
 
   const body = $("return-modal-body");
   body.innerHTML = `
@@ -933,7 +968,7 @@ const openReturnModal = (order) => {
               <td>${item.quantidade_pendente}</td>
               <td><input type="number" min="0" max="${item.quantidade_pendente}" value="0" data-index="${index}" class="return-input" /></td>
             </tr>
-          `).join("")}
+          `).join("") || `<tr><td colspan="5" style="text-align:center; color:#6b7280;">Nenhum item alugado pendente de devolução.</td></tr>`}
         </tbody>
       </table>
       <div style="margin-top:10px;">
@@ -993,7 +1028,7 @@ const closeReturnModal = () => {
 // Ações de backend chamadas pela UI
 const markEntregue = async () => {
   const order = currentOrderContext;
-  if (!order) return;
+  if (!order || deliverySubmissionInFlight) return;
   const datetime = $("delivery-datetime").value;
   const responsavel = $("delivery-responsavel").value.trim();
   const observacao = $("delivery-observacao").value.trim();
@@ -1005,6 +1040,9 @@ const markEntregue = async () => {
     return;
   }
   $("delivery-responsavel").setCustomValidity("");
+  deliverySubmissionInFlight = true;
+  const confirmButton = $("delivery-confirm-btn");
+  if (confirmButton) confirmButton.disabled = true;
 
   try {
     const res = await fetch(`/entregas/pedidos/${order.id}/marcar-entregue`, {
@@ -1023,12 +1061,15 @@ const markEntregue = async () => {
   } catch (err) {
     console.error(err);
     await window.FestAlert?.error?.("Erro ao marcar entregue", err.message || "Não foi possível registrar a entrega.");
+  } finally {
+    deliverySubmissionInFlight = false;
+    if (confirmButton) confirmButton.disabled = false;
   }
 };
 
 const submitReturn = async () => {
   const order = currentOrderContext;
-  if (!order) return;
+  if (!order || returnSubmissionInFlight) return;
 
   const rows = Array.from(document.querySelectorAll("#return-modal-body input[type='number']"));
   const itens = rows.map((input) => {
@@ -1058,6 +1099,10 @@ const submitReturn = async () => {
     return;
   }
 
+  returnSubmissionInFlight = true;
+  const confirmButton = $("return-confirm-btn");
+  if (confirmButton) confirmButton.disabled = true;
+
   try {
     const res = await fetch(`/entregas/pedidos/${order.id}/devolucoes`, {
       method: 'POST',
@@ -1075,6 +1120,9 @@ const submitReturn = async () => {
   } catch (err) {
     console.error(err);
     await window.FestAlert?.error?.("Erro ao registrar devolução", err.message || "Não foi possível registrar a devolução.");
+  } finally {
+    returnSubmissionInFlight = false;
+    if (confirmButton) confirmButton.disabled = false;
   }
 };
 
@@ -1124,9 +1172,13 @@ const finalizarConferencia = async (id) => {
 };
 
 const submitOcorrencia = async (id) => {
+  if (occurrenceSubmissionInFlight) return;
   const tipo = $("oco-tipo").value || 'Geral';
   const descricao = $("oco-desc").value || '';
   const valor = parseFloat($("oco-valor").value.replace(',', '.') || 0) || 0;
+  occurrenceSubmissionInFlight = true;
+  const button = $("oco-submit");
+  if (button) button.disabled = true;
   try {
     const res = await fetch(`/entregas/pedidos/${id}/ocorrencias`, {
       method: 'POST',
@@ -1139,6 +1191,9 @@ const submitOcorrencia = async (id) => {
   } catch (err) {
     console.error(err);
     await window.FestAlert?.error?.('Erro ao registrar ocorrência', err.message || 'Não foi possível registrar a ocorrência.');
+  } finally {
+    occurrenceSubmissionInFlight = false;
+    if (button) button.disabled = false;
   }
 };
 

@@ -105,6 +105,12 @@ textarea:focus,
     margin-top: 24px;
 }
 
+.form-error {
+    color: var(--color-danger);
+    font-size: .9rem;
+    margin: 12px 0 0;
+}
+
 /* Input com ícone */
 
 .input-wrapper {

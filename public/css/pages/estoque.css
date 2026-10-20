@@ -114,6 +114,11 @@
 .badge-muted { background: #eef1f5; color: #677187; }
 
 .estoque-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) 220px;gap:12px;margin:14px 0 18px}
+#aba-produtos .product-filter-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,2fr);align-items:center;gap:12px}
+#aba-produtos .product-filter-toolbar .search{grid-column:1;grid-row:1}
+#aba-produtos .product-filter-toolbar .selects{grid-column:2;grid-row:1;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:0}
+#aba-produtos .product-filter-toolbar .chips{grid-column:1 / -1;grid-row:2;margin-top:0}
+#aba-produtos .product-filter-toolbar .search input{min-width:0}
 .estoque-header .page-meta{flex:1}
 .estoque-header .btn-primary{height:var(--control-height);padding:0 16px;border:0;border-radius:var(--control-radius);background:var(--color-primary);color:#fff;cursor:pointer}
 .estoque-panel h2{font-size:16px;color:var(--color-text)}
@@ -192,6 +197,10 @@
   .estoque-header{align-items:flex-start;flex-direction:column}
   .estoque-toolbar{grid-template-columns:1fr}
   .historico-paginacao nav{margin-left:0}
+  #aba-produtos .product-filter-toolbar{grid-template-columns:minmax(0,1fr)}
+  #aba-produtos .product-filter-toolbar .search{grid-column:1;grid-row:1}
+  #aba-produtos .product-filter-toolbar .selects{grid-column:1;grid-row:2;grid-template-columns:repeat(2,minmax(0,1fr))}
+  #aba-produtos .product-filter-toolbar .chips{grid-column:1;grid-row:3}
 }
 
 @media(max-width:1000px){

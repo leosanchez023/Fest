@@ -66,7 +66,22 @@ export async function desativar(req, res) {
     await service.desativarCombo(req.params.id);
     res.json({ sucesso: true, mensagem: 'Combo desativado.' });
   } catch (error) {
-    res.status(error.code ? 500 : 400).json({
+    res.status(error.statusCode || (error.code ? 500 : 400)).json({
+      erro: error.code ? 'Não foi possível concluir a operação.' : error.message
+    });
+  }
+}
+
+export async function atualizarStatus(req, res) {
+  try {
+    const resultado = await service.atualizarStatusCombo(req.params.id, req.body.ativo);
+    return res.json({
+      sucesso: true,
+      mensagem: resultado.ativo ? 'Combo ativado.' : 'Combo inativado.',
+      combo: resultado
+    });
+  } catch (error) {
+    return res.status(error.statusCode || (error.code ? 500 : 400)).json({
       erro: error.code ? 'Não foi possível concluir a operação.' : error.message
     });
   }

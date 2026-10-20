@@ -1,6 +1,31 @@
 import * as service from "./produtos.service.js";
 import * as fornecedoresService from "../fornecedores/fornecedores.service.js";
 
+const statusEstoqueLabels = {
+  DISPONIVEL: "Disponível",
+  INDISPONIVEL: "Indisponível",
+  BAIXO_ESTOQUE: "Estoque baixo",
+  RESERVADO: "Reservado",
+  EM_USO: "Em uso",
+  MANUTENCAO: "Manutenção",
+  DANIFICADO: "Danificado"
+};
+const statusEstoqueClasses = {
+  DISPONIVEL: "success",
+  INDISPONIVEL: "danger",
+  BAIXO_ESTOQUE: "warning",
+  RESERVADO: "info",
+  EM_USO: "purple",
+  MANUTENCAO: "amber",
+  DANIFICADO: "danger"
+};
+
+const incluirStatusEstoque = (produtos) => produtos.map((produto) => ({
+  ...produto,
+  status_estoque_label: statusEstoqueLabels[produto.status_estoque] || "Indisponível",
+  status_estoque_class: statusEstoqueClasses[produto.status_estoque] || "muted"
+}));
+
 async function dadosDoFormulario() {
   const produtos = await service.listar();
   const fornecedores = await fornecedoresService.listar({ status: "Ativo" });
@@ -21,13 +46,15 @@ export async function listar(req, res) {
       busca: req.query.busca || "",
       categoria: req.query.categoria || "",
       fornecedor: req.query.fornecedor || "",
+      disponivelMinimo: req.query.disponivelMinimo || "",
+      ordenacao: req.query.ordenacao || "nome",
       status: req.query.status === "INATIVO" ? "" : req.query.status || "",
       ativo: req.query.status === "INATIVO" ? "0" : req.query.ativo || ""
     };
 
     console.log("Filtros:", filtros);
 
-    const produtos = await service.listar(filtros);
+    const produtos = incluirStatusEstoque(await service.listar(filtros));
     console.log("Produtos:", produtos.length);
 
     const { fornecedores, categorias } = await dadosDoFormulario();
@@ -80,6 +107,12 @@ export async function listarAPI(req,res){
 
       fornecedor:
       req.query.fornecedor || "",
+
+      disponivelMinimo:
+      req.query.disponivelMinimo || "",
+
+      ordenacao:
+      req.query.ordenacao || "nome",
 
 
       status:
@@ -340,7 +373,7 @@ if (!produto) {
 }
 
 const produtos =
- await service.listar();
+ incluirStatusEstoque(await service.listar());
 
 
 

@@ -144,47 +144,36 @@
     });
 
     document.querySelectorAll('[data-action="toggle"]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
+      btn.addEventListener('click', async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (btn.disabled) return;
         const id = Number(btn.dataset.id);
-        const combo = combos.find((item) => item.id === id);
+        const combo = combos.find((item) => Number(item.id) === id);
         if (!combo) return;
-      const ativar = Number(combo.ativo) === 0;
-      const confirm = window.FestAlert?.confirm
-        ? await window.FestAlert.confirm(ativar ? 'Ativar combo' : 'Inativar combo', `Confirma ${ativar ? 'a ativação' : 'a inativação'} de "${combo.nome}"?`)
-        : { isConfirmed: window.confirm(`Confirma ${ativar ? 'a ativação' : 'a inativação'} deste combo?`) };
-      if (!confirm?.isConfirmed || btn.disabled) return;
-      btn.disabled = true;
-      try {
-        let response;
-        if (!ativar) {
-          response = await fetch(`/combos/${id}`, { method: 'DELETE' });
-        } else {
-          const detalheResponse = await fetch(`/combos/${id}`);
-          const detalhe = await detalheResponse.json();
-          if (!detalheResponse.ok) throw new Error(detalhe.erro || 'Não foi possível carregar o combo.');
-          response = await fetch(`/combos/${id}`, {
-            method: 'PUT',
+        const ativar = Number(combo.ativo) === 0;
+        btn.disabled = true;
+        try {
+          const confirm = window.FestAlert?.confirm
+            ? await window.FestAlert.confirm(ativar ? 'Ativar combo' : 'Inativar combo', `Confirma ${ativar ? 'a ativação' : 'a inativação'} de "${combo.nome}"?`)
+            : { isConfirmed: window.confirm(`Confirma ${ativar ? 'a ativação' : 'a inativação'} deste combo?`) };
+          if (!confirm?.isConfirmed) return;
+
+          const response = await fetch(`/combos/${id}/status`, {
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              nome: detalhe.nome,
-              codigo: detalhe.codigo,
-              descricao: detalhe.descricao,
-              preco: detalhe.preco,
-              ativo: true,
-              itens: detalhe.itens.map(({ produto_id, quantidade }) => ({ produto_id, quantidade }))
-            })
+            body: JSON.stringify({ ativo: ativar })
           });
+          const result = await response.json();
+          if (!response.ok || !result.sucesso) throw new Error(result.erro || 'Não foi possível atualizar a situação do combo.');
+          await carregarCombos();
+          await window.FestAlert?.success?.('Combo atualizado', result.mensagem);
+        } catch (error) {
+          await window.FestAlert?.error?.('Erro no combo', error.message);
+        } finally {
+          btn.disabled = false;
         }
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.erro || 'Não foi possível atualizar a situação do combo.');
-        await carregarCombos();
-        await window.FestAlert?.success?.('Combo atualizado', `Combo ${ativar ? 'ativado' : 'inativado'} com sucesso.`);
-      } catch (error) {
-        await window.FestAlert?.error?.('Erro no combo', error.message);
-      } finally {
-        btn.disabled = false;
-      }
-    });
+      });
     });
   }
 

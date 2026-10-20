@@ -1,5 +1,8 @@
 // VARIÁVEIS GLOBAIS
 let suppliers = [];
+let supplierSaveInFlight = false;
+let supplierLoadRequest = 0;
+const supplierDeletesInFlight = new Set();
 
 // EVENTOS DOS CAMPOS
 function carregarEventos() {
@@ -254,9 +257,13 @@ async function saveSupplier(event) {
 
     event.preventDefault();
 
-    if (!validarFormulario()) {
+    if (supplierSaveInFlight || !validarFormulario()) {
         return;
     }
+
+    supplierSaveInFlight = true;
+    const submitButton = document.querySelector("#supplier-form button[type='submit']");
+    if (submitButton) submitButton.disabled = true;
 
     const id = document.getElementById("f-id").value;
     const dados = {
@@ -318,6 +325,9 @@ async function saveSupplier(event) {
     } catch (erro) {
         console.error(erro);
         window.FestAlert?.error?.("Erro ao salvar", erro.message || "Não foi possível salvar o fornecedor.");
+    } finally {
+        supplierSaveInFlight = false;
+        if (submitButton) submitButton.disabled = false;
     }
 }
 
@@ -361,13 +371,17 @@ async function editSupplier(id) {
 
 // EXCLUIR FORNECEDOR
 async function deleteSupplier(id) {
-    const result = window.FestAlert?.confirm
-        ? await window.FestAlert.confirm("Confirmar exclusão", "Deseja excluir este fornecedor?")
-        : { isConfirmed: window.confirm("Deseja excluir este fornecedor?") };
-    if (!result?.isConfirmed) return;
+    const fornecedorId = Number(id);
+    if (!Number.isSafeInteger(fornecedorId) || fornecedorId <= 0 || supplierDeletesInFlight.has(fornecedorId)) return;
+    supplierDeletesInFlight.add(fornecedorId);
 
     try {
-        const response = await fetch(`/fornecedores/${id}`,{
+        const result = window.FestAlert?.confirm
+            ? await window.FestAlert.confirm("Confirmar exclusão", "Deseja excluir este fornecedor?")
+            : { isConfirmed: window.confirm("Deseja excluir este fornecedor?") };
+        if (!result?.isConfirmed) return;
+
+        const response = await fetch(`/fornecedores/${fornecedorId}`,{
             method: "DELETE"
         });
 
@@ -383,11 +397,14 @@ async function deleteSupplier(id) {
     } catch (erro) {
         console.error(erro);
         window.FestAlert?.error?.("Erro ao excluir", erro.message || "Não foi possível excluir o fornecedor.");
+    } finally {
+        supplierDeletesInFlight.delete(fornecedorId);
     }
 }
 
 // BUSCAR FORNECEDORES
 async function fetchSuppliers() {
+    const requestId = ++supplierLoadRequest;
 
     try {
 
@@ -396,6 +413,7 @@ async function fetchSuppliers() {
         if (!response.ok || !Array.isArray(dados)) {
             throw new Error(dados.error || "Não foi possível carregar os fornecedores.");
         }
+        if (requestId !== supplierLoadRequest) return;
         suppliers = dados;
 
         renderTable();
@@ -404,6 +422,7 @@ async function fetchSuppliers() {
 
     } catch (erro) {
         console.error("Erro ao buscar fornecedores:", erro);
+        if (requestId !== supplierLoadRequest) return;
         const tbody = document.getElementById("supplier-tbody");
         if (tbody) tbody.innerHTML = '<tr><td colspan="7">Não foi possível carregar os fornecedores.</td></tr>';
     }

@@ -14,7 +14,11 @@ const valorReembolsadoSql = `COALESCE((
   FROM pagamentos pg
   WHERE pg.pedido_id = p.id
 ), 0)`;
-const valorCreditadoSql = `(${valorRecebidoSql} + ${valorReembolsadoSql})`;
+const valorCreditadoSql = `(${valorRecebidoSql} - ${valorReembolsadoSql})`;
+const valorMonetarioValido = (valor) =>
+  Number.isFinite(valor) &&
+  Number.isSafeInteger(Math.round(valor * 100)) &&
+  Math.abs(valor * 100 - Math.round(valor * 100)) <= 1e-7;
 
 const buildPedidosWhere = ({ search, from, to, status, pay, delivery, kpi }) => {
   const clauses = ["p.status_documento = 'PEDIDO'"];
@@ -92,6 +96,13 @@ export async function buscarPedidos({ search, from, to, status, pay, delivery, s
       p.data_retirada,
       p.telefone_contato,
       p.valor_total,
+      EXISTS (
+        SELECT 1
+        FROM pedido_itens pi
+        WHERE pi.pedido_id = p.id
+          AND pi.tipo_item = 'ALUGUEL'
+          AND pi.quantidade_entregue > pi.quantidade_devolvida
+      ) AS has_pending_return,
       c.nome AS cliente,
       c.telefone AS telefone,
       e.rua AS endereco_rua,
@@ -229,7 +240,7 @@ export async function atualizarStatusAposPagamento(pedidoId) {
 export async function inserirPagamento(pedidoId, dados) {
   const { valor, forma_pagamento, observacao, usuario_id } = dados;
   const pagamento = Number(valor);
-  if (!Number.isSafeInteger(Math.round(pagamento * 100)) || !Number.isFinite(pagamento) || pagamento <= 0) {
+  if (!valorMonetarioValido(pagamento) || pagamento <= 0) {
     throw new Error('Valor de pagamento inválido.');
   }
 
@@ -466,9 +477,11 @@ export async function registrarDevolucao(pedidoId, dados) {
       );
       const pedidoItem = pedidoItemRows[0];
       if (!pedidoItem) throw new Error('O item não pertence a este pedido.');
-      if ((pedidoItem.tipo_item || '').toUpperCase() === 'VENDA') {
+      const tipoItem = String(pedidoItem.tipo_item || '').trim().toUpperCase();
+      if (tipoItem === 'VENDA') {
         throw new Error('Itens de venda não podem ser registrados como devolução de estoque alugado.');
       }
+      if (tipoItem !== 'ALUGUEL') throw new Error('Tipo de item inválido para devolução de estoque alugado.');
 
       const produtoId = Number(pedidoItem.produto_id || 0);
       const quantidadeBoa = Number(item.quantidade_boa ?? item.quantidade_devolvida ?? 0);
@@ -706,8 +719,7 @@ export async function inserirOcorrencia(pedidoId, dados) {
     await conn.beginTransaction();
     const { tipo, descricao, valor, usuario_id } = dados;
     const valorCobrança = Number(valor || 0);
-    if (!Number.isFinite(valorCobrança) || valorCobrança < 0 ||
-        Math.abs(valorCobrança * 100 - Math.round(valorCobrança * 100)) > 1e-7) {
+    if (!valorMonetarioValido(valorCobrança) || valorCobrança < 0) {
       throw new Error('Valor da ocorrência inválido.');
     }
     const descricaoFinal = descricao || null;
@@ -803,7 +815,7 @@ export async function kpis() {
 export async function inserirReembolso(pedidoId, dados) {
   const { valor, forma_pagamento, observacao, usuario_id } = dados;
   const valorNum = Number(valor || 0);
-  if (!Number.isFinite(valorNum) || valorNum <= 0 || !Number.isSafeInteger(Math.round(valorNum * 100))) {
+  if (!valorMonetarioValido(valorNum) || valorNum <= 0) {
     throw new Error('Valor de reembolso inválido.');
   }
   const conn = await db.getConnection();

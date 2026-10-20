@@ -31,7 +31,7 @@ async function adicionarItemNaTransacao(conn, comboId, item) {
 
 export async function listarCombos() {
   const [rows] = await db.query(`
-    SELECT c.*,
+    SELECT c.id, c.nome, c.descricao, c.codigo, c.ativo, c.createdAt, c.updatedAt,
       COALESCE(NULLIF(c.preco_aluguel, 0), c.preco_venda, 0) AS preco,
       (SELECT COUNT(*) FROM combo_itens ci WHERE ci.combo_id = c.id) AS total_itens
     FROM combos c
@@ -43,7 +43,8 @@ export async function listarCombos() {
 
 export async function buscarComboPorId(id) {
   const [rows] = await db.query(`
-    SELECT *, COALESCE(NULLIF(preco_aluguel, 0), preco_venda, 0) AS preco
+    SELECT id, nome, descricao, codigo, ativo, createdAt, updatedAt,
+      COALESCE(NULLIF(preco_aluguel, 0), preco_venda, 0) AS preco
     FROM combos WHERE id = ?
   `, [id]);
   return rows[0] || null;
@@ -178,7 +179,41 @@ export async function removerItemCombo(id) {
 }
 
 export async function desativarCombo(id) {
-  await db.query(`UPDATE combos SET ativo = 0 WHERE id = ?`, [id]);
+  return atualizarStatusCombo(id, false);
+}
+
+export async function atualizarStatusCombo(id, ativo) {
+  const comboId = Number(id);
+  if (!Number.isSafeInteger(comboId) || comboId <= 0) throw new Error('Combo inválido.');
+  if (typeof ativo !== 'boolean') throw new Error('Estado do combo inválido.');
+
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [combos] = await conn.query(
+      'SELECT id, ativo FROM combos WHERE id = ? FOR UPDATE',
+      [comboId]
+    );
+    if (!combos.length) {
+      const error = new Error('Combo não encontrado.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (Number(combos[0].ativo) !== Number(ativo)) {
+      await conn.query('UPDATE combos SET ativo = ?, updatedAt = NOW() WHERE id = ?', [
+        ativo ? 1 : 0,
+        comboId
+      ]);
+    }
+    await conn.commit();
+    return { id: comboId, ativo };
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
 }
 
 export async function calcularDisponibilidadeCombo(comboId) {

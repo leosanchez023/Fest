@@ -39,10 +39,6 @@ if ($("tel-cliente")) {
   $("tel-cliente").value = cliente.telefone || "";
 }
 
-// Deixa o telefone para contato vazio
-if ($("tel-contato")) {
-  $("tel-contato").value = "";
-}
 }
 
 function togglePainel(abrir) {
@@ -138,61 +134,67 @@ function renderCadastroCliente() {
 
   const form = $("formClientePedido");
   if (!form) return;
-
-  form.onsubmit = async (event) => {
-    event.preventDefault();
-    if (form.dataset.saving === "true") return;
-    if (!form.reportValidity()) return;
-
-    const dados = Object.fromEntries(new FormData(form));
-    const submit = form.querySelector('button[type="submit"]');
-    form.dataset.saving = "true";
-    if (submit) submit.disabled = true;
-
-    try {
-        const res = await fetch(form.action, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify(dados)
-        });
-
-        const cliente = await res.json();
-
-if (!res.ok) {
-    throw new Error(cliente.erro || "Erro ao cadastrar cliente.");
 }
 
-state.clienteSelecionado = {
-    id: cliente.id,
-    nome: cliente.nome,
-    cpf: cliente.cpf,
-    email: cliente.email,
-    telefone: cliente.telefone,
-    nascimento: cliente.nascimento,
-    id_endereco: cliente.id_endereco
-};
+async function cadastrarClienteNoPedido(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (form.dataset.saving === "true" || !form.reportValidity()) return;
 
-renderCliente();
-togglePainel(false);
+  const dados = Object.fromEntries(new FormData(form));
+  const submit = form.querySelector('button[type="submit"]');
+  const feedback = form.querySelector("[data-form-error]");
+  form.dataset.saving = "true";
+  if (submit) submit.disabled = true;
+  if (feedback) {
+    feedback.hidden = true;
+    feedback.textContent = "";
+  }
 
-form.reset();
+  try {
+    const res = await fetch(form.action, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(dados)
+    });
+    const cliente = await res.json();
+    if (!res.ok) throw new Error(cliente.erro || "Erro ao cadastrar cliente.");
 
-    } catch (err) {
-        window.FestAlert?.error?.("Erro no cadastro", err.message || "Não foi possível cadastrar o cliente.");
-    } finally {
-        form.dataset.saving = "false";
-        if (submit) submit.disabled = false;
+    state.clienteSelecionado = {
+      id: cliente.id,
+      nome: cliente.nome,
+      cpf: cliente.cpf,
+      email: cliente.email,
+      telefone: cliente.telefone,
+      nascimento: cliente.nascimento,
+      id_endereco: cliente.id_endereco
+    };
+    renderCliente();
+    togglePainel(false);
+    form.reset();
+  } catch (err) {
+    console.error("Erro ao cadastrar cliente no pedido:", err);
+    const mensagem = err.message || "Não foi possível cadastrar o cliente.";
+    if (feedback) {
+      feedback.textContent = mensagem;
+      feedback.hidden = false;
     }
-};
+    await window.FestAlert?.error?.("Erro no cadastro", mensagem);
+  } finally {
+    form.dataset.saving = "false";
+    if (submit) submit.disabled = false;
+  }
 }
 
 
 export function inicializarCliente() {
 
   renderCliente();
+
+  $("formClientePedido")?.addEventListener("submit", cadastrarClienteNoPedido);
 
   const btnCancelar = $("btn-cancelar-cliente");
 

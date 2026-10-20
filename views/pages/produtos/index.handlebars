@@ -152,6 +152,7 @@
 
             <!-- Busca -->
 
+            <div class="product-filter-toolbar">
             <div class="search">
 
                 <span><i class="fa-solid fa-magnifying-glass icon-sm"></i></span>
@@ -186,6 +187,14 @@
                     data-status="DISPONIVEL"
                 >
                     Disponíveis
+                </button>
+
+                <button
+                    type="button"
+                    class="chip"
+                    data-status="INDISPONIVEL"
+                >
+                    Indisponíveis
                 </button>
 
                 <button
@@ -254,7 +263,8 @@
                     id="filtro-minimo"
                     type="number"
                     min="0"
-                    placeholder="Quantidade mínima"
+                    placeholder="Disponibilidade mínima"
+                    aria-label="Disponibilidade mínima"
                 >
 
                 <select id="filtro-ordenacao">
@@ -289,6 +299,7 @@
 
                 </select>
 
+            </div>
             </div>
 
         </div>
@@ -393,7 +404,6 @@
                         Editando: <strong>{{produto.nome}}</strong>
                     </div>
                 {{/if}}
-                <input type="hidden" name="tipo_produto" value="{{#if produto}}{{produto.tipo_produto}}{{else}}PRODUTO{{/if}}">
 
                 <div class="form-grid">
 
@@ -431,17 +441,6 @@
                                 <option value="{{this}}"></option>
                             {{/each}}
                         </datalist>
-
-                    </div>
-
-                    <div>
-                        <label>Tipo</label>
-
-                        <select name="tipo">
-                            <option {{#if (eq produto.tipo "Venda")}}selected{{/if}}>Venda</option>
-                            <option {{#if (eq produto.tipo "Aluguel")}}selected{{/if}}>Aluguel</option>
-                            <option {{#if (eq produto.tipo "Ambos")}}selected{{/if}}>Ambos</option>
-                        </select>
 
                     </div>
 
@@ -573,6 +572,8 @@
                         <th>Produto</th>
                         <th>Categoria</th>
                         <th>Estoque</th>
+                        <th>Disponível</th>
+                        <th>Status</th>
                         <th>Venda (R$)</th>
                         <th>Aluguel (R$)</th>
                         <th></th>
@@ -589,6 +590,8 @@
                         <td>{{this.nome}}</td>
                         <td>{{this.categoria}}</td>
                         <td>{{this.estoque}}</td>
+                        <td>{{this.disponivel}}</td>
+                        <td><span class="badge badge-{{this.status_estoque_class}}">{{this.status_estoque_label}}</span></td>
                         <td>{{moeda this.preco_venda}} R$</td>
                         <td>{{moeda this.preco_aluguel}} R$</td>
 
@@ -978,7 +981,6 @@ async function alterarPrecoProduto(id) {
         nome: produto.nome,
         codigo: produto.codigo || "",
         categoria: produto.categoria || "",
-        tipo: produto.tipo || "",
         fornecedor_id: produto.fornecedor_id || "",
         estoque: produto.estoque || 0,
         precoVenda: produto.preco_venda || 0,

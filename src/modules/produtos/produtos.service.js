@@ -48,9 +48,6 @@ export async function criar(dados) {
 
     categoria: dados.categoria || null,
 
-    tipo: dados.tipo || null,
-    tipo_produto: dados.tipo_produto || 'PRODUTO',
-
     fornecedor_id:
       dados.fornecedor_id || null,
 
@@ -117,9 +114,6 @@ export async function atualizar(id, dados) {
       codigo: dados.codigo === undefined ? produtoAtual.codigo : dados.codigo,
 
       categoria: dados.categoria === undefined ? produtoAtual.categoria : dados.categoria,
-
-      tipo: dados.tipo === undefined ? produtoAtual.tipo : dados.tipo,
-      tipo_produto: dados.tipo_produto || produtoAtual.tipo_produto || 'PRODUTO',
 
       fornecedor_id: dados.fornecedor_id === undefined
         ? produtoAtual.fornecedor_id

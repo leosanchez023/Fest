@@ -33,7 +33,8 @@
                 value="{{cliente.cpf}}"
                 placeholder="000.000.000-00"
                 maxlength="14"
-                inputmode="numeric">
+                inputmode="numeric"
+                required>
         </div>
 
         <div class="form-group">
@@ -53,9 +54,11 @@
             <input
                 id="{{prefix}}telefone"
                 name="telefone"
+                type="tel"
                 value="{{cliente.telefone}}"
                 placeholder="(00) 00000-0000"
-                maxlength="20">
+                maxlength="20"
+                required>
         </div>
 
         <div class="form-group">
@@ -143,6 +146,8 @@
         </div>
 
     </div>
+
+    <p class="form-error" data-form-error role="alert" hidden></p>
 
     <div class="form-actions">
 

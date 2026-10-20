@@ -8,6 +8,7 @@ router.get('/api', controller.listar);
 router.get('/:id', controller.buscar);
 router.post('/', controller.criar);
 router.put('/:id', controller.atualizar);
+router.patch('/:id/status', controller.atualizarStatus);
 router.delete('/:id', controller.desativar);
 router.post('/:id/itens', controller.adicionarItem);
 router.get('/:id/disponibilidade', controller.calcularDisponibilidade);

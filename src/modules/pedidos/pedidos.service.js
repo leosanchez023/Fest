@@ -336,22 +336,11 @@ async function calcularItens(itens, tipoPedidoLegado = null) {
       throw new Error(`Combo ${entidade.nome} não possui componentes.`);
     }
 
-    const tipoCatalogo = String(entidade.tipo || "").trim().toUpperCase();
     const tipoItem = String(item.tipo_item || (
-      comboId
-        ? (tipoPedidoLegado === "VENDA" ? "VENDA" : "ALUGUEL")
-        : tipoCatalogo === "VENDA" || tipoCatalogo === "ALUGUEL"
-          ? tipoCatalogo
-          : tipoPedidoLegado === "VENDA" ? "VENDA" : "ALUGUEL"
+      tipoPedidoLegado === "VENDA" ? "VENDA" : "ALUGUEL"
     )).toUpperCase();
     if (!["VENDA", "ALUGUEL"].includes(tipoItem)) {
       throw new Error("Tipo de item inválido.");
-    }
-    if (!comboId && tipoCatalogo === "VENDA" && tipoItem !== "VENDA") {
-      throw new Error(`O produto ${entidade.nome} só pode ser vendido.`);
-    }
-    if (!comboId && tipoCatalogo === "ALUGUEL" && tipoItem !== "ALUGUEL") {
-      throw new Error(`O produto ${entidade.nome} só pode ser alugado.`);
     }
     const preco = Number(comboId
       ? entidade.preco

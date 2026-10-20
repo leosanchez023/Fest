@@ -128,6 +128,10 @@ export async function desativarCombo(id) {
   return await model.desativarCombo(id);
 }
 
+export async function atualizarStatusCombo(id, ativo) {
+  return await model.atualizarStatusCombo(id, ativo);
+}
+
 export async function calcularDisponibilidadeCombo(comboId) {
   return await model.calcularDisponibilidadeCombo(comboId);
 }

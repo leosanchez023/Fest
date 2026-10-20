@@ -127,10 +127,24 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!button) return;
     const id = Number(button.dataset.id);
     if (!Number.isSafeInteger(id) || id <= 0) return;
-    if (button.dataset.action === 'convert') converter(id);
-    if (button.dataset.action === 'edit') editar(id);
-    if (button.dataset.action === 'duplicate') duplicar(id);
-    if (button.dataset.action === 'delete') excluir(id);
+    if (button.dataset.action === 'edit') {
+      editar(id);
+      return;
+    }
+
+    const actions = { convert: converter, duplicate: duplicar, delete: excluir };
+    const action = actions[button.dataset.action];
+    if (!action || button.dataset.busy === 'true') return;
+
+    button.dataset.busy = 'true';
+    button.disabled = true;
+    action(id).catch(async err => {
+      console.error(err);
+      await avisar('error', 'Erro ao processar orçamento', err.message || 'Não foi possível concluir a operação.');
+    }).finally(() => {
+      button.dataset.busy = 'false';
+      button.disabled = false;
+    });
   });
   $o('btn-new').addEventListener('click', () => { window.location.href = '/pedidos'; });
   loadOrcamentos();

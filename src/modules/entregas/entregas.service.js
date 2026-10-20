@@ -16,7 +16,7 @@ export function calcularSaldoPendente(total, entradasPagamento) {
     const value = Number(amount || 0);
     return sum + (value < 0 ? Math.abs(value) : 0);
   }, 0);
-  return Math.max(0, valorTotal - valorRecebido - valorReembolsado);
+  return Math.max(0, valorTotal - valorRecebido + valorReembolsado);
 }
 
 export async function listarPedidos(filtros) {

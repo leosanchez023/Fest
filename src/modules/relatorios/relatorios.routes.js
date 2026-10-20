@@ -117,7 +117,7 @@ export function construirFiltros(filtros) {
         }
       }
     } else if (tab === "financeiro") {
-      const saldo = "GREATEST(COALESCE(p.valor_total, 0) - COALESCE(pg.total_pago, 0) - COALESCE(pg.reembolsos, 0), 0)";
+      const saldo = "GREATEST(COALESCE(p.valor_total, 0) - COALESCE(pg.total_pago, 0) + COALESCE(pg.reembolsos, 0), 0)";
       if (status === "Cancelado") pedidos.push("p.status = 'CANCELADO'");
       else if (status === "Pago") pedidos.push(`p.status <> 'CANCELADO' AND ${saldo} <= 0.009`);
       else if (status === "Parcial") pedidos.push(`p.status <> 'CANCELADO' AND ${saldo} > 0.009 AND COALESCE(pg.total_pago, 0) > 0`);
@@ -346,7 +346,7 @@ export async function montarDadosRelatorio(filtros = {}) {
       fin: normalizarFinanceiro({
         status: pedido.status,
         saldo,
-        recebido,
+        recebido: Math.max(totalPago - reembolsos, 0),
         dataEvento: pedido.data_evento
       }),
       entTipo: pedido.data_retirada_hora || pedido.data_retirada ? "Retirada" : "Entrega",
