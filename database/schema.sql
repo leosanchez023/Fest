@@ -4,13 +4,8 @@
 -- Este arquivo representa a estrutura atual do sistema.
 -- As migrações históricas em database/migrations continuam preservadas,
 -- mas não são necessárias para criar um banco novo com a estrutura final.
+-- Execute este arquivo conectado a um banco novo e vazio criado previamente.
 -- =====================================================
-
-DROP DATABASE IF EXISTS fest;
-CREATE DATABASE fest
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_0900_ai_ci;
-USE fest;
 
 CREATE TABLE endereco (
   id INT NOT NULL AUTO_INCREMENT,
@@ -215,7 +210,7 @@ CREATE TABLE configuracoes_entrega (
 CREATE TABLE pedido_itens (
   id INT NOT NULL AUTO_INCREMENT,
   pedido_id INT NOT NULL,
-  produto_id INT NOT NULL,
+  produto_id INT DEFAULT NULL,
   tipo_item VARCHAR(10) NOT NULL DEFAULT 'ALUGUEL',
   combo_id INT DEFAULT NULL,
   quantidade INT NOT NULL,
@@ -229,23 +224,33 @@ CREATE TABLE pedido_itens (
   CONSTRAINT fk_pedido_item_pedido
     FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
   CONSTRAINT fk_pedido_item_produto
-    FOREIGN KEY (produto_id) REFERENCES produtos(id)
+    FOREIGN KEY (produto_id) REFERENCES produtos(id),
+  CONSTRAINT fk_pedido_item_combo
+    FOREIGN KEY (combo_id) REFERENCES combos(id),
+  CONSTRAINT chk_pedido_item_origem
+    CHECK (
+      (produto_id IS NOT NULL AND combo_id IS NULL)
+      OR (produto_id IS NULL AND combo_id IS NOT NULL)
+    )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE pedido_item_componentes (
   id INT NOT NULL AUTO_INCREMENT,
   pedido_item_id INT NOT NULL,
+  pedido_id INT DEFAULT NULL,
   produto_id INT NOT NULL,
   quantidade_por_unidade INT NOT NULL DEFAULT 1,
   quantidade_total INT NOT NULL DEFAULT 0,
   createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  KEY idx_componentes_pedido_item (pedido_item_id),
-  KEY idx_componentes_produto (produto_id),
+  KEY idx_composicao_pedido_item (pedido_item_id),
+  KEY idx_composicao_produto (produto_id),
   CONSTRAINT fk_componentes_pedido_item
     FOREIGN KEY (pedido_item_id) REFERENCES pedido_itens(id) ON DELETE CASCADE,
   CONSTRAINT fk_componentes_produto
-    FOREIGN KEY (produto_id) REFERENCES produtos(id)
+    FOREIGN KEY (produto_id) REFERENCES produtos(id),
+  CONSTRAINT fk_componente_pedido
+    FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE pagamentos (

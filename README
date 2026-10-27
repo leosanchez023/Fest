@@ -676,23 +676,71 @@ PORT=3000
 
 # 🗄️ Configuração do Banco de Dados
 
-Após instalar o MySQL, crie um banco chamado:
+O projeto usa MySQL 8. O nome e a conexão do banco devem corresponder às
+variáveis `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` e `DB_NAME` do `.env`.
+O valor padrão de `DB_NAME` é `fest`.
 
-```sql
-CREATE DATABASE fest;
-```
+## Criar um banco novo
 
-Em seguida, importe a estrutura do banco utilizando o arquivo `schema.sql`.
-
-Exemplo pelo terminal:
+Crie um banco novo e vazio com `utf8mb4`, usando a mesma conexão configurada
+para a aplicação. O exemplo abaixo usa os valores padrão; `-p` solicita a senha
+sem colocá-la no comando:
 
 ```bash
-mysql -u root -p fest < database/schema.sql
+mysql --host=localhost --port=3306 --user=root --password \
+  -e "CREATE DATABASE fest CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 ```
 
-Ou utilize uma ferramenta gráfica, como o **MySQL Workbench**, para executar o script manualmente.
+Importe então o schema no banco criado:
 
-Após a importação, todas as tabelas necessárias para o funcionamento do sistema serão criadas.
+```bash
+mysql --host=localhost --port=3306 --user=root --password fest < database/schema.sql
+```
+
+Substitua host, porta, usuário e nome do banco pelos valores do `.env`, se
+forem diferentes. No Windows PowerShell, o cliente `mysql` também pode receber
+o arquivo por entrada padrão:
+
+```powershell
+Get-Content .\database\schema.sql | mysql --host=localhost --port=3306 --user=root --password fest
+```
+
+O arquivo `database/schema.sql` contém somente a estrutura final: não cria,
+apaga ou seleciona um banco, e não insere dados. Execute-o apenas no banco
+novo e vazio escolhido para a instalação; ele não deve ser usado para
+atualizar uma instalação existente.
+
+## Dados iniciais e demonstração
+
+Não há registros de configuração ou permissões que precisem ser inseridos
+manualmente para criar a estrutura. O cadastro de usuários cria suas
+permissões pelo próprio sistema.
+
+`npm run db:seed` executa `database/seed.sql`, que contém dados de demonstração,
+incluindo contas de exemplo. Não é necessário para inicializar o banco e não
+deve ser executado em produção nem sem revisar os dados que serão inseridos.
+`database/seed-devedores.sql` e `database/clear-devedores-test.sql` são
+utilitários de teste e limpeza de dados de teste; use-os somente em uma base
+dedicada a testes.
+
+## Instalações existentes e migrations
+
+Não importe `database/schema.sql` sobre uma base existente. Continue usando
+`npm run db:migrate` para aplicar as migrations históricas conforme o fluxo do
+projeto e mantenha os arquivos de `database/migrations` para rastreabilidade.
+O script atual aplica explicitamente
+`2026_09_07_pedido_itens_combos.sql`,
+`2026_10_10_pedidos_rota_frete.sql`,
+`2026_10_11_configuracoes_entrega.sql` e
+`2026_10_12_detalhes_rota_entrega.sql`; ele não mantém uma tabela de controle
+de migrations e não executa `2026_08_22_estoque_reestrutura.sql` nem
+`2026_09_05_pedidos_combos.sql`. Antes de atualizar uma instalação existente,
+confirme que seu estado já inclui as alterações necessárias dessas migrations
+anteriores. Não marque migrations como aplicadas manualmente sem verificar a
+estrutura.
+
+Para um banco novo, use somente o schema consolidado, sem executar as
+migrations históricas depois dele.
 
 ---
 
