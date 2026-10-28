@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import db from "../../../database/connection.js";
 import {
   registrarDevolucaoNaTransacao,
@@ -186,21 +187,32 @@ const calcularStatusFinal = (pedido) => {
   const qtdTotal = Number(pedido.qtd_total || 0);
   const qtdDevolvida = Number(pedido.qtd_devolvida || 0);
   const conferenciaFinalizada = Number(pedido.conferencia_finalizada || 0) === 1;
+  const ocorrenciasPendentes = Number(pedido.ocorrencias_pendentes || 0);
 
   const pagamentoOK = valorPago >= valorTotal;
   const devolucaoOK = qtdTotal === 0 || qtdDevolvida >= qtdTotal;
+  const operacaoOK = ocorrenciasPendentes === 0;
 
-  return conferenciaFinalizada && devolucaoOK && pagamentoOK ? "FINALIZADO" : "PENDENTE";
+  return conferenciaFinalizada && devolucaoOK && operacaoOK && pagamentoOK ? "FINALIZADO" : "PENDENTE";
 };
 
 export async function atualizarStatusAposPagamento(pedidoId) {
-  const [rows] = await db.query(
-    `SELECT
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [rows] = await conn.query(
+      `SELECT
         p.status,
         p.status_documento,
         p.valor_total,
         p.conferencia_finalizada,
         ${valorCreditadoSql} AS valor_pago,
+        (SELECT COUNT(*)
+         FROM ocorrencias o
+         WHERE o.pedido_id = p.id
+           AND o.status IN ('ABERTO', 'EM_ANDAMENTO')
+           AND UPPER(REPLACE(o.tipo, 'Ç', 'C')) NOT IN ('COBRANCA', 'PAGAMENTO', 'REEMBOLSO')
+        ) AS ocorrencias_pendentes,
         COALESCE(
           (SELECT SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade ELSE 0 END)
              FROM pedido_itens
@@ -214,27 +226,37 @@ export async function atualizarStatusAposPagamento(pedidoId) {
             0
         ) AS qtd_devolvida
      FROM pedidos p
-     WHERE p.id = ?`,
-    [pedidoId]
-  );
-
-  const pedido = rows[0];
-  if (!pedido) return null;
-
-  if (Number(pedido.conferencia_finalizada || 0) !== 1) {
-    return pedido.status;
-  }
-
-  const novoStatus = calcularStatusFinal(pedido);
-
-  if (novoStatus && novoStatus !== pedido.status) {
-    await db.query(
-      `UPDATE pedidos SET status=? WHERE id=?`,
-      [novoStatus, pedidoId]
+     WHERE p.id = ? FOR UPDATE`,
+      [pedidoId]
     );
-  }
 
-  return novoStatus;
+    const pedido = rows[0];
+    if (!pedido) {
+      await conn.commit();
+      return null;
+    }
+
+    if (Number(pedido.conferencia_finalizada || 0) !== 1) {
+      await conn.commit();
+      return pedido.status;
+    }
+
+    const novoStatus = calcularStatusFinal(pedido);
+
+    if (novoStatus && novoStatus !== pedido.status) {
+      await conn.query(
+        `UPDATE pedidos SET status=? WHERE id=?`,
+        [novoStatus, pedidoId]
+      );
+    }
+    await conn.commit();
+    return novoStatus;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
 }
 
 export async function inserirPagamento(pedidoId, dados) {
@@ -422,27 +444,52 @@ export async function marcarEntregue(pedidoId, dados) {
 }
 
 export async function registrarDevolucao(pedidoId, dados) {
+  const { itens, observacao, responsavel, usuario_id } = dados;
+  const chaveIdempotencia = String(dados.idempotency_key || '').trim();
+  if (!/^[A-Za-z0-9._:-]{1,64}$/.test(chaveIdempotencia)) {
+    throw new Error('Identificador da devolução inválido.');
+  }
+  if (!Array.isArray(itens) || !itens.length) {
+    throw new Error('Informe itens válidos para devolução.');
+  }
+  const itensRequisicao = itens.map((item) => ({
+    id: Number(item.id),
+    boa: Number(item.quantidade_boa ?? item.quantidade_devolvida ?? 0),
+    danificada: Number(item.quantidade_danificada ?? 0),
+    faltante: Number(item.quantidade_faltando ?? item.quantidade_pendente ?? 0),
+    observacao: item.observacao || null
+  })).sort((a, b) => a.id - b.id);
+  const hashRequisicao = createHash('sha256').update(JSON.stringify({
+    itens: itensRequisicao,
+    observacao: observacao || null,
+    responsavel: responsavel || null,
+    usuario_id: usuario_id || null
+  })).digest('hex');
+
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
-
-    const {
-      itens,
-      observacao,
-      responsavel,
-      usuario_id
-    } = dados;
-
     const [pedidos] = await conn.query(
       'SELECT id, status, status_documento FROM pedidos WHERE id = ? FOR UPDATE',
       [pedidoId]
     );
     if (!pedidos.length) throw new Error('Pedido não encontrado.');
+    const [devolucoesExistentes] = await conn.query(
+      `SELECT id, hash_requisicao FROM devolucoes
+       WHERE pedido_id = ? AND chave_idempotencia = ? FOR UPDATE`,
+      [pedidoId, chaveIdempotencia]
+    );
+    if (devolucoesExistentes.length) {
+      if (devolucoesExistentes[0].hash_requisicao !== hashRequisicao) {
+        throw new Error('O identificador da devolução já foi utilizado com outros dados.');
+      }
+      await conn.commit();
+      return { insertId: devolucoesExistentes[0].id, duplicate: true };
+    }
     if (pedidos[0].status_documento !== 'PEDIDO' ||
         !['ENTREGUE', 'CONFERENCIA', 'PENDENTE'].includes(pedidos[0].status)) {
       throw new Error('O pedido não está em uma situação que permita devolução.');
     }
-    if (!Array.isArray(itens) || !itens.length) throw new Error('Informe itens válidos para devolução.');
 
     const [devolucaoResult] = await conn.query(
       `INSERT INTO devolucoes (
@@ -450,13 +497,17 @@ export async function registrarDevolucao(pedidoId, dados) {
           usuario_id,
           data_devolucao,
           observacao,
+          chave_idempotencia,
+          hash_requisicao,
           created_at
        )
-       VALUES (?, ?, NOW(), ?, NOW())`,
+       VALUES (?, ?, NOW(), ?, ?, ?, NOW())`,
       [
         pedidoId,
         usuario_id || null,
-        observacao || null
+        observacao || null,
+        chaveIdempotencia,
+        hashRequisicao
       ]
     );
 
@@ -493,6 +544,7 @@ export async function registrarDevolucao(pedidoId, dados) {
       }
       const quantidadeEntregue = Number(pedidoItem.quantidade_entregue || 0);
       const totalDevolvido = quantidadeBoa + quantidadeDanificada + quantidadePendente;
+      const quantidadeRecebida = quantidadeBoa + quantidadeDanificada;
       const restanteDevolucao = quantidadeEntregue - Number(pedidoItem.quantidade_devolvida || 0);
       if (quantidadeEntregue <= 0 || totalDevolvido <= 0 || totalDevolvido > restanteDevolucao) {
         throw new Error('A devolução excede a quantidade ainda não devolvida.');
@@ -504,14 +556,15 @@ export async function registrarDevolucao(pedidoId, dados) {
           pedidoId,
           quantidadeBoa,
           quantidadeDanificada,
-          quantidadePendente,
           usuarioId: usuario_id || null,
           observacao: item.observacao || 'Devolução de componentes de combo'
         }));
-        await conn.query(
-          `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE id = ? AND pedido_id = ?`,
-          [totalDevolvido, itemId, pedidoId]
-        );
+        if (quantidadeRecebida > 0) {
+          await conn.query(
+            `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE id = ? AND pedido_id = ?`,
+            [quantidadeRecebida, itemId, pedidoId]
+          );
+        }
 
         const [componentes] = await conn.query(
           `SELECT produto_id, quantidade_por_unidade
@@ -528,7 +581,7 @@ export async function registrarDevolucao(pedidoId, dados) {
             [
               devolucaoId,
               componente.produto_id,
-              quantidadeBoa * fator,
+              quantidadeRecebida * fator,
               quantidadePendente * fator,
               quantidadeDanificada * fator,
               item.observacao || null
@@ -539,10 +592,12 @@ export async function registrarDevolucao(pedidoId, dados) {
       }
 
       if (!produtoId) throw new Error('Produto inválido no item devolvido.');
-      await conn.query(
-        `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE id = ? AND pedido_id = ?`,
-        [totalDevolvido, itemId, pedidoId]
-      );
+      if (quantidadeRecebida > 0) {
+        await conn.query(
+          `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE id = ? AND pedido_id = ?`,
+          [quantidadeRecebida, itemId, pedidoId]
+        );
+      }
 
       if (quantidadeDanificada > 0) {
         await registrarDevolucaoNaTransacao(conn, {
@@ -552,17 +607,6 @@ export async function registrarDevolucao(pedidoId, dados) {
           pedidoId,
           usuarioId: usuario_id || null,
           observacao: item.observacao || 'Devolução com dano'
-        });
-      }
-
-      if (quantidadePendente > 0) {
-        await registrarDevolucaoNaTransacao(conn, {
-          produtoId,
-          quantidade: quantidadePendente,
-          tipo: 'PENDENTE',
-          pedidoId,
-          usuarioId: usuario_id || null,
-          observacao: item.observacao || 'Item pendente de devolução'
         });
       }
 
@@ -584,7 +628,7 @@ export async function registrarDevolucao(pedidoId, dados) {
         [
           devolucaoId,
           produtoId,
-          totalDevolvido,
+          quantidadeRecebida,
           quantidadePendente,
           quantidadeDanificada,
           item.observacao || null
@@ -606,10 +650,9 @@ export async function registrarDevolucao(pedidoId, dados) {
       pedido.qtd_devolvida >= pedido.qtd_total;
 
     if (todosDevolvidos) {
-
       await conn.query(
         `UPDATE pedidos
-         SET status='RETIRADO',
+         SET status=IF(status = 'PENDENTE', status, 'RETIRADO'),
              data_retirada=CURDATE(),
              responsavel_retirada=?
          WHERE id=?`,
@@ -624,7 +667,10 @@ export async function registrarDevolucao(pedidoId, dados) {
       );
 
     } else {
-
+      await conn.query(
+        `UPDATE pedidos SET status = 'PENDENTE' WHERE id = ?`,
+        [pedidoId]
+      );
       await conn.query(
         `INSERT INTO ocorrencias
           (pedido_id, usuario_id, tipo, descricao, valor, status, data_ocorrencia)
@@ -683,6 +729,12 @@ export async function finalizarConferencia(pedidoId) {
     const [pedidos] = await conn.query(
       `SELECT p.id, p.status, p.status_documento, p.valor_total,
          ${valorCreditadoSql} AS valor_pago,
+         (SELECT COUNT(*)
+          FROM ocorrencias o
+          WHERE o.pedido_id = p.id
+            AND o.status IN ('ABERTO', 'EM_ANDAMENTO')
+            AND UPPER(REPLACE(o.tipo, 'Ç', 'C')) NOT IN ('COBRANCA', 'PAGAMENTO', 'REEMBOLSO')
+         ) AS ocorrencias_pendentes,
          (SELECT COALESCE(SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade ELSE 0 END), 0)
           FROM pedido_itens WHERE pedido_id = p.id) AS qtd_total,
          (SELECT COALESCE(SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade_devolvida ELSE 0 END), 0)
@@ -698,13 +750,14 @@ export async function finalizarConferencia(pedidoId) {
 
     const pagamentoOK = Number(pedido.valor_pago) >= Number(pedido.valor_total);
     const devolucaoOK = Number(pedido.qtd_total) === Number(pedido.qtd_devolvida);
-    const novoStatus = pagamentoOK && devolucaoOK ? 'FINALIZADO' : 'PENDENTE';
+    const operacaoOK = Number(pedido.ocorrencias_pendentes || 0) === 0;
+    const novoStatus = pagamentoOK && devolucaoOK && operacaoOK ? 'FINALIZADO' : 'PENDENTE';
     const [result] = await conn.query(
       `UPDATE pedidos SET conferencia_finalizada = 1, status = ? WHERE id = ?`,
       [novoStatus, pedidoId]
     );
     await conn.commit();
-    return result;
+    return { ...result, status: novoStatus };
   } catch (error) {
     await conn.rollback();
     throw error;

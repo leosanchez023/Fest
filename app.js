@@ -163,16 +163,41 @@ app.post("/logout", (req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
+    const funcionarioApi = req.path.startsWith("/usuarios/api/");
     if (err.code === "EBADCSRFTOKEN") {
+        if (funcionarioApi) {
+            return res.status(403).json({
+                data: null,
+                error: { code: "CSRF_INVALID", message: "Sessão inválida ou expirada." },
+                message: "Sessão inválida ou expirada."
+            });
+        }
         return res.status(403).json({ success: false, message: "Sessão inválida ou expirada." });
     }
 
     if (err && err.status === 401) {
+        if (funcionarioApi) {
+            return res.status(401).json({
+                data: null,
+                error: { code: "AUTH_REQUIRED", message: "Autenticação necessária." },
+                message: "Autenticação necessária."
+            });
+        }
         return res.status(401).json({ success: false, message: "Autenticação necessária." });
     }
 
     console.error("Erro não tratado:", err);
     const message = req.accepts("html") ? "Não foi possível concluir a operação." : "Não foi possível concluir a operação.";
+    if (funcionarioApi) {
+        return res.status(err.status || 500).json({
+            data: null,
+            error: {
+                code: err.status === 413 ? "REQUEST_TOO_LARGE" : "INTERNAL_ERROR",
+                message
+            },
+            message
+        });
+    }
     if (req.accepts("html")) {
         return res.status(500).render("pages/login", { layout: false, error: message });
     }

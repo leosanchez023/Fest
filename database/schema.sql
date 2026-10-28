@@ -24,8 +24,19 @@ CREATE TABLE usuario (
   nome VARCHAR(100) DEFAULT NULL,
   email VARCHAR(100) DEFAULT NULL,
   senha VARCHAR(255) DEFAULT NULL,
+  telefone VARCHAR(30) DEFAULT NULL,
+  cpf VARCHAR(11) DEFAULT NULL,
+  nascimento DATE DEFAULT NULL,
+  cargo VARCHAR(100) DEFAULT NULL,
+  ativo TINYINT(1) NOT NULL DEFAULT 1,
+  login_habilitado TINYINT(1) NOT NULL DEFAULT 1,
+  foto_path VARCHAR(255) DEFAULT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  ultimo_acesso_em DATETIME DEFAULT NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY uk_usuario_email (email)
+  UNIQUE KEY uk_usuario_email (email),
+  UNIQUE KEY uk_usuario_cpf (cpf)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE fornecedores (
@@ -277,8 +288,11 @@ CREATE TABLE devolucoes (
   data_devolucao DATETIME DEFAULT NULL,
   valor_multa DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   observacao TEXT DEFAULT NULL,
+  chave_idempotencia VARCHAR(64) DEFAULT NULL,
+  hash_requisicao CHAR(64) DEFAULT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  UNIQUE KEY uk_devolucoes_pedido_idempotencia (pedido_id, chave_idempotencia),
   KEY idx_devolucoes_pedido (pedido_id),
   KEY idx_devolucoes_usuario (usuario_id),
   CONSTRAINT fk_devolucao_pedido
@@ -408,4 +422,72 @@ CREATE TABLE user_permissions (
   CONSTRAINT fk_user_permissions_usuario
     FOREIGN KEY (usuario_id) REFERENCES usuario(id)
     ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE funcionario_auditoria (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  actor_id INT DEFAULT NULL,
+  target_user_id INT DEFAULT NULL,
+  action VARCHAR(50) NOT NULL,
+  details TEXT DEFAULT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_funcionario_auditoria_created (created_at),
+  KEY idx_funcionario_auditoria_target (target_user_id),
+  KEY idx_funcionario_auditoria_actor (actor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE funcionario_login_eventos (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  usuario_id INT DEFAULT NULL,
+  email_tentado VARCHAR(100) NOT NULL,
+  resultado ENUM('success', 'failure') NOT NULL,
+  motivo VARCHAR(50) NOT NULL,
+  ip VARCHAR(45) DEFAULT NULL,
+  user_agent VARCHAR(255) DEFAULT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_funcionario_login_usuario (usuario_id, created_at),
+  KEY idx_funcionario_login_created (created_at),
+  KEY idx_funcionario_login_email (email_tentado, created_at),
+  CONSTRAINT fk_funcionario_login_usuario
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE funcionario_perfis_permissoes (
+  cargo VARCHAR(100) NOT NULL,
+  dashboard TINYINT(1) NOT NULL DEFAULT 0,
+  clientes TINYINT(1) NOT NULL DEFAULT 0,
+  produtos TINYINT(1) NOT NULL DEFAULT 0,
+  pedidos TINYINT(1) NOT NULL DEFAULT 0,
+  relatorios TINYINT(1) NOT NULL DEFAULT 0,
+  funcionarios TINYINT(1) NOT NULL DEFAULT 0,
+  entregas TINYINT(1) NOT NULL DEFAULT 0,
+  retiradas TINYINT(1) NOT NULL DEFAULT 0,
+  pagamentos TINYINT(1) NOT NULL DEFAULT 0,
+  estoque TINYINT(1) NOT NULL DEFAULT 0,
+  fornecedor TINYINT(1) NOT NULL DEFAULT 0,
+  cadastro_admin TINYINT(1) NOT NULL DEFAULT 0,
+  updated_by INT DEFAULT NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (cargo),
+  KEY idx_funcionario_perfis_updated (updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE user_permission_actions (
+  usuario_id INT NOT NULL,
+  module_key VARCHAR(32) NOT NULL,
+  action_key ENUM('view', 'create', 'edit', 'remove') NOT NULL,
+  PRIMARY KEY (usuario_id, module_key, action_key),
+  CONSTRAINT fk_user_permission_actions_usuario
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE funcionario_perfil_acoes (
+  cargo VARCHAR(100) NOT NULL,
+  module_key VARCHAR(32) NOT NULL,
+  action_key ENUM('view', 'create', 'edit', 'remove') NOT NULL,
+  PRIMARY KEY (cargo, module_key, action_key),
+  CONSTRAINT fk_funcionario_perfil_acoes_cargo
+    FOREIGN KEY (cargo) REFERENCES funcionario_perfis_permissoes(cargo) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

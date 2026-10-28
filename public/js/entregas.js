@@ -104,6 +104,7 @@ let currentOrderId = null;
 let currentReturnItems = [];
 let currentOrderContext = null;
 let returnSubmissionInFlight = false;
+let returnSubmissionKey = null;
 let deliverySubmissionInFlight = false;
 let financeSubmissionInFlight = false;
 let occurrenceSubmissionInFlight = false;
@@ -952,13 +953,14 @@ const openOrderFinanceOrDelivery = async (id, mode) => {
 
 const openReturnModal = (order) => {
   currentOrderContext = order;
+  returnSubmissionKey = null;
   currentReturnItems = buildReturnItems(order.itens || []);
 
   const body = $("return-modal-body");
   body.innerHTML = `
     <div class="return-items">
       <table style="width:100%;">
-        <thead><tr><th>Produto</th><th>Alugado</th><th>Devolvido</th><th>Pendente</th><th>Qtd. devolvida</th></tr></thead>
+        <thead><tr><th>Produto</th><th>Alugado</th><th>Devolvido</th><th>Pendente</th><th>Qtd. boa</th><th>Qtd. danificada</th><th>Qtd. faltante</th></tr></thead>
         <tbody>
           ${currentReturnItems.map((item, index) => `
             <tr>
@@ -966,9 +968,11 @@ const openReturnModal = (order) => {
               <td>${item.quantidade}</td>
               <td>${item.quantidade_devolvida}</td>
               <td>${item.quantidade_pendente}</td>
-              <td><input type="number" min="0" max="${item.quantidade_pendente}" value="0" data-index="${index}" class="return-input" /></td>
+              <td><input type="number" min="0" max="${item.quantidade_pendente}" value="0" data-index="${index}" data-type="boa" class="return-input" aria-label="Quantidade recebida em boas condições de ${item.nome}" /></td>
+              <td><input type="number" min="0" max="${item.quantidade_pendente}" value="0" data-index="${index}" data-type="danificada" class="return-input" aria-label="Quantidade recebida danificada de ${item.nome}" /></td>
+              <td><input type="number" min="0" max="${item.quantidade_pendente}" value="0" data-index="${index}" data-type="faltante" class="return-input" aria-label="Quantidade faltante de ${item.nome}" /></td>
             </tr>
-          `).join("") || `<tr><td colspan="5" style="text-align:center; color:#6b7280;">Nenhum item alugado pendente de devolução.</td></tr>`}
+          `).join("") || `<tr><td colspan="7" style="text-align:center; color:#6b7280;">Nenhum item alugado pendente de devolução.</td></tr>`}
         </tbody>
       </table>
       <div style="margin-top:10px;">
@@ -996,12 +1000,22 @@ const openReturnModal = (order) => {
 
   const recompute = () => {
     let total = 0;
+    const quantidadesPorItem = new Map();
     inputs.forEach((inp) => {
       const idx = Number(inp.dataset.index || 0);
       const qtd = Number(inp.value || 0);
       const item = currentReturnItems[idx];
-      if (qtd > 0 && item) {
-        total += qtd * Number(item.valor_unitario || 0);
+      if (!item) return;
+      const quantidades = quantidadesPorItem.get(idx) || { boa: 0, danificada: 0, faltante: 0 };
+      const tipo = inp.dataset.type || "boa";
+      const outrasQuantidades = quantidades.boa + quantidades.danificada + quantidades.faltante;
+      const maxima = Math.max(0, item.quantidade_pendente - outrasQuantidades);
+      const quantidadeValida = Math.min(Math.max(0, qtd), maxima);
+      if (quantidadeValida !== qtd) inp.value = quantidadeValida;
+      quantidades[tipo] = quantidadeValida;
+      quantidadesPorItem.set(idx, quantidades);
+      if (tipo !== "faltante" && quantidadeValida > 0) {
+        total += quantidadeValida * Number(item.valor_unitario || 0);
       }
     });
     if (totalEl) totalEl.textContent = formatMoneyLocal(total);
@@ -1071,20 +1085,32 @@ const submitReturn = async () => {
   const order = currentOrderContext;
   if (!order || returnSubmissionInFlight) return;
 
-  const rows = Array.from(document.querySelectorAll("#return-modal-body input[type='number']"));
-  const itens = rows.map((input) => {
+  const rows = Array.from(document.querySelectorAll("#return-modal-body input.return-input"));
+  const quantidadesPorItem = new Map();
+  rows.forEach((input) => {
     const index = Number(input.dataset.index || 0);
     const item = currentReturnItems[index];
-    const qtd = Number(input.value || 0);
+    if (!item) return;
+    const quantidades = quantidadesPorItem.get(index) || { boa: 0, danificada: 0, faltante: 0 };
+    const tipo = input.dataset.type || "boa";
+    quantidades[tipo] = Number(input.value || 0);
+    quantidadesPorItem.set(index, quantidades);
+  });
+  const itens = currentReturnItems.map((item, index) => {
+    const quantidades = quantidadesPorItem.get(index) || { boa: 0, danificada: 0, faltante: 0 };
     return {
       id: item.item_id,
       produto_id: item.produto_id,
       combo_id: item.combo_id,
       quantidade_entregue: item.quantidade,
-      quantidade_devolvida: qtd,
+      quantidade_boa: quantidades.boa,
+      quantidade_danificada: quantidades.danificada,
+      quantidade_faltando: quantidades.faltante,
       observacao: "",
     };
-  }).filter((item) => item.quantidade_devolvida > 0);
+  }).filter((item) =>
+    item.quantidade_boa + item.quantidade_danificada + item.quantidade_faltando > 0
+  );
 
   const responsavel = $("return-responsavel").value.trim();
   const observacao = $("return-observacao").value.trim();
@@ -1099,6 +1125,14 @@ const submitReturn = async () => {
     return;
   }
 
+  if (!returnSubmissionKey) {
+    if (!globalThis.crypto?.randomUUID) {
+      await window.FestAlert?.error?.("Devolução", "Não foi possível gerar um identificador seguro para a devolução.");
+      return;
+    }
+    returnSubmissionKey = crypto.randomUUID();
+  }
+
   returnSubmissionInFlight = true;
   const confirmButton = $("return-confirm-btn");
   if (confirmButton) confirmButton.disabled = true;
@@ -1107,12 +1141,19 @@ const submitReturn = async () => {
     const res = await fetch(`/entregas/pedidos/${order.id}/devolucoes`, {
       method: 'POST',
       headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify({ itens, observacao, responsavel, usuario_id: 1 })
+      body: JSON.stringify({
+        itens,
+        observacao,
+        responsavel,
+        usuario_id: 1,
+        idempotency_key: returnSubmissionKey
+      })
     });
     if (!res.ok) {
       const erro = await res.json().catch(() => ({}));
       throw new Error(erro.message || erro.sql || 'Falha ao registrar devolução');
     }
+    returnSubmissionKey = null;
     closeReturnModal();
     await openOrderModal(order.id);
     await loadOrders();
@@ -1162,7 +1203,12 @@ const finalizarConferencia = async (id) => {
   try {
     const res = await fetch(`/entregas/pedidos/${id}/finalizar-conferencia`, { method: 'POST' });
     if (!res.ok) throw new Error('Falha ao finalizar conferência');
-    await window.FestAlert?.success?.('Conferência finalizada', 'Pedido finalizado com sucesso.');
+    const dados = await res.json();
+    if (dados.status === 'FINALIZADO') {
+      await window.FestAlert?.success?.('Conferência finalizada', 'Pedido finalizado com sucesso.');
+    } else {
+      await window.FestAlert?.warning?.('Pedido pendente', 'A conferência foi registrada, mas ainda existem pendências operacionais ou financeiras.');
+    }
     openOrderModal(id);
     loadOrders();
   } catch (err) {

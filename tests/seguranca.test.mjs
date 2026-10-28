@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import request from 'supertest';
+import db from '../database/connection.js';
 import { criarUsuario } from '../src/modules/usuarios/usuarios.service.js';
 
 process.env.NODE_ENV = 'test';
@@ -36,4 +37,8 @@ async function runSecurityChecks() {
   console.log('Teste de segurança ok');
 }
 
-await runSecurityChecks();
+try {
+  await runSecurityChecks();
+} finally {
+  await db.end();
+}

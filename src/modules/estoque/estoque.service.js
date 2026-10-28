@@ -912,10 +912,8 @@ export async function confirmarComponentesPedido({ pedidoItemId, pedidoId, usuar
 export async function registrarDevolucaoComponentesNaTransacao(conn, {
   pedidoItemId,
   pedidoId,
-  quantidadeEntregue,
   quantidadeBoa,
   quantidadeDanificada,
-  quantidadePendente,
   usuarioId = null,
   observacao = ''
 }) {
@@ -928,8 +926,7 @@ export async function registrarDevolucaoComponentesNaTransacao(conn, {
     const fator = Number(componente.quantidade_por_unidade || 1);
     const devolucoes = [
       [quantidadeBoa * fator, 'BOA'],
-      [quantidadeDanificada * fator, 'DANIFICADA'],
-      [quantidadePendente * fator, 'PENDENTE']
+      [quantidadeDanificada * fator, 'DANIFICADA']
     ];
     for (const [quantidade, tipo] of devolucoes) {
       if (quantidade <= 0) continue;
@@ -1003,7 +1000,7 @@ export async function registrarDevolucaoNaTransacao(conn, {
   produtoId = validarIdPositivo(produtoId, 'Produto');
   quantidade = validarQuantidadePositiva(quantidade, 'Quantidade de devolução');
   if (pedidoId !== null) validarIdPositivo(pedidoId, 'Pedido');
-  if (!['BOA', 'DANIFICADA', 'PENDENTE'].includes(tipo)) {
+  if (!['BOA', 'DANIFICADA'].includes(tipo)) {
     throw new Error('Tipo de devolução inválido.');
   }
   const produto = await buscarProduto(conn, produtoId, true);
@@ -1025,13 +1022,6 @@ export async function registrarDevolucaoNaTransacao(conn, {
     );
     movimento = TIPOS_MOVIMENTACAO.DANIFICADO;
     observacaoPadrao = 'Produto devolvido danificado';
-  } else if (tipo === 'PENDENTE') {
-    await conn.query(
-      `UPDATE produtos SET estoque_em_uso = estoque_em_uso - ?, updatedAt = NOW() WHERE id = ?`,
-      [quantidade, produtoId]
-    );
-    movimento = TIPOS_MOVIMENTACAO.PERDA;
-    observacaoPadrao = 'Item pendente de devolução';
   } else {
     await conn.query(
       `UPDATE produtos SET estoque_em_uso = estoque_em_uso - ?, updatedAt = NOW() WHERE id = ?`,
@@ -1083,7 +1073,10 @@ export async function registrarDevolucaoDetalhada({
     await conn.beginTransaction();
 
     const [pedidoItemRows] = await conn.query(
-      `SELECT quantidade, quantidade_devolvida, quantidade_entregue FROM pedido_itens WHERE pedido_id = ? AND produto_id = ? FOR UPDATE LIMIT 1`,
+      `SELECT id, tipo_item, quantidade, quantidade_devolvida, quantidade_entregue
+       FROM pedido_itens
+       WHERE pedido_id = ? AND produto_id = ?
+       ORDER BY id ASC LIMIT 1 FOR UPDATE`,
       [pedidoId, produtoId]
     );
 
@@ -1092,6 +1085,9 @@ export async function registrarDevolucaoDetalhada({
     }
 
     const pedidoItem = pedidoItemRows[0];
+    if (String(pedidoItem.tipo_item || '').toUpperCase() !== 'ALUGUEL') {
+      throw new Error('Itens de venda não podem ser registrados como devolução de estoque alugado.');
+    }
     const entregueReal = Number(pedidoItem.quantidade_entregue || pedidoItem.quantidade || 0);
     const devolvidoAtual = Number(pedidoItem.quantidade_devolvida || 0);
     const restante = Math.max(0, entregueReal - devolvidoAtual);
@@ -1122,20 +1118,22 @@ export async function registrarDevolucaoDetalhada({
       });
     }
 
-    if (pendentes > 0) {
-      await registrarDevolucaoNaTransacao(conn, {
-        produtoId,
-        quantidade: pendentes,
-        tipo: 'PENDENTE',
-        pedidoId,
-        usuarioId,
-        observacao: observacao || 'Item pendente de devolução'
-      });
-    }
-
+    const quantidadeRecebida = boas + danificadas;
     await conn.query(
-      `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE pedido_id = ? AND produto_id = ?`,
-      [total, pedidoId, produtoId]
+      `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE id = ?`,
+      [quantidadeRecebida, pedidoItem.id]
+    );
+
+    const [devolucao] = await conn.query(
+      `INSERT INTO devolucoes (pedido_id, usuario_id, data_devolucao, observacao, created_at)
+       VALUES (?, ?, NOW(), ?, NOW())`,
+      [pedidoId, usuarioId, observacao || null]
+    );
+    await conn.query(
+      `INSERT INTO devolucao_itens
+        (devolucao_id, produto_id, quantidade_recebida, quantidade_faltando, quantidade_danificada, observacao)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [devolucao.insertId, produtoId, quantidadeRecebida, pendentes, danificadas, observacao || null]
     );
 
     await conn.commit();

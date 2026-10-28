@@ -1,97 +1,1037 @@
-<link rel="stylesheet" href="/css/pages/funcionario.css">
-
 <div class="page-meta" data-title="Funcionários" data-subtitle="Gerencie usuários, cargos e permissões do sistema"></div>
+<style>#employeeModule{
+  --bg:#eef1f7;
+  --surface:#ffffff;
+  --surface-2:#f7f9fc;
+  --ink:#101828;
+  --ink-2:#475467;
+  --ink-3:#98a2b3;
+  --line:#e4e8f0;
+  --brand:#0f4c81;
+  --brand-2:#1d7bc4;
+  --brand-soft:#e8f1fa;
+  --accent:#e8590c;
+  --ok:#0f9d58;
+  --ok-soft:#e6f6ee;
+  --danger:#d92d20;
+  --danger-soft:#fdecea;
+  --warn:#b54708;
+  --warn-soft:#fef4e6;
+  --radius:14px;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.06);
+  --shadow-md:0 6px 18px -6px rgba(16,24,40,.16);
+  --shadow-lg:0 24px 48px -12px rgba(16,24,40,.28);
+  --font:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+}#employeeModule *{box-sizing:border-box}#employeeModule{margin:0;padding:0}#employeeModule{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}#employeeModule button,#employeeModule input,#employeeModule select,#employeeModule textarea{font:inherit;color:inherit}#employeeModule h1,#employeeModule h2,#employeeModule h3,#employeeModule h4{margin:0;font-weight:700;letter-spacing:-.01em}#employeeModule .app{max-width:1440px;margin:0 auto;padding:24px}#employeeModule .topbar{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:space-between;
+  background:linear-gradient(120deg,var(--brand) 0%,#12629f 55%,var(--brand-2) 100%);
+  color:#fff;border-radius:18px;padding:22px 24px;box-shadow:var(--shadow-md);position:relative;overflow:hidden}#employeeModule .topbar::after{content:"";position:absolute;right:-60px;top:-80px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.07)}#employeeModule .topbar h1{font-size:24px;display:flex;align-items:center;gap:10px}#employeeModule .topbar p{margin:6px 0 0;opacity:.85;font-size:13.5px}#employeeModule .topbar .actions{display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:1}#employeeModule .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;background:var(--surface);
+  color:var(--ink);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;
+  transition:transform .12s ease,box-shadow .12s ease,background .12s ease,opacity .12s}#employeeModule .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}#employeeModule .btn:active{transform:translateY(0)}#employeeModule .btn-primary{background:var(--accent);color:#fff}#employeeModule .btn-ghost{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.3)}#employeeModule .btn-outline{background:transparent;border-color:var(--line);color:var(--ink-2)}#employeeModule .btn-soft{background:var(--brand-soft);color:var(--brand)}#employeeModule .btn-danger{background:var(--danger-soft);color:var(--danger)}#employeeModule .btn-sm{padding:6px 10px;font-size:12.5px;border-radius:8px}#employeeModule .tabs{display:flex;gap:6px;margin:22px 0 18px;background:var(--surface);padding:6px;border-radius:12px;
+  box-shadow:var(--shadow-sm);width:fit-content;max-width:100%;overflow:auto}#employeeModule .tab{border:0;background:transparent;padding:9px 16px;border-radius:9px;cursor:pointer;font-weight:600;color:var(--ink-2);white-space:nowrap}#employeeModule .tab.is-active{background:var(--brand);color:#fff;box-shadow:var(--shadow-sm)}#employeeModule .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}#employeeModule .kpi{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm);
+  border:1px solid var(--line);display:flex;gap:14px;align-items:center;animation:employee-rise .35s ease both}#employeeModule .kpi .ico{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:var(--brand-soft)}#employeeModule .kpi .val{font-size:26px;font-weight:800;letter-spacing:-.02em}#employeeModule .kpi .lbl{color:var(--ink-3);font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}#employeeModule .kpi small{color:var(--ink-2);font-size:12.5px}#employeeModule .kpi.ok .ico{background:var(--ok-soft)}#employeeModule .kpi.danger .ico{background:var(--danger-soft)}#employeeModule .kpi.warn .ico{background:var(--warn-soft)}
+@keyframes employee-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}#employeeModule .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);margin-top:18px;overflow:hidden}#employeeModule .panel-head{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line);background:var(--surface-2)}#employeeModule .panel-head h3{font-size:15px}#employeeModule .panel-head .sub{color:var(--ink-3);font-size:12.5px}#employeeModule .toolbar{display:flex;flex-wrap:wrap;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}#employeeModule .field{display:flex;flex-direction:column;gap:6px}#employeeModule .field label{font-size:11.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}#employeeModule input[type=text],#employeeModule input[type=email],#employeeModule input[type=password],#employeeModule input[type=date],#employeeModule input[type=tel],#employeeModule select,#employeeModule textarea{
+  border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 11px;outline:none;min-width:150px;transition:border .15s,box-shadow .15s}#employeeModule input:focus,#employeeModule select:focus,#employeeModule textarea:focus{border-color:var(--brand-2);box-shadow:0 0 0 3px rgba(29,123,196,.15)}#employeeModule .search{flex:1;min-width:220px}#employeeModule .search input{width:100%}#employeeModule .table-wrap{overflow:auto}#employeeModule table{width:100%;border-collapse:collapse;min-width:1080px}#employeeModule th{ text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);
+  padding:12px 14px;background:var(--surface-2);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1}#employeeModule td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}#employeeModule tbody tr{transition:background .12s}#employeeModule tbody tr:hover{background:#f9fbfe}#employeeModule .person{display:flex;align-items:center;gap:11px}#employeeModule .avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;font-size:13px;flex:none;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:var(--shadow-sm)}#employeeModule .avatar.lg{width:76px;height:76px;font-size:26px}#employeeModule .avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit}#employeeModule .person .nm{font-weight:700}#employeeModule .person .em{color:var(--ink-3);font-size:12.5px}#employeeModule .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;font-size:11.5px;font-weight:700;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}#employeeModule .badge.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}#employeeModule .badge.danger{background:var(--danger-soft);color:var(--danger);border-color:transparent}#employeeModule .badge.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}#employeeModule .badge.brand{background:var(--brand-soft);color:var(--brand);border-color:transparent}#employeeModule .dot{width:7px;height:7px;border-radius:50%;background:currentColor}#employeeModule .row-actions{display:flex;gap:4px}#employeeModule .iconbtn{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer;display:grid;place-items:center;transition:.12s}#employeeModule .iconbtn:hover{background:var(--brand-soft);border-color:var(--brand-soft);transform:translateY(-1px)}#employeeModule .empty{padding:46px;text-align:center;color:var(--ink-3)}#employeeModule .overlay{position:fixed;inset:0;background:rgba(16,24,40,.55);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;padding:28px 16px;overflow:auto;z-index:50}#employeeModule .overlay.open{display:flex;animation:employee-fade .18s ease}
+@keyframes employee-fade{from{opacity:0}to{opacity:1}}#employeeModule .modal{background:var(--surface);border-radius:18px;box-shadow:var(--shadow-lg);width:100%;max-width:920px;animation:employee-pop .22s cubic-bezier(.2,.8,.3,1)}#employeeModule .modal.sm{max-width:560px}
+@keyframes employee-pop{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}#employeeModule .modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line)}#employeeModule .modal-head h3{font-size:17px}#employeeModule .modal-head .sub{color:var(--ink-3);font-size:12.5px;margin-top:2px}#employeeModule .modal-body{padding:20px 22px;max-height:70vh;overflow:auto}#employeeModule .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--line);background:var(--surface-2);border-radius:0 0 18px 18px}#employeeModule .close{border:0;background:var(--surface-2);width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:16px}#employeeModule .section-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:18px 0 10px}#employeeModule .section-title:first-child{margin-top:0}#employeeModule .grid{display:grid;gap:14px}#employeeModule .g2{grid-template-columns:repeat(2,1fr)}#employeeModule .g3{grid-template-columns:repeat(3,1fr)}#employeeModule .g4{grid-template-columns:repeat(4,1fr)}#employeeModule .upload{display:flex;gap:14px;align-items:center;padding:14px;border:1.5px dashed var(--line);border-radius:12px;background:var(--surface-2)}#employeeModule .check{display:flex;gap:9px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;font-weight:600}#employeeModule .check input{width:16px;height:16px;accent-color:var(--brand)}#employeeModule .perm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}#employeeModule .perm-card{border:1px solid var(--line);border-radius:13px;padding:14px;background:var(--surface-2);transition:.15s}#employeeModule .perm-card:hover{border-color:var(--brand-2);background:#fff;box-shadow:var(--shadow-sm)}#employeeModule .perm-card h4{font-size:13.5px;display:flex;align-items:center;gap:7px}#employeeModule .perm-card p{margin:4px 0 10px;color:var(--ink-3);font-size:12.5px}#employeeModule .perm-opts{display:flex;flex-wrap:wrap;gap:8px}#employeeModule .perm-opts label{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;background:#fff;border:1px solid var(--line);padding:5px 9px;border-radius:8px;cursor:pointer}#employeeModule .perm-opts input{accent-color:var(--brand)}#employeeModule .perm-tags{display:flex;flex-wrap:wrap;gap:6px}#employeeModule .profile-top{display:flex;gap:16px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--line)}#employeeModule .profile-top h3{font-size:19px}#employeeModule .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}#employeeModule .info{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:11px 13px}#employeeModule .info .k{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:700}#employeeModule .info .v{font-weight:700;margin-top:3px}#employeeModule .timeline{list-style:none;margin:0;padding:0 0 0 8px;border-left:2px solid var(--line)}#employeeModule .timeline li{position:relative;padding:0 0 14px 18px}#employeeModule .timeline li::before{content:"";position:absolute;left:-7px;top:6px;width:11px;height:11px;border-radius:50%;background:var(--brand-2);border:2px solid #fff;box-shadow:0 0 0 2px var(--brand-soft)}#employeeModule .timeline .t{color:var(--ink-3);font-size:12px}#employeeModule #toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:80}#employeeModule .toast{background:var(--ink);color:#fff;padding:11px 15px;border-radius:11px;box-shadow:var(--shadow-lg);font-weight:600;font-size:13px;animation:employee-slide .2s ease}#employeeModule .toast.ok{background:#0b7a45}#employeeModule .toast.err{background:#a91b12}
+@keyframes employee-slide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}#employeeModule .hidden{display:none !important}
+@media (max-width:900px){#employeeModule .g2,#employeeModule .g3,#employeeModule .g4{grid-template-columns:1fr}#employeeModule .app{padding:14px}#employeeModule .topbar{padding:18px}}
+@media print{#employeeModule{background:#fff}#employeeModule .topbar .actions,#employeeModule .tabs,#employeeModule .toolbar,#employeeModule .row-actions,#employeeModule .overlay,#employeeModule #toasts{display:none !important}#employeeModule .panel{box-shadow:none}
+}
+</style>
+<div id="employeeModule">
+<div class="app">
 
-<div class="container">
+  <!-- ================= HEADER ================= -->
+  <header class="topbar">
+    <div>
+      <h1>👥 Funcionários</h1>
+      <p>Gerencie usuários, cargos e permissões do sistema — Serve Festa ERP</p>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="UI.openEmployeeModal()">＋ Novo Funcionário</button>
+      <button class="btn btn-ghost" onclick="UI.exportList()">⬇ Exportar Lista</button>
+      <button class="btn btn-ghost" onclick="UI.openPermissionSettings()">🔐 Configurações de Permissões</button>
+      <button class="btn btn-ghost" onclick="window.print()">🖨 Imprimir</button>
+    </div>
+  </header>
 
-  <!-- 🔥 ERROS -->
-  {{#if erros}}
-    {{#each erros}}
-      <div style="color:red;">{{texto}}</div>
-    {{/each}}
-  {{/if}}
+  <!-- ================= TABS ================= -->
+  <nav class="tabs">
+    <button class="tab is-active" data-tab="equipe" onclick="UI.setTab('equipe')">👥 Equipe</button>
+    <button class="tab" data-tab="auditoria" onclick="UI.setTab('auditoria')">🧾 Auditoria</button>
+    <button class="tab" data-tab="seguranca" onclick="UI.setTab('seguranca')">🛡 Segurança</button>
+  </nav>
 
-  <!-- ✅ FORM REAL -->
-  <div class="box">
-    <h2>Cadastrar Funcionário</h2>
+  <!-- ================= VIEW: EQUIPE ================= -->
+  <section id="view-equipe">
+    <div class="kpis" id="kpis"></div>
 
-    <form action="/usuarios/registro" method="POST">
-
-      <div class="form-grid">
+    <div class="panel">
+      <div class="panel-head">
         <div>
-          <label>Nome</label>
-          <input type="text" name="nome" required>
+          <h3>Lista de funcionários</h3>
+          <div class="sub" id="listCount">—</div>
         </div>
-
-        <div>
-          <label>Email</label>
-          <input type="email" name="email" required>
-        </div>
-
-        <div>
-          <label>Senha</label>
-          <input type="password" name="senha" required>
-        </div>
-
-        <div>
-          <label>Confirmar senha</label>
-          <input type="password" name="senha2" required>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="UI.clearFilters()">Limpar filtros</button>
+          <button class="btn btn-soft btn-sm" onclick="UI.exportList()">Exportar CSV</button>
         </div>
       </div>
 
-      <h3>Permissões</h3>
+      <div class="toolbar">
+        <div class="field search">
+          <label>Pesquisar</label>
+          <input type="text" id="fSearch" placeholder="Nome, email, CPF ou telefone..." oninput="UI.render()">
+        </div>
+        <div class="field">
+          <label>Cargo</label>
+          <select id="fRole" onchange="UI.render()"><option value="">Todos</option></select>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="fStatus" onchange="UI.render()">
+            <option value="">Todos</option>
+            <option value="ativo">Ativo</option>
+            <option value="bloqueado">Bloqueado</option>
+            <option value="login-desabilitado">Login desabilitado</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Permissão</label>
+          <select id="fPerm" onchange="UI.render()"><option value="">Qualquer módulo</option></select>
+        </div>
+        <div class="field">
+          <label>Ordenar</label>
+          <select id="fSort" onchange="UI.render()">
+            <option value="recentes">Mais recentes</option>
+            <option value="nome">Nome (A–Z)</option>
+            <option value="acesso">Último acesso</option>
+          </select>
+        </div>
+      </div>
 
-      <label><input type="checkbox" name="dashboard"> Dashboard</label><br>
-      <label><input type="checkbox" name="pedidos"> Pedidos</label><br>
-      <label><input type="checkbox" name="clientes"> Clientes</label><br>
-      <label><input type="checkbox" name="endregas"> Entregas</label><br>
-      <label><input type="checkbox" name="produtos"> Produtos</label><br>
-      <label><input type="checkbox" name="fornecedores"> Produtos</label><br>
-      <label><input type="checkbox" name="relatorios"> Relatórios</label><br>
-      <label><input type="checkbox" name="funcionarios"> Funcionários</label><br>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Funcionário</th><th>Cargo</th><th>Contato</th><th>Status</th>
+              <th>Último acesso</th><th>Cadastro</th><th>Permissões</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div id="emptyState" class="empty hidden">Nenhum funcionário encontrado com os filtros aplicados.</div>
+    </div>
+  </section>
 
-      <br>
-      <button type="submit">Salvar</button>
-    </form>
-  </div>
+  <!-- ================= VIEW: AUDITORIA ================= -->
+  <section id="view-auditoria" class="hidden">
+    <div class="panel" style="margin-top:0">
+      <div class="panel-head">
+        <div><h3>🧾 Histórico de ações (Auditoria)</h3><div class="sub" id="auditCount">—</div><div class="sub">Apenas eventos registrados pelo servidor, sem histórico retroativo.</div></div>
+        <span class="sub">Somente eventos gravados pelo servidor são exibidos.</span>
+      </div>
+      <div class="toolbar">
+        <div class="field search"><label>Pesquisar</label><input type="text" id="aSearch" placeholder="Funcionário, ação ou módulo..." oninput="UI.renderAudit()"></div>
+        <div class="field"><label>Módulo</label><select id="aModule" onchange="UI.renderAudit()"><option value="">Todos</option></select></div>
+      </div>
+      <div class="table-wrap">
+        <table style="min-width:760px">
+          <thead><tr><th>Funcionário</th><th>Ação realizada</th><th>Módulo</th><th>Data</th><th>Horário</th></tr></thead>
+          <tbody id="auditBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
-  <!-- ✅ LISTA REAL DO BANCO -->
-  <div class="box">
-    <h2>Lista de Funcionários</h2>
-
-    <table>
-  <thead>
-    <tr>
-      <th>Nome</th>
-      <th>Email</th>
-      <th>Dashboard</th>
-      <th>Clientes</th>
-      <th>Produtos</th>
-      <th>Pedidos</th>
-      <th>Relatórios</th>
-      <th>Funcionários</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {{#each usuarios}}
-      <tr>
-        <td>{{nome}}</td>
-        <td>{{email}}</td>
-
-        <td>{{#if dashboard}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
-        <td>{{#if clientes}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
-        <td>{{#if produtos}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
-        <td>{{#if pedidos}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
-        <td>{{#if relatorios}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
-        <td>{{#if funcionarios}}<i class="fa-solid fa-circle-check"></i>{{else}}<i class="fa-solid fa-xmark"></i>{{/if}}</td>
-
-      </tr>
-    {{/each}}
-  </tbody>
-</table>
-  </div>
-
+  <!-- ================= VIEW: SEGURANÇA ================= -->
+  <section id="view-seguranca" class="hidden">
+    <div class="panel" style="margin-top:0">
+      <div class="panel-head"><div><h3>🛡 Controle de segurança</h3><div class="sub">Eventos registrados pelo servidor após a ativação do histórico; sem dados retroativos.</div></div></div>
+      <div class="table-wrap">
+        <table style="min-width:940px">
+          <thead><tr><th>Funcionário</th><th>Último login</th><th>Qtd. acessos</th><th>IP do último acesso</th><th>Tentativas falhas</th><th>Criado em</th><th>Situação</th></tr></thead>
+          <tbody id="securityBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 </div>
 
+<!-- ================= MODAL: CADASTRO / EDIÇÃO ================= -->
+<div class="overlay" id="mdEmployee">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h3 id="empTitle">Novo funcionário</h3><div class="sub">Dados pessoais, acesso e permissões por módulo</div></div>
+      <button type="button" class="close" data-close-modal="mdEmployee" onclick="UI.close('mdEmployee')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="empForm" onsubmit="UI.saveEmployee(); return false">
+        <input type="hidden" id="empId">
 
+        <div class="section-title">👤 Dados pessoais</div>
+        <div class="upload">
+          <div class="avatar lg" id="empAvatar">SF</div>
+          <div>
+            <div style="font-weight:700">Foto do funcionário</div>
+            <div style="color:var(--ink-3);font-size:12.5px;margin-bottom:8px">PNG ou JPG até 2MB. A prévia usa as iniciais quando não houver imagem.</div>
+            <input type="file" id="empPhoto" accept="image/png,image/jpeg" onchange="UI.previewPhoto(event)">
+          </div>
+        </div>
+        <div class="grid g3" style="margin-top:14px">
+          <div class="field"><label>Nome completo *</label><input type="text" id="empName" maxlength="100" required placeholder="Ex.: Ana Beatriz Ramos"></div>
+          <div class="field"><label>Telefone</label><input type="tel" id="empPhone" placeholder="(11) 98888-0000"></div>
+          <div class="field"><label>CPF</label><input type="text" id="empCpf" placeholder="000.000.000-00"></div>
+          <div class="field"><label>Data de nascimento</label><input type="date" id="empBirth"></div>
+          <div class="field"><label>Cargo</label><select id="empRole" onchange="UI.applyRolePreset()"></select></div>
+          <div class="field"><label>Cargo personalizado</label><input type="text" id="empCustomRole" placeholder="Usado quando o cargo for Personalizado"></div>
+        </div>
+
+        <div class="section-title">🔑 Dados de acesso</div>
+        <div class="grid g3">
+          <div class="field"><label>Email de login *</label><input type="email" id="empEmail" maxlength="100" required placeholder="nome@servefesta.com.br"></div>
+          <div class="field"><label>Senha</label><input type="password" id="empPass" placeholder="••••••••"></div>
+          <div class="field"><label>Confirmar senha</label><input type="password" id="empPass2" placeholder="••••••••"></div>
+        </div>
+
+        <div class="section-title">⚙ Status</div>
+        <div class="grid g2">
+          <label class="check"><input type="checkbox" id="empActive" checked> Usuário ativo</label>
+          <label class="check"><input type="checkbox" id="empLogin" checked> Permitir login no sistema</label>
+        </div>
+
+        <div class="section-title" style="justify-content:space-between">
+          <span>🔐 Permissões por módulo</span>
+          <button type="button" class="btn btn-soft btn-sm" onclick="UI.toggleAllPerms()">Selecionar todas as permissões</button>
+        </div>
+        <div class="perm-grid" id="permGrid"></div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-outline" data-close-modal="mdEmployee" onclick="UI.close('mdEmployee')">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="UI.saveEmployee()">Salvar funcionário</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: PERMISSÕES ================= -->
+<div class="overlay" id="mdPerms">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h3 id="permTitle">Alterar permissões</h3><div class="sub">Controle de acesso por módulo do ERP</div></div>
+      <button type="button" class="close" data-close-modal="mdPerms" onclick="UI.close('mdPerms')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="templateSettings" class="hidden">
+        <div class="field" style="margin-bottom:14px">
+          <label for="templateRole">Modelo padrão por cargo</label>
+          <select id="templateRole" onchange="UI.loadRoleTemplate(this.value)"></select>
+        </div>
+        <p class="sub" style="margin-bottom:16px">Salvar altera apenas os modelos usados como padrão. As permissões de funcionários existentes não serão alteradas.</p>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button type="button" class="btn btn-soft btn-sm" onclick="UI.toggleAllPerms('permGridSolo')">Selecionar todas as permissões</button>
+      </div>
+      <div class="perm-grid" id="permGridSolo"></div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-outline" data-close-modal="mdPerms" onclick="UI.close('mdPerms')">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="UI.savePerms()">Salvar permissões</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: PERFIL ================= -->
+<div class="overlay" id="mdProfile">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h3>Perfil do funcionário</h3><div class="sub">Dados, permissões atuais, segurança e atividade</div></div>
+      <button type="button" class="close" data-close-modal="mdProfile" onclick="UI.close('mdProfile')">✕</button>
+    </div>
+    <div class="modal-body" id="profileBody"></div>
+    <div class="modal-foot"><button type="button" class="btn btn-outline" data-close-modal="mdProfile" onclick="UI.close('mdProfile')">Fechar</button></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+</div>
+
+<script>
+"use strict";
+/* =========================================================
+   1) CONFIGURAÇÃO DE DOMÍNIO
+   ========================================================= */
+const MODULES = [
+  { id:"dashboard", icon:"📊", name:"Dashboard", desc:"Indicadores do negócio.", actions:{view:"Visualizar",create:"Personalizar",edit:"Editar metas",remove:"Excluir widgets"} },
+  { id:"pedidos", icon:"📝", name:"Pedidos", desc:"Orçamentos e contratos de locação.", actions:{view:"Visualizar pedidos",create:"Criar pedidos",edit:"Editar pedidos",remove:"Cancelar pedidos"} },
+  { id:"clientes", icon:"👥", name:"Clientes", desc:"Clientes e histórico de eventos.", actions:{view:"Visualizar clientes",create:"Cadastrar clientes",edit:"Editar clientes",remove:"Excluir clientes"} },
+  { id:"produtos", icon:"📦", name:"Produtos", desc:"Itens de locação e produtos.", actions:{view:"Visualizar produtos",create:"Cadastrar produtos",edit:"Editar produtos",remove:"Excluir produtos"} },
+  { id:"estoque", icon:"📦", name:"Estoque", desc:"Controle e movimentação de estoque.", actions:{view:"Visualizar estoque",create:"Registrar entrada",edit:"Ajustar estoque",remove:"Registrar perda"} },
+  { id:"entregas", icon:"🚚", name:"Entregas", desc:"Logística de entrega e montagem.", actions:{view:"Visualizar entregas",create:"Agendar entrega",edit:"Alterar status",remove:"Registrar devolução"} },
+  { id:"retiradas", icon:"↩️", name:"Recolhimentos", desc:"Recolhimento e conferência de itens.", actions:{view:"Visualizar recolhimentos",create:"Agendar recolhimento",edit:"Conferir itens",remove:"Cancelar recolhimento"} },
+  { id:"pagamentos", icon:"💰", name:"Financeiro", desc:"Pagamentos, recebimentos e valores.", actions:{view:"Visualizar pagamentos",create:"Registrar pagamentos",edit:"Editar pagamentos",remove:"Estornar"} },
+  { id:"fornecedor", icon:"🏭", name:"Fornecedores", desc:"Parceiros e compras.", actions:{view:"Visualizar fornecedores",create:"Cadastrar fornecedores",edit:"Editar fornecedores",remove:"Excluir fornecedores"} },
+  { id:"relatorios", icon:"📈", name:"Relatórios", desc:"Indicadores e exportações.", actions:{view:"Visualizar relatórios",create:"Exportar relatórios",edit:"Criar modelos",remove:"Excluir modelos"} },
+  { id:"funcionarios", icon:"👤", name:"Funcionários", desc:"Usuários e perfis da equipe.", actions:{view:"Visualizar",create:"Cadastrar usuários",edit:"Alterar permissões",remove:"Inativar usuários"} },
+  { id:"cadastro_admin", icon:"🔐", name:"Administração", desc:"Acesso administrativo do sistema.", actions:{view:"Visualizar",create:"Administrar usuários",edit:"Gerenciar acessos",remove:"Revogar acessos"} }
+];
+const ACTION_KEYS = ["view","create","edit","remove"];
+const ROLES = ["Administrador","Gerente","Vendedor","Estoquista","Entregador","Financeiro","Personalizado"];
+
+const emptyPerms = () => MODULES.reduce((a,m)=>(a[m.id]={view:false,create:false,edit:false,remove:false},a),{});
+const permsFor = (map) => { const p = emptyPerms(); Object.keys(map||{}).forEach(k=>{ if(p[k]) Object.assign(p[k], map[k]); }); return p; };
+const fullPerms = () => MODULES.reduce((a,m)=>(a[m.id]={view:true,create:true,edit:true,remove:true},a),{});
+
+const ROLE_PRESETS = {
+  "Administrador": fullPerms(),
+  "Gerente": permsFor({dashboard:{view:1},pedidos:{view:1,create:1,edit:1,remove:1},clientes:{view:1,create:1,edit:1},produtos:{view:1,edit:1},estoque:{view:1,edit:1},entregas:{view:1,edit:1},retiradas:{view:1,edit:1},pagamentos:{view:1,create:1},relatorios:{view:1,create:1},fornecedor:{view:1,edit:1}}),
+  "Vendedor": permsFor({dashboard:{view:1},pedidos:{view:1,create:1,edit:1},clientes:{view:1,create:1,edit:1},produtos:{view:1}}),
+  "Estoquista": permsFor({produtos:{view:1,create:1,edit:1},estoque:{view:1,create:1,edit:1,remove:1},entregas:{view:1},fornecedor:{view:1}}),
+  "Entregador": permsFor({entregas:{view:1,edit:1,remove:1},retiradas:{view:1,edit:1},pedidos:{view:1}}),
+  "Financeiro": permsFor({dashboard:{view:1},pagamentos:{view:1,create:1,edit:1},relatorios:{view:1,create:1},pedidos:{view:1}}),
+  "Personalizado": emptyPerms()
+};
+
+const API_BASE = "/usuarios/api";
+const API = {
+async request(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  headers.set("Accept", "application/json");
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+    || document.querySelector('input[name="_csrf"]')?.value;
+  if (csrfToken && !["GET", "HEAD"].includes((options.method || "GET").toUpperCase())) {
+    headers.set("X-CSRF-Token", csrfToken);
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    credentials: "same-origin",
+    ...options,
+    headers
+  });
+  if (response.redirected) {
+    throw new Error("Sua sessão expirou. Entre novamente para continuar.");
+  }
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Sua sessão expirou. Entre novamente para continuar.");
+    }
+    throw new Error(payload?.message || payload?.error || `Falha na solicitação (${response.status}).`);
+  }
+  if (response.status !== 204 && !payload) {
+    throw new Error("O servidor retornou uma resposta inválida. Tente novamente.");
+  }
+  return payload?.data ?? payload;
+},
+listEmployees: () => API.request("/funcionarios"),
+getEmployee: id => API.request(`/funcionarios/${encodeURIComponent(id)}`),
+createEmployee: data => API.request("/funcionarios", { method:"POST", body:data }),
+updateEmployee: (id, data) => API.request(`/funcionarios/${encodeURIComponent(id)}`, { method:"PUT", body:data }),
+deleteEmployee: id => API.request(`/funcionarios/${encodeURIComponent(id)}`, { method:"DELETE" }),
+toggleBlock: (id, active, canLogin) => API.request(`/funcionarios/${encodeURIComponent(id)}/status`, {
+  method:"PATCH",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({ active, canLogin })
+}),
+listAudit: () => API.request("/auditoria"),
+listSecurity: () => API.request("/seguranca"),
+getRoleTemplates: () => API.request("/modelos-permissoes"),
+saveRoleTemplate: (role, perms) => API.request("/modelos-permissoes", {
+  method:"PUT",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({ role, perms })
+})
+};
+
+/* =========================================================
+   3) UTILITÁRIOS
+   ========================================================= */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const today = () => new Date().toISOString().slice(0,10);
+const initials = n => String(n || "").trim().split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase() || "?";
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+  "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+}[char]));
+const photoUrl = value => {
+  if (!value) return "";
+  try {
+    const url = new URL(value, window.location.origin);
+    return url.origin === window.location.origin && url.pathname.startsWith("/uploads/funcionarios/")
+      ? url.href
+      : "";
+  } catch {
+    return "";
+  }
+};
+const fmtDate = d => !d ? "—" : new Date(d).toLocaleDateString("pt-BR");
+const fmtTime = d => !d ? "—" : new Date(d).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+const fmtDT = d => !d ? "Nunca acessou" : `${fmtDate(d)} ${fmtTime(d)}`;
+const roleLabel = e => e.role==="Personalizado" && e.customRole ? e.customRole : (e.role || "Não informado");
+const toBoolean = value => value === true || value === 1 || value === "1";
+const normalizedPermissions = value => MODULES.reduce((permissions, module) => {
+  const stored = value?.[module.id];
+  permissions[module.id] = Object.fromEntries(ACTION_KEYS.map(action => [
+    action,
+    stored && typeof stored === "object" ? toBoolean(stored[action]) : action === "view" && toBoolean(stored)
+  ]));
+  return permissions;
+}, {});
+const normalizeEmployee = employee => ({
+  ...employee,
+  active:toBoolean(employee.active),
+  canLogin:toBoolean(employee.canLogin),
+  isAdmin:toBoolean(employee.isAdmin),
+  perms:normalizedPermissions(employee.perms || employee.permissions)
+});
+const grantedModules = e => MODULES.filter(m => ACTION_KEYS.some(k => toBoolean(e.perms?.[m.id]?.[k])));
+const countGrants = e => MODULES.reduce((n,m)=> n + ACTION_KEYS.filter(k=>toBoolean(e.perms?.[m.id]?.[k])).length, 0);
+function validCpf(value){
+  const cpf = String(value || "").replace(/\D/g, "");
+  if(cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  const digit = (length, weight) => {
+    const sum = cpf.slice(0, length).split("").reduce((total, number, index) => total + Number(number) * (weight - index), 0);
+    const remainder = (sum * 10) % 11;
+    return remainder === 10 ? 0 : remainder;
+  };
+  return digit(9, 10) === Number(cpf[9]) && digit(10, 11) === Number(cpf[10]);
+}
+
+function toast(msg, kind=""){
+  const t = document.createElement("div");
+  t.className = "toast " + kind; t.textContent = msg;
+  $("#toasts").appendChild(t);
+  setTimeout(()=>{ t.style.opacity="0"; t.style.transform="translateX(16px)"; t.style.transition="all .25s"; setTimeout(()=>t.remove(),250); }, 2600);
+}
+
+/* =========================================================
+   4) INTERFACE
+   ========================================================= */
+const UI = {
+  state: { tab:"equipe", editingId:null, permTargetId:null, employees:[], audit:[], security:[], employeesLoaded:false, auditLoaded:false, securityLoaded:false, roleTemplates:{}, templateMode:false, busy:false },
+
+  async init(){
+    $("#fRole").insertAdjacentHTML("beforeend", ROLES.map(r=>`<option>${r}</option>`).join(""));
+    $("#empRole").innerHTML = ROLES.map(r=>`<option>${r}</option>`).join("");
+    $("#fPerm").insertAdjacentHTML("beforeend", MODULES.map(m=>`<option value="${m.id}">${m.icon} ${m.name}</option>`).join(""));
+    $("#aModule").insertAdjacentHTML("beforeend", MODULES.map(m=>`<option value="${m.name}">${m.name}</option>`).join(""));
+    $("#permGrid").innerHTML = this.permCards("p");
+    $("#permGridSolo").innerHTML = this.permCards("s");
+    $("#templateRole").innerHTML = ROLES.filter(role=>role!=="Personalizado").map(role=>`<option value="${escapeHtml(role)}">${escapeHtml(role)}</option>`).join("");
+    this.initModalBindings();
+    $("#empForm").addEventListener("input", () => {
+      $("#mdEmployee").dataset.dirty = "true";
+      this.updateAvatarInitials();
+    });
+    $("#empForm").addEventListener("change", () => { $("#mdEmployee").dataset.dirty = "true"; });
+    $("#permGridSolo").addEventListener("change", () => { $("#mdPerms").dataset.dirty = "true"; });
+    $("#empName").addEventListener("input", () => this.updateAvatarInitials());
+  },
+
+  initModalBindings(){
+    if (document.body.dataset.modalBindings === "true") return;
+    $$(".overlay").forEach((overlay) => {
+      if (overlay.dataset.bound === "true") return;
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) this.close(overlay.id);
+      });
+      overlay.dataset.bound = "true";
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        $$(".overlay.open").forEach((overlay) => this.close(overlay.id));
+      }
+    });
+    document.body.dataset.modalBindings = "true";
+    document.body.addEventListener("click", (event) => {
+      const closeTarget = event.target.closest("[data-close-modal]");
+      if (closeTarget) {
+        event.preventDefault();
+        this.close(closeTarget.dataset.closeModal);
+        return;
+      }
+      const button = event.target.closest("[data-action][data-id]");
+      if (!button) return;
+      const id = Number(button.dataset.id);
+      if (!Number.isSafeInteger(id) || id < 1) return;
+      const actions = {
+        profile: () => this.openProfile(id),
+        edit: () => this.openEmployeeModal(id),
+        permissions: () => this.openPerms(id),
+        block: () => this.toggleBlock(id),
+        remove: () => this.remove(id)
+      };
+      actions[button.dataset.action]?.();
+    });
+    document.body.addEventListener("error", event => {
+      const image = event.target;
+      if (!(image instanceof HTMLImageElement) || !image.classList.contains("avatar")) return;
+      const fallback = document.createElement("div");
+      fallback.className = image.className;
+      fallback.textContent = initials(image.alt);
+      image.replaceWith(fallback);
+    }, true);
+    $("#empForm").addEventListener("input", () => {
+      $("#mdEmployee").dataset.dirty = "true";
+      this.updateAvatarInitials();
+    });
+    $("#empForm").addEventListener("change", () => { $("#mdEmployee").dataset.dirty = "true"; });
+    $("#permGridSolo").addEventListener("change", () => { $("#mdPerms").dataset.dirty = "true"; });
+    $("#empName").addEventListener("input", () => this.updateAvatarInitials());
+  },
+
+  setTab(tab){
+    this.state.tab = tab;
+    $$(".tab").forEach(t=>t.classList.toggle("is-active", t.dataset.tab===tab));
+    ["equipe","auditoria","seguranca"].forEach(v=>$("#view-"+v).classList.toggle("hidden", v!==tab));
+    if(tab==="auditoria") this.renderAudit(true);
+    if(tab==="seguranca") this.renderSecurity(true);
+  },
+
+  /* ---------- KPIs + tabela ---------- */
+  async render(forceReload=false){
+    try {
+      if (forceReload || !this.state.employeesLoaded) {
+        $("#listCount").textContent = "Carregando funcionários...";
+        const all = await API.listEmployees();
+        this.state.employees = Array.isArray(all) ? all.map(normalizeEmployee) : [];
+        this.state.employeesLoaded = true;
+        const selectedRole = $("#fRole").value;
+        const roles = [...new Set(this.state.employees.map(roleLabel).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+        $("#fRole").innerHTML = `<option value="">Todos</option>${roles.map(value=>`<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}`;
+        if (roles.includes(selectedRole)) $("#fRole").value = selectedRole;
+      }
+      this.renderKpis(this.state.employees);
+      const list = this.filteredEmployees();
+
+      $("#listCount").textContent = `${list.length} de ${this.state.employees.length} funcionário(s) exibidos`;
+      $("#emptyState").classList.toggle("hidden", list.length > 0);
+      $("#tbody").innerHTML = list.map(e=>this.row(e)).join("");
+    } catch (error) {
+      $("#listCount").textContent = "Não foi possível carregar os funcionários.";
+      $("#tbody").innerHTML = `<tr><td colspan="8" class="empty">${escapeHtml(error.message)}</td></tr>`;
+      toast(error.message, "err");
+    }
+  },
+
+  renderKpis(list){
+    const total = list.length;
+    const ativos = list.filter(e=>e.active).length;
+    const bloq = total - ativos;
+    const admins = list.filter(e=>e.isAdmin || e.perms?.cadastro_admin?.view).length;
+    const last = list.filter(e=>e.lastAccess).sort((a,b)=>new Date(b.lastAccess)-new Date(a.lastAccess))[0];
+    const cards = [
+      { c:"", i:"👥", v:total, l:"Total de funcionários", s:"Equipe cadastrada no ERP" },
+      { c:"ok", i:"🟢", v:ativos, l:"Usuários ativos", s:`${total? Math.round(ativos/total*100):0}% da equipe` },
+      { c:"danger", i:"🔴", v:bloq, l:"Usuários bloqueados", s:"Sem acesso ao sistema" },
+      { c:"warn", i:"🔐", v:admins, l:"Administradores", s:"Acesso administrativo" },
+      { c:"", i:"📅", v:last? escapeHtml(fmtTime(last.lastAccess)):"—", l:"Último acesso", s:last? `${escapeHtml(last.name)} • ${fmtDate(last.lastAccess)}` : "Sem registros" }
+    ];
+    $("#kpis").innerHTML = cards.map(k=>`
+      <div class="kpi ${k.c}"><div class="ico">${k.i}</div>
+        <div><div class="val">${k.v}</div><div class="lbl">${k.l}</div><small>${k.s}</small></div></div>`).join("");
+  },
+
+  row(e){
+    const mods = grantedModules(e);
+    const tags = mods.slice(0,3).map(m=>`<span class="badge brand">${m.icon} ${m.name}</span>`).join(" ");
+    const extra = mods.length>3 ? `<span class="badge">+${mods.length-3}</span>` : (mods.length? "" : `<span class="badge danger">Sem acesso</span>`);
+    const name = escapeHtml(e.name);
+    const email = escapeHtml(e.email);
+    const photo = escapeHtml(photoUrl(e.photo));
+    const id = Number(e.id);
+    return `<tr>
+      <td><div class="person">
+        ${photo? `<img class="avatar" src="${photo}" alt="${name}">` : `<div class="avatar">${escapeHtml(initials(e.name))}</div>`}
+        <div><div class="nm">${name}</div><div class="em">${email}</div></div></div></td>
+      <td><span class="badge ${e.role==="Administrador"?"warn":""}">${escapeHtml(roleLabel(e))}</span></td>
+      <td><div>${escapeHtml(e.phone || "—")}</div><div class="em" style="color:var(--ink-3);font-size:12.5px">${escapeHtml(e.cpf || "—")}</div></td>
+      <td><span class="badge ${e.active?"ok":"danger"}"><span class="dot"></span>${e.active?"Ativo":"Bloqueado"}</span>
+          ${e.canLogin? "" : `<div style="font-size:11.5px;color:var(--ink-3);margin-top:4px">login desativado</div>`}</td>
+      <td>${fmtDT(e.lastAccess)}</td>
+      <td>${fmtDate(e.createdAt)}</td>
+      <td><div class="perm-tags">${tags} ${extra}</div></td>
+      <td><div class="row-actions">
+        <button class="iconbtn" data-action="profile" data-id="${id}" title="Ver perfil" aria-label="Ver perfil de ${name}">👁</button>
+        <button class="iconbtn" data-action="edit" data-id="${id}" title="Editar" aria-label="Editar ${name}">✏</button>
+        <button class="iconbtn" data-action="permissions" data-id="${id}" title="Alterar permissões" aria-label="Alterar permissões de ${name}">🔐</button>
+        <button class="iconbtn" data-action="block" data-id="${id}" title="${e.active?"Bloquear":"Desbloquear"}">${e.active?"🔒":"🔓"}</button>
+        <button class="iconbtn" data-action="remove" data-id="${id}" title="Inativar" aria-label="Inativar ${name}">🗑</button>
+      </div></td></tr>`;
+  },
+
+  clearFilters(){ ["fSearch","fRole","fStatus","fPerm"].forEach(id=>$("#"+id).value=""); $("#fSort").value="recentes"; this.render(); },
+
+  /* ---------- permissões ---------- */
+  permCards(prefix){
+    return MODULES.map(m=>`
+      <div class="perm-card">
+        <h4>${m.icon} ${m.name}</h4>
+        <p>${m.desc}</p>
+        <div class="perm-opts">
+          ${ACTION_KEYS.map(k=>`<label><input type="checkbox" data-perm data-scope="${prefix}" data-mod="${m.id}" data-act="${k}"> ${m.actions[k]}</label>`).join("")}
+        </div>
+      </div>`).join("");
+  },
+  readPerms(scope){
+    const perms = emptyPerms();
+    $$(`input[data-perm][data-scope="${scope}"]`).forEach(c=>{ perms[c.dataset.mod][c.dataset.act] = c.checked; });
+    return perms;
+  },
+  writePerms(scope, perms){
+    $$(`input[data-perm][data-scope="${scope}"]`).forEach(c=>{ c.checked = toBoolean(perms?.[c.dataset.mod]?.[c.dataset.act]); });
+  },
+  toggleAllPerms(grid="permGrid"){
+    const scope = grid==="permGrid" ? "p" : "s";
+    const boxes = $$(`input[data-perm][data-scope="${scope}"]`);
+    const on = !boxes.every(b=>b.checked);
+    boxes.forEach(b=>b.checked=on);
+    if (scope === "s") $("#mdPerms").dataset.dirty = "true";
+    toast(on? "Todas as permissões selecionadas" : "Permissões desmarcadas");
+  },
+  applyRolePreset(){
+    const role = $("#empRole").value;
+    if (!this.state.editingId && (this.state.roleTemplates[role] || ROLE_PRESETS[role])) {
+      this.writePerms("p", this.state.roleTemplates[role] || ROLE_PRESETS[role]);
+    }
+    $("#empCustomRole").disabled = role !== "Personalizado";
+  },
+
+  /* ---------- modais ---------- */
+  open(id){
+    const overlay = $("#"+id);
+    if (!overlay) return;
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    document.body.style.overflow = "hidden";
+  },
+  close(id){
+    const overlay = $("#"+id);
+    if (!overlay) return;
+    if (id === "mdEmployee" && overlay.dataset.dirty === "true"
+      && !confirm("Há alterações não salvas. Deseja fechar mesmo assim?")) return;
+    if (id === "mdPerms" && overlay.dataset.dirty === "true"
+      && !confirm("Há alterações de permissões não salvas. Deseja fechar mesmo assim?")) return;
+    overlay.classList.remove("open");
+    overlay.setAttribute("aria-hidden", "true");
+    delete overlay.dataset.dirty;
+    const anyOpen = $$(".overlay.open").length > 0;
+    document.body.classList.toggle("modal-open", anyOpen);
+    document.body.style.overflow = anyOpen ? "hidden" : "";
+    if (id === "mdPerms") {
+      this.state.templateMode = false;
+      this.state.currentTemplateRole = null;
+      $("#templateSettings").classList.add("hidden");
+      $("#mdPerms .modal-foot .btn-primary").textContent = "Salvar permissões";
+    }
+  },
+  updateAvatarInitials(){
+    const avatar = $("#empAvatar");
+    if (!avatar.dataset.src && !this.state.currentPhoto) {
+      avatar.textContent = initials($("#empName").value);
+    }
+  },
+
+  async openEmployeeModal(id=null){
+    this.state.editingId = id;
+    try {
+      const e = id ? await API.getEmployee(id) : null;
+      this.state.currentPhoto = e?.photo || "";
+      $("#mdEmployee").dataset.dirty = "false";
+      $("#empTitle").textContent = e ? `Editar — ${e.name}` : "Novo funcionário";
+      $("#empId").value = e?.id ?? "";
+      $("#empName").value = e?.name ?? "";
+      $("#empPhone").value = e?.phone ?? "";
+      $("#empCpf").value = e?.cpf ?? "";
+      $("#empBirth").value = e?.birth ? String(e.birth).slice(0,10) : "";
+      $("#empRole").value = ROLES.includes(e?.role) ? e.role : "Personalizado";
+      $("#empCustomRole").value = e?.customRole || (e?.role && !ROLES.includes(e.role) ? e.role : "");
+      $("#empCustomRole").disabled = $("#empRole").value !== "Personalizado";
+      $("#empEmail").value = e?.email ?? "";
+      $("#empPass").value = ""; $("#empPass2").value = "";
+      $("#empActive").checked = e ? !!e.active : true;
+      $("#empLogin").checked = e ? !!e.canLogin : true;
+      $("#empPhoto").value = "";
+        const av = $("#empAvatar");
+        av.replaceChildren();
+        av.style.background = "linear-gradient(135deg,var(--brand),var(--brand-2))";
+        av.dataset.src = "";
+        if (photoUrl(e?.photo)) {
+          const image = new Image();
+          image.src = photoUrl(e.photo);
+          image.alt = "";
+          image.onerror = () => { image.remove(); av.textContent = initials(e?.name); };
+          av.appendChild(image);
+        } else {
+          av.textContent = initials(e?.name || "SF");
+        }
+      this.writePerms("p", e?.perms || ROLE_PRESETS[$("#empRole").value]);
+      this.open("mdEmployee");
+    } catch (error) {
+      toast(error.message, "err");
+    }
+  },
+
+  previewPhoto(ev){
+    const file = ev.target.files?.[0];
+    if(!file) return;
+    if (!["image/jpeg","image/png"].includes(file.type) || file.size > 2 * 1024 * 1024) {
+      ev.target.value = "";
+      toast("Selecione uma imagem PNG ou JPG de até 2 MB.", "err");
+      return;
+    }
+    const fr = new FileReader();
+    fr.onload = () => {
+      const av=$("#empAvatar");
+      av.textContent="";
+      av.dataset.src = "preview";
+      this.state.currentPhoto = "";
+      av.style.background = `center/cover no-repeat url("${fr.result}")`;
+    };
+    fr.readAsDataURL(file);
+  },
+
+  async saveEmployee(){
+    const name = $("#empName").value.trim(), email = $("#empEmail").value.trim();
+    const p1 = $("#empPass").value, p2 = $("#empPass2").value;
+    if(!name) return toast("Informe o nome completo.","err");
+    if(!email || !/^\S+@\S+\.\S+$/.test(email)) return toast("Informe um email de login válido.","err");
+    if($("#empCpf").value.trim() && !validCpf($("#empCpf").value)) return toast("Informe um CPF válido.","err");
+    if(p1 !== p2) return toast("As senhas não conferem.","err");
+    if(!this.state.editingId && p1.length < 8) return toast("A senha deve ter ao menos 8 caracteres.","err");
+    if(this.state.editingId && p1 && p1.length < 8) return toast("A nova senha deve ter ao menos 8 caracteres.","err");
+    if(!this.state.editingId && !p1) return toast("Informe uma senha para o novo funcionário.","err");
+    if($("#empRole").value === "Personalizado" && !$("#empCustomRole").value.trim()) {
+      return toast("Informe o cargo personalizado.","err");
+    }
+    if (this.state.busy) return;
+
+    const data = new FormData();
+    data.append("name", name);
+    data.append("email", email);
+    data.append("phone", $("#empPhone").value.trim());
+    data.append("cpf", $("#empCpf").value.trim());
+    data.append("birth", $("#empBirth").value);
+    data.append("role", $("#empRole").value);
+    data.append("customRole", $("#empCustomRole").value.trim());
+    data.append("active", String($("#empActive").checked));
+    data.append("canLogin", String($("#empLogin").checked));
+    data.append("perms", JSON.stringify(this.readPerms("p")));
+    if (p1) data.append("password", p1);
+    if ($("#empPhoto").files[0]) data.append("photo", $("#empPhoto").files[0]);
+
+    const saveButton = $("#mdEmployee .modal-foot .btn-primary");
+    this.state.busy = true;
+    saveButton.disabled = true;
+    saveButton.textContent = "Salvando...";
+    try {
+      if(this.state.editingId) await API.updateEmployee(this.state.editingId, data);
+      else await API.createEmployee(data);
+      $("#mdEmployee").dataset.dirty = "false";
+      this.close("mdEmployee");
+      toast(this.state.editingId ? "Funcionário atualizado com sucesso." : "Funcionário cadastrado com sucesso.","ok");
+      await this.refreshAll();
+    } catch (error) {
+      toast(error.message, "err");
+    } finally {
+      this.state.busy = false;
+      saveButton.disabled = false;
+      saveButton.textContent = "Salvar funcionário";
+    }
+  },
+
+  openPerms(id){
+    const e = this.state.employees.find(x=>Number(x.id)===id);
+    if (!e) return toast("Funcionário não encontrado. Atualize a lista.", "err");
+    this.state.templateMode = false;
+    $("#templateSettings").classList.add("hidden");
+    $("#mdPerms .modal-foot .btn-primary").textContent = "Salvar permissões";
+    this.state.permTargetId = id;
+    this.state.currentTemplateRole = null;
+    $("#permTitle").textContent = `Permissões — ${e.name}`;
+    this.writePerms("s", e.perms);
+    $("#mdPerms").dataset.dirty = "false";
+    this.open("mdPerms");
+  },
+  async savePerms(){
+    if (this.state.templateMode) {
+      const role = $("#templateRole").value;
+      if (!role || this.state.busy) return;
+      const perms = this.readPerms("s");
+      this.state.busy = true;
+      try {
+        await API.saveRoleTemplate(role, perms);
+        this.state.roleTemplates[role] = perms;
+        $("#mdPerms").dataset.dirty = "false";
+        this.close("mdPerms");
+        toast(`Modelo de permissões de ${role} salvo. Funcionários existentes não foram alterados.`, "ok");
+      } catch (error) {
+        toast(error.message, "err");
+      } finally {
+        this.state.busy = false;
+      }
+      return;
+    }
+    const e = this.state.employees.find(x=>Number(x.id)===this.state.permTargetId);
+    if (!e || this.state.busy) return;
+    const data = new FormData();
+    data.append("name", e.name);
+    data.append("email", e.email);
+    data.append("phone", e.phone || "");
+    data.append("cpf", e.cpf || "");
+    data.append("birth", e.birth || "");
+    data.append("role", e.role || "");
+    data.append("customRole", e.customRole || "");
+    data.append("active", String(!!e.active));
+    data.append("canLogin", String(!!e.canLogin));
+    data.append("perms", JSON.stringify(this.readPerms("s")));
+    this.state.busy = true;
+    try {
+      await API.updateEmployee(e.id, data);
+      $("#mdPerms").dataset.dirty = "false";
+      this.close("mdPerms");
+      toast("Permissões atualizadas.","ok");
+      await this.refreshAll();
+    } catch (error) {
+      toast(error.message, "err");
+    } finally {
+      this.state.busy = false;
+    }
+  },
+  async openPermissionSettings(){
+    try {
+      await this.fetchRoleTemplates();
+      this.state.templateMode = true;
+      $("#templateSettings").classList.remove("hidden");
+      $("#permTitle").textContent = "Configurações de modelos por cargo";
+      $("#mdPerms").dataset.dirty = "false";
+      $("#templateRole").value = ROLES.includes("Gerente") ? "Gerente" : ROLES[0];
+      $("#mdPerms .modal-foot .btn-primary").textContent = "Salvar modelo";
+      this.loadRoleTemplate($("#templateRole").value);
+      this.open("mdPerms");
+    } catch (error) {
+      toast(error.message, "err");
+    }
+  },
+  async fetchRoleTemplates(){
+    const result = await API.getRoleTemplates();
+    const templates = result.templates || result;
+    this.state.roleTemplates = Array.isArray(templates)
+      ? Object.fromEntries(templates.map(item=>[item.role, item.perms]))
+      : (templates || {});
+  },
+  loadRoleTemplate(role){
+    const previousRole = this.state.currentTemplateRole;
+    if (previousRole && previousRole !== role && $("#mdPerms").dataset.dirty === "true"
+      && !confirm("Descartar alterações do modelo atual?")) {
+      $("#templateRole").value = previousRole;
+      return;
+    }
+    this.state.currentTemplateRole = role;
+    $("#mdPerms").dataset.dirty = "false";
+    const perms = this.state.roleTemplates[role] || ROLE_PRESETS[role] || emptyPerms();
+    this.writePerms("s", perms);
+  },
+
+  async openProfile(id){
+    try {
+      const result = await API.getEmployee(id);
+      const e = normalizeEmployee(result.employee || result);
+      const acts = result.audit || result.activities || [];
+      const security = result.security || {};
+      const mods = grantedModules(e);
+      const accessState = !e.active ? "Bloqueado" : e.canLogin ? "Acesso liberado" : "Login desabilitado";
+      $("#profileBody").innerHTML = `
+        <div class="profile-top">
+          ${photoUrl(e.photo) ? `<img class="avatar lg" src="${escapeHtml(photoUrl(e.photo))}" alt="${escapeHtml(e.name)}">` : `<div class="avatar lg">${escapeHtml(initials(e.name))}</div>`}
+          <div>
+            <h3>${escapeHtml(e.name)}</h3>
+            <div style="color:var(--ink-3);margin:2px 0 8px">${escapeHtml(roleLabel(e))} • ${escapeHtml(e.email)}</div>
+            <span class="badge ${e.active?"ok":"danger"}"><span class="dot"></span>${accessState}</span>
+            <span class="badge">${escapeHtml(e.phone || "—")}</span>
+            <span class="badge">${countGrants(e)} permissões</span>
+          </div>
+        </div>
+        <div class="section-title">📇 Dados cadastrais</div>
+        <div class="info-grid">
+          <div class="info"><div class="k">CPF</div><div class="v">${escapeHtml(e.cpf || "—")}</div></div>
+          <div class="info"><div class="k">Nascimento</div><div class="v">${fmtDate(e.birth)}</div></div>
+          <div class="info"><div class="k">Cadastro</div><div class="v">${fmtDate(e.createdAt)}</div></div>
+          <div class="info"><div class="k">Login permitido</div><div class="v">${e.canLogin ? "Sim" : "Não"}</div></div>
+        </div>
+        <div class="section-title">🔐 Permissões atuais</div>
+        ${mods.length? `<div class="perm-grid">${mods.map(m=>`
+          <div class="perm-card"><h4>${m.icon} ${m.name}</h4>
+            <div class="perm-tags">${ACTION_KEYS.filter(k=>e.perms?.[m.id]?.[k]).map(k=>`<span class="badge ok">${m.actions[k]}</span>`).join("")}</div>
+          </div>`).join("")}</div>` : `<p style="color:var(--ink-3)">Nenhum módulo liberado para este usuário.</p>`}
+        <div class="section-title">🛡 Controle de segurança</div>
+        <div class="info-grid">
+          <div class="info"><div class="k">Último login</div><div class="v">${fmtDT(security.lastLogin || e.lastAccess)}</div></div>
+          <div class="info"><div class="k">Acessos registrados</div><div class="v">${escapeHtml(security.accessCount ?? "Não disponível")}</div></div>
+          <div class="info"><div class="k">IP do último acesso</div><div class="v">${escapeHtml(security.lastIp || "Não disponível")}</div></div>
+          <div class="info"><div class="k">Tentativas falhas registradas</div><div class="v">${escapeHtml(security.failedAttempts ?? "Não disponível")}</div></div>
+          <div class="info"><div class="k">Data de criação</div><div class="v">${fmtDate(e.createdAt)}</div></div>
+        </div>
+        <div class="section-title">🕘 Atividade recente</div>
+        ${acts.length? `<ul class="timeline">${acts.slice(0,6).map(a=>`
+          <li><div style="font-weight:600">${escapeHtml(a.action || a.description)}</div><div class="t">${escapeHtml(a.module || "Sistema")} • ${fmtDate(a.at || a.createdAt)} ${fmtTime(a.at || a.createdAt)}</div></li>`).join("")}</ul>`
+          : `<p style="color:var(--ink-3)">Nenhuma atividade registrada.</p>`}`;
+      this.open("mdProfile");
+    } catch (error) {
+      toast(error.message, "err");
+    }
+  },
+
+  /* ---------- ações ---------- */
+  async toggleBlock(id){
+    if (this.state.busy) return;
+    const e = this.state.employees.find(item=>Number(item.id)===id);
+    if (!e) return toast("Funcionário não encontrado. Atualize a lista.", "err");
+    const active = !e.active;
+    if (!confirm(`${active ? "Desbloquear" : "Bloquear"} o acesso de ${e.name}?`)) return;
+    this.state.busy = true;
+    try {
+      await API.toggleBlock(id, active, !!e.canLogin);
+      toast(`${e.name} foi ${active?"desbloqueado":"bloqueado"}.`, active?"ok":"err");
+      await this.refreshAll();
+    } catch (error) {
+      toast(error.message, "err");
+    } finally {
+      this.state.busy = false;
+    }
+  },
+  async remove(id){
+    if (this.state.busy) return;
+    const e = this.state.employees.find(item=>Number(item.id)===id);
+    if (!e) return toast("Funcionário não encontrado. Atualize a lista.", "err");
+    if(!confirm(`Inativar o funcionário ${e.name}? Os registros históricos serão preservados.`)) return;
+    this.state.busy = true;
+    try {
+      await API.deleteEmployee(id);
+      toast("Funcionário inativado.","ok");
+      await this.refreshAll();
+    } catch (error) {
+      toast(error.message, "err");
+    } finally {
+      this.state.busy = false;
+    }
+  },
+  filteredEmployees(){
+    const q = $("#fSearch").value.trim().toLocaleLowerCase("pt-BR");
+    const role = $("#fRole").value, status = $("#fStatus").value, perm = $("#fPerm").value, sort = $("#fSort").value;
+    const list = this.state.employees.filter(e=>{
+      const hay = `${e.name || ""} ${e.email || ""} ${e.cpf || ""} ${e.phone || ""}`.toLocaleLowerCase("pt-BR");
+      if(q && !hay.includes(q)) return false;
+      if(role && roleLabel(e) !== role) return false;
+      if(status === "ativo" && !e.active) return false;
+      if(status === "bloqueado" && e.active) return false;
+      if(status === "login-desabilitado" && e.canLogin) return false;
+      return !perm || ACTION_KEYS.some(k=>e.perms?.[perm]?.[k]);
+    });
+    if(sort==="nome") list.sort((a,b)=>(a.name || "").localeCompare(b.name || "","pt-BR"));
+    else if(sort==="acesso") list.sort((a,b)=> new Date(b.lastAccess||0) - new Date(a.lastAccess||0));
+    else list.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt) || b.id - a.id);
+    return list;
+  },
+  exportList(){
+    if (!this.state.employeesLoaded) {
+      toast("A lista ainda não foi carregada; tente novamente após corrigir a conexão.", "err");
+      return;
+    }
+    try {
+      const head = ["Nome","Cargo","Email","Telefone","CPF","Status","Ultimo acesso","Cadastro","Permissoes"];
+      const rows = this.filteredEmployees().map(e=>[e.name,roleLabel(e),e.email,e.phone,e.cpf,!e.active?"Bloqueado":e.canLogin?"Ativo":"Login desabilitado",fmtDT(e.lastAccess),fmtDate(e.createdAt),countGrants(e)]);
+      const csvValue = value => {
+        let text = String(value ?? "").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+        if (/^[\s]*[=+\-@]/.test(text)) text = `'${text}`;
+        return `"${text.replace(/"/g,'""')}"`;
+      };
+      const csv = [head,...rows].map(r=>r.map(csvValue).join(";")).join("\r\n");
+      const url = URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));
+      const a = Object.assign(document.createElement("a"),{href:url,download:`funcionarios-serve-festa-${today()}.csv`});
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 1000);
+      toast("Lista filtrada exportada em CSV.","ok");
+    } catch (error) {
+      toast(`Falha ao exportar a lista: ${error.message}`, "err");
+    }
+  },
+
+  /* ---------- auditoria / segurança ---------- */
+  async renderAudit(forceReload=false){
+    try {
+      if (forceReload || !this.state.auditLoaded) {
+        const records = await API.listAudit();
+        this.state.audit = Array.isArray(records) ? records : [];
+        this.state.auditLoaded = true;
+      }
+      const all = this.state.audit;
+      const q = ($("#aSearch")?.value||"").toLocaleLowerCase("pt-BR");
+      const mod = $("#aModule")?.value||"";
+      const modules = [...new Set([...MODULES.map(item=>item.name), ...all.map(item=>item.module || item.module_name).filter(Boolean)])]
+        .sort((a,b)=>a.localeCompare(b,"pt-BR"));
+      $("#aModule").innerHTML = `<option value="">Todos</option>${modules.map(value=>`<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}`;
+      if (modules.includes(mod)) $("#aModule").value = mod;
+      const list = all.filter(a=>{
+        const module = a.module || a.module_name || "Sistema";
+        const actor = a.who || a.actorName || "Usuário";
+        if(mod && module!==mod) return false;
+        return `${actor} ${a.action || a.description || ""} ${module}`.toLocaleLowerCase("pt-BR").includes(q);
+      });
+      $("#auditCount").textContent = `${list.length} registro(s)`;
+      $("#auditBody").innerHTML = list.length ? list.map(a=>{
+        const when = a.at || a.createdAt;
+        const actor = a.who || a.actorName || "Usuário";
+        return `<tr><td><div class="person"><div class="avatar">${escapeHtml(initials(actor))}</div><div class="nm">${escapeHtml(actor)}</div></div></td>
+          <td>${escapeHtml(a.action || a.description || "Ação registrada")}</td><td><span class="badge brand">${escapeHtml(a.module || a.module_name || "Sistema")}</span></td>
+          <td>${fmtDate(when)}</td><td>${fmtTime(when)}</td></tr>`;
+      }).join("") : `<tr><td colspan="5" class="empty">Nenhum registro de auditoria.</td></tr>`;
+    } catch (error) {
+      $("#auditCount").textContent = "Falha ao carregar auditoria.";
+      $("#auditBody").innerHTML = `<tr><td colspan="5" class="empty">${escapeHtml(error.message)}</td></tr>`;
+      toast(error.message, "err");
+    }
+  },
+  async renderSecurity(forceReload=false){
+    try {
+      if (forceReload || !this.state.securityLoaded) {
+        const result = await API.listSecurity();
+        this.state.security = Array.isArray(result) ? result.map(employee=>({
+          ...employee,
+          active:toBoolean(employee.active),
+          canLogin:toBoolean(employee.canLogin)
+        })) : [];
+        this.state.securityLoaded = true;
+      }
+      $("#securityBody").innerHTML = this.state.security.length ? this.state.security.map(e=>{
+        const status = !e.active ? "Acesso bloqueado" : e.canLogin ? "Acesso liberado" : "Login desabilitado";
+        const failed = e.failedAttempts;
+        return `<tr><td><div class="person"><div class="avatar">${escapeHtml(initials(e.name))}</div>
+          <div><div class="nm">${escapeHtml(e.name)}</div><div class="em">${escapeHtml(roleLabel(e))}</div></div></div></td>
+          <td>${fmtDT(e.lastLogin || e.lastAccess)}</td>
+          <td>${escapeHtml(e.accessCount ?? "Não disponível")}</td>
+          <td>${escapeHtml(e.lastIp || "Não disponível")}</td>
+          <td>${failed == null ? "Não disponível" : `<span class="badge ${failed>=3?"danger":failed?"warn":"ok"}">${escapeHtml(failed)}</span>`}</td>
+          <td>${fmtDate(e.createdAt)}</td>
+          <td><span class="badge ${e.active && e.canLogin?"ok":"danger"}"><span class="dot"></span>${status}</span></td></tr>`;
+      }).join("") : `<tr><td colspan="7" class="empty">Sem eventos de segurança registrados.</td></tr>`;
+    } catch (error) {
+      $("#securityBody").innerHTML = `<tr><td colspan="7" class="empty">${escapeHtml(error.message)}</td></tr>`;
+      toast(error.message, "err");
+    }
+  },
+  async refreshAll(){
+    await this.render(true);
+    if(this.state.tab === "auditoria") await this.renderAudit(true);
+    if(this.state.tab === "seguranca") await this.renderSecurity(true);
+  }
+};
+
+UI.init();
+</script>

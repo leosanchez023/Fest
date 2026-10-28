@@ -732,7 +732,10 @@ O script atual aplica explicitamente
 `2026_09_07_pedido_itens_combos.sql`,
 `2026_10_10_pedidos_rota_frete.sql`,
 `2026_10_11_configuracoes_entrega.sql` e
-`2026_10_12_detalhes_rota_entrega.sql`; ele não mantém uma tabela de controle
+`2026_10_12_detalhes_rota_entrega.sql` e
+`2026_10_26_devolucao_idempotencia.sql` e
+`2026_10_26_funcionarios_admin.sql` e
+`2026_10_27_user_permissions_estoque.sql`; ele não mantém uma tabela de controle
 de migrations e não executa `2026_08_22_estoque_reestrutura.sql` nem
 `2026_09_05_pedidos_combos.sql`. Antes de atualizar uma instalação existente,
 confirme que seu estado já inclui as alterações necessárias dessas migrations
@@ -741,6 +744,80 @@ estrutura.
 
 Para um banco novo, use somente o schema consolidado, sem executar as
 migrations históricas depois dele.
+
+## API administrativa de funcionários
+
+As rotas `/usuarios/api/*` exigem sessão autenticada e a permissão global
+`cadastro_admin`. As respostas de sucesso usam `{ "data": ... }`; erros usam
+HTTP explícito e `{ "data": null, "error": { "code": "...", "message": "..." } }`.
+Na listagem, auditoria e segurança, `data` é um array; paginação/contagens são
+campos irmãos.
+
+Usuários inseridos diretamente em `usuario` também precisam de um registro
+correspondente em `user_permissions` e das ações permitidas em
+`user_permission_actions`. O campo `cargo` é apenas informativo e não concede
+acesso automaticamente. Após autenticar, a aplicação direciona o usuário ao
+primeiro módulo que tenha permissão de visualização; se não houver nenhum,
+exibe a página de acesso não liberado sem alterar suas permissões.
+O cadastro e a edição aceitam JSON, urlencoded ou `multipart/form-data`. O
+formulário multipart aceita `name`, `email`, `phone`, `cpf`, `birth` (AAAA-MM-DD),
+`role`, `customRole` (tem precedência sobre `role`), `active`, `canLogin`,
+`perms` (objeto JSON serializado, módulos com `view/create/edit/remove`) e
+`photo` (somente JPEG/JPG ou PNG, até 2 MB). No POST
+também é obrigatório enviar `password` ou `senha`; no PUT, senha ausente/vazia
+preserva o hash atual. PUT sem arquivo `photo` preserva a foto cadastrada. Os
+`permissions` devolve as flags 0/1 com as chaves de coluna realmente existentes
+em `user_permissions` (`dashboard`, `clientes`, `produtos`, `pedidos`,
+`relatorios`, `funcionarios`, `entregas`, `retiradas`, `pagamentos`, `estoque`,
+`fornecedor`, `cadastro_admin`). `perms` devolve os grants persistidos por módulo
+e ação (`view`, `create`, `edit`, `remove`); essas ações são efetivamente
+verificadas pelo middleware. Assim, listagem/perfil incluem ambos os mapas, sem
+expor senha/hash.
+
+Exemplo abreviado de item de funcionário:
+
+```json
+{
+  "id": 42,
+  "name": "Ana Silva",
+  "role": "Gerente",
+  "active": true,
+  "canLogin": true,
+  "permissions": { "estoque": 1, "pagamentos": 0 },
+  "perms": {
+    "estoque": { "view": 1, "create": 0, "edit": 1, "remove": 0 },
+    "pagamentos": { "view": 0, "create": 0, "edit": 0, "remove": 0 }
+  }
+}
+```
+
+- `GET /usuarios/api/funcionarios?search=&active=&role=&sort=&order=&page=&limit=`
+- `POST /usuarios/api/funcionarios`
+- `GET /usuarios/api/funcionarios/:id`
+- `PUT /usuarios/api/funcionarios/:id`
+- `PATCH /usuarios/api/funcionarios/:id/status` (`active` e/ou `canLogin`)
+- `DELETE /usuarios/api/funcionarios/:id` (inativação lógica, sem exclusão física)
+- `GET /usuarios/api/auditoria` e `GET /usuarios/api/seguranca`
+- `GET /usuarios/api/modelos-permissoes`
+- `PUT /usuarios/api/modelos-permissoes` com
+  `{ "role": "Gerente", "perms": { ... } }`
+
+Modelos por cargo e grants de ação são persistidos separadamente e não atualizam
+funcionários existentes. Servem como padrão na criação quando `perms` é omitido
+ou podem ser consultados para seleção deliberada no frontend. Não são aplicados
+dinamicamente por cargo depois que o usuário é criado. Na migration, cada módulo
+já habilitado para usuários existentes recebe os quatro grants de ação para
+preservar a semântica anterior de acesso ao módulo. O único POST conhecido como
+consulta sem mutação, `POST /pedidos/calcular-rota`, exige `view`; os demais POST
+exigem `create`.
+
+O token CSRF fica em
+`<meta name="csrf-token" content="{{csrfToken}}">` no layout compartilhado
+`views/layouts/main.handlebars`; `/js/security.js` encaminha o valor no header
+`CSRF-Token` para fetch/XHR. Como o middleware global do `app.js` valida CSRF
+antes do parser multipart, clientes multipart devem enviar esse header (o campo
+`_csrf` sozinho no corpo multipart não é lido pelo middleware). A validação CSRF
+continua habilitada para todos os métodos mutáveis dessas rotas.
 
 ---
 
@@ -2210,6 +2287,12 @@ Durante o desenvolvimento recomenda-se:
 ---
 
 # 🧪 Testes
+
+Para testar autenticação, sessão, autorização e falhas de conexão, use somente
+um banco isolado chamado `fest_auth_test`. Crie essa base vazia, importe
+`database/schema.sql`, aplique as migrations e então execute `npm run test:auth`.
+O teste verifica o nome da base antes de criar um usuário temporário e remove
+somente os dados que ele próprio criou. Não execute esse teste contra produção.
 
 Antes de enviar qualquer alteração, recomenda-se verificar:
 

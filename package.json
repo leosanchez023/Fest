@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
-    "test": "node tests/estoque.regras.test.mjs && node tests/estoque.integracao.test.mjs && node tests/seguranca.test.mjs",
+    "test": "node tests/funcionarios.validation.test.mjs && node tests/funcionarios.photo.test.mjs && node tests/permission-actions.test.mjs && node tests/estoque.regras.test.mjs && node tests/entregas.devolucao.test.mjs && node tests/entregas.faltantes.test.mjs && node tests/estoque.integracao.test.mjs && node tests/seguranca.test.mjs",
+    "test:auth": "node tests/authentication.integration.test.mjs",
     "db:migrate": "node scripts/db/migrate.js",
     "db:seed": "node scripts/db/seed.js"
   },
@@ -22,6 +23,7 @@
     "express-handlebars": "^8.0.6",
     "express-rate-limit": "^8.7.0",
     "express-session": "^1.19.0",
+    "formidable": "^3.5.4",
     "helmet": "^8.3.0",
     "mysql2": "^3.19.1",
     "passport": "^0.7.0",

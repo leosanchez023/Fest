@@ -15,7 +15,10 @@ const sqlFiles = [
   '2026_09_07_pedido_itens_combos.sql',
   '2026_10_10_pedidos_rota_frete.sql',
   '2026_10_11_configuracoes_entrega.sql',
-  '2026_10_12_detalhes_rota_entrega.sql'
+  '2026_10_12_detalhes_rota_entrega.sql',
+  '2026_10_26_devolucao_idempotencia.sql',
+  '2026_10_26_funcionarios_admin.sql',
+  '2026_10_27_user_permissions_estoque.sql'
 ].map((file) => path.join(process.cwd(), 'database', 'migrations', file));
 
 if (!DB_USER) {

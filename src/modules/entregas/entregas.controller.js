@@ -182,12 +182,13 @@ export async function marcarEntregue(req, res) {
 export async function registrarDevolucao(req, res) {
   try {
     const id = req.params.id;
-    const { itens, observacao, responsavel } = req.body;
+    const { itens, observacao, responsavel, idempotency_key } = req.body;
 
     await service.registrarDevolucao(id, {
       itens,
       observacao,
       responsavel,
+      idempotency_key,
       usuario_id: req.user?.id || null
     });
 
@@ -240,8 +241,8 @@ export async function marcarConferencia(req, res) {
 export async function finalizarConferencia(req, res) {
   try {
     const id = req.params.id;
-    await service.finalizarConferencia(id);
-    return res.json({ sucesso: true });
+    const resultado = await service.finalizarConferencia(id);
+    return res.json({ sucesso: true, status: resultado.status });
   } catch (err) {
     console.error('Erro finalizarConferencia:', err);
     return res.status(500).json({ message: 'Erro ao finalizar conferência' });

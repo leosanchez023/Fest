@@ -184,19 +184,22 @@ try {
   });
   await assert.rejects(
     () => registrarDevolucaoPedido(pedidoId, {
-      itens: [{ id: pedidoItemId, produto_id: produtoId, quantidade_devolvida: 4 }]
+      itens: [{ id: pedidoItemId, produto_id: produtoId, quantidade_devolvida: 4 }],
+      idempotency_key: `return-over-${tag}`
     }),
     /excede a quantidade/i
   );
   await registrarDevolucaoPedido(pedidoId, {
     itens: [{ id: pedidoItemId, produto_id: produtoId, quantidade_devolvida: 3 }],
+    idempotency_key: `return-full-${tag}`,
     responsavel: 'Teste de integração'
   });
   estado = await estadoProduto();
   assert.equal(estado.estoque_em_uso, 0);
   await assert.rejects(
     () => registrarDevolucaoPedido(pedidoId, {
-      itens: [{ id: pedidoItemId, produto_id: produtoId, quantidade_devolvida: 1 }]
+      itens: [{ id: pedidoItemId, produto_id: produtoId, quantidade_devolvida: 1 }],
+      idempotency_key: `return-after-full-${tag}`
     }),
     /situação que permita devolução/i
   );
