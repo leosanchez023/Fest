@@ -1,10 +1,11 @@
 <link rel="stylesheet" href="/css/pages/fornecedores.css">
+<link rel="stylesheet" href="/css/components/record-table-actions.css">
 <main class="main">
     <!-- Cabeçalho -->
     <div class="page-header">
         <div class="page-meta" data-title="Fornecedores" data-subtitle="Gerencie fornecedores e produtos relacionados"></div>
 
-        <button class="btn btn-primary" type="button" onclick="openForm()"><i class="fa-solid fa-plus icon-sm"></i> Novo Fornecedor</button>
+        <button id="btn-new-supplier" class="btn btn-primary" type="button"><i class="fa-solid fa-plus icon-sm"></i> Novo Fornecedor</button>
     </div>
 
     {{#if error}}
@@ -30,16 +31,15 @@
     </div>
 
     <!-- Barra de Pesquisa -->
-    <div class="toolbar">
+    <div class="toolbar supplier-filters" role="search" aria-label="Filtros de fornecedores">
         <input
             type="text"
             class="search-input"
             id="search"
             placeholder="Pesquisar fornecedor..."
-            oninput="renderTable()"
         >
 
-        <select id="filter-category" onchange="renderTable()">
+        <select id="filter-category">
             <option value="">Todas as categorias</option>
             <option value="Alimentos">Alimentos</option>
             <option value="Bebidas">Bebidas</option>
@@ -48,16 +48,19 @@
             <option value="Transporte">Transporte</option>
         </select>
 
-        <select id="filter-status" onchange="renderTable()">
+        <select id="filter-status">
             <option value="">Todos os status</option>
             <option value="Ativo">Ativo</option>
             <option value="Inativo">Inativo</option>
         </select>
+
+        <button id="btn-search-suppliers" class="btn btn-secondary" type="button">Pesquisar</button>
+        <button id="btn-clear-supplier-filters" class="btn btn-secondary" type="button">Limpar</button>
     </div>
 
     <!-- Tabela -->
     <div class="table-container">
-        <table>
+        <table class="supplier-table">
             <thead>
                 <tr>
                     <th>Fornecedor</th>
@@ -66,7 +69,7 @@
                     <th>E-mail</th>
                     <th>Cidade</th>
                     <th>Status</th>
-                    <th style="text-align:center;">Ações</th>
+                    <th aria-label="Opções do fornecedor"></th>
                 </tr>
             </thead>
 
@@ -78,13 +81,48 @@
 
 </main>
 
+<div id="supplierRowMenu" class="record-row-menu" popover="auto" role="menu" aria-label="Ações do fornecedor">
+    <button type="button" role="menuitem" data-record-action="edit">
+        <i class="fa-solid fa-pen" aria-hidden="true"></i> Editar fornecedor
+    </button>
+    <button type="button" class="record-row-delete" role="menuitem" data-record-action="delete">
+        <i class="fa-solid fa-trash" aria-hidden="true"></i> Excluir fornecedor
+    </button>
+</div>
+
+<dialog id="supplierDetailsDialog" class="record-details-dialog" aria-labelledby="supplierDetailsTitle">
+    <div class="record-details-header">
+        <h2 id="supplierDetailsTitle">Detalhes do fornecedor</h2>
+        <button type="button" class="record-details-close" data-close-supplier-details aria-label="Fechar detalhes">×</button>
+    </div>
+    <p class="record-details-error" role="alert" hidden></p>
+    <dl class="record-details-grid">
+        <div><dt>Fornecedor</dt><dd data-supplier-detail="nome"></dd></div>
+        <div><dt>CNPJ / CPF</dt><dd data-supplier-detail="cnpj"></dd></div>
+        <div><dt>Responsável</dt><dd data-supplier-detail="responsavel"></dd></div>
+        <div><dt>Categoria</dt><dd data-supplier-detail="categoria"></dd></div>
+        <div><dt>Telefone</dt><dd data-supplier-detail="telefone"></dd></div>
+        <div><dt>WhatsApp</dt><dd data-supplier-detail="whatsapp"></dd></div>
+        <div><dt>E-mail</dt><dd data-supplier-detail="email"></dd></div>
+        <div><dt>Site</dt><dd data-supplier-detail="site"></dd></div>
+        <div><dt>Endereço</dt><dd data-supplier-detail="endereco"></dd></div>
+        <div><dt>Cidade / Estado</dt><dd data-supplier-detail="cidade_estado"></dd></div>
+        <div><dt>CEP</dt><dd data-supplier-detail="cep"></dd></div>
+        <div><dt>Produtos ou serviços</dt><dd data-supplier-detail="produtos"></dd></div>
+        <div><dt>Prazo de entrega</dt><dd data-supplier-detail="entrega"></dd></div>
+        <div><dt>Forma de pagamento</dt><dd data-supplier-detail="pagamento"></dd></div>
+        <div><dt>Status</dt><dd data-supplier-detail="status"></dd></div>
+        <div><dt>Observações</dt><dd data-supplier-detail="observacoes"></dd></div>
+    </dl>
+</dialog>
+
 <!-- Modal Cadastro -->
-<div class="modal-overlay" id="modal-form" onclick="closeFormOutside(event)">
+<div class="modal-overlay" id="modal-form">
     <div class="modal">
 
         <h2 id="form-title">Cadastrar Fornecedor</h2>
 
-        <form id="supplier-form" onsubmit="saveSupplier(event)">
+        <form id="supplier-form">
 
             <input type="hidden" id="f-id">
 
@@ -216,7 +254,7 @@
                 <button
                 type="button"
                 class="btn btn-secondary"
-                onclick="closeForm()">
+                id="btn-cancel-supplier">
                 Cancelar
                 </button>
 
@@ -227,23 +265,6 @@
                 </button>
             </div>
         </form>
-    </div>
-</div>
-
-<!-- Perfil -->
-<div class="modal-overlay" id="modal-profile" onclick="closeProfileOutside(event)">
-    <div class="modal">
-        <h2>Perfil do Fornecedor</h2>
-
-        <div id="profile-content"></div>
-
-        <div class="form-actions">
-            <button
-                class="btn btn-secondary"
-                onclick="closeProfile()">
-                Fechar
-            </button>
-        </div>
     </div>
 </div>
 

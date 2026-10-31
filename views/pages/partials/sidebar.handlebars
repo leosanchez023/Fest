@@ -11,16 +11,15 @@
         <li><a class="app-sidebar__link" href="/dashboard" data-nav-link title="Dashboard"><i class="fa-solid fa-chart-line" aria-hidden="true"></i><span class="app-sidebar__label">Dashboard</span></a></li>
       {{/if}}
       <li class="app-sidebar__group" data-sidebar-group>
-        <button class="app-sidebar__group-toggle" type="button" aria-expanded="false" aria-controls="sidebar-products-group" title="Produtos e Estoque">
+        <button class="app-sidebar__group-toggle" type="button" aria-expanded="false" aria-controls="sidebar-products-group" title="Estoque e Produtos">
           <i class="fa-solid fa-boxes-stacked app-sidebar__group-icon" aria-hidden="true"></i>
-          <span class="app-sidebar__label">Produtos e Estoque</span>
+          <span class="app-sidebar__label">Estoque e Produtos</span>
           <i class="fa-solid fa-chevron-down app-sidebar__group-chevron" aria-hidden="true"></i>
         </button>
         <div class="app-sidebar__submenu" id="sidebar-products-group" aria-hidden="true" inert>
           <ul>
             {{#if userPermissions.produtos}}
-              <li><a class="app-sidebar__link" href="/produtos" data-nav-link data-nav-hash-exclude="#cadastro" title="Produtos"><i class="fa-solid fa-box" aria-hidden="true"></i><span class="app-sidebar__label">Produtos</span></a></li>
-              <li><a class="app-sidebar__link" href="/produtos#cadastro" data-nav-link data-nav-hash="#cadastro" title="Cadastro de Produto"><i class="fa-solid fa-box-open" aria-hidden="true"></i><span class="app-sidebar__label">Cadastro de Produto</span></a></li>
+              <li><a class="app-sidebar__link" href="/produtos" data-nav-link data-nav-exclude-path="/produtos/cadastro" title="Estoque (Produtos Cadastrados)"><i class="fa-solid fa-box" aria-hidden="true"></i><span class="app-sidebar__label">Estoque</span></a></li>
             {{/if}}
             {{#if userPermissions.produtos}}
               <li><a class="app-sidebar__link" href="/combos" data-nav-link title="Combos"><i class="fa-solid fa-puzzle-piece" aria-hidden="true"></i><span class="app-sidebar__label">Combos</span></a></li>

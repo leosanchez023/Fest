@@ -1509,9 +1509,30 @@ export async function historicoMovimentacoes(filtros = {}) {
   const limite = [10, 25, 50, 100].includes(limiteValor) ? limiteValor : 25;
   const condicoes = [];
   const parametros = [];
+  // Both tables receive current writes; retain history-only rows without showing their copies twice.
+  const registrosSql = `(
+    SELECT m.id, m.data_movimentacao, m.produto_id, m.pedido_id,
+           m.usuario_id, m.tipo, m.quantidade, m.observacao
+    FROM movimentacao_estoque m
+    UNION ALL
+    SELECT h.id, h.data_movimentacao, h.produto_id, h.pedido_id,
+           h.usuario_id, h.tipo, h.quantidade, h.observacao
+    FROM estoque_historico h
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM movimentacao_estoque atual
+      WHERE atual.produto_id = h.produto_id
+        AND atual.pedido_id <=> h.pedido_id
+        AND atual.usuario_id <=> h.usuario_id
+        AND atual.tipo = h.tipo
+        AND atual.quantidade = h.quantidade
+        AND atual.observacao <=> h.observacao
+        AND DATE(atual.data_movimentacao) = DATE(h.data_movimentacao)
+    )
+  )`;
 
   if (tipo) {
-    if (!Object.values(TIPOS_MOVIMENTACAO).includes(tipo)) {
+    if (typeof tipo !== 'string' || tipo.length > 40) {
       throw new Error('Tipo de movimentação inválido.');
     }
     condicoes.push('m.tipo = ?');
@@ -1527,8 +1548,14 @@ export async function historicoMovimentacoes(filtros = {}) {
     condicoes.push('m.usuario_id = ?');
     parametros.push(idUsuario);
   }
-  const validarData = (valor) => /^\d{4}-\d{2}-\d{2}$/.test(valor)
-    && !Number.isNaN(Date.parse(`${valor}T00:00:00Z`));
+  const validarData = (valor) => {
+    const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valor);
+    if (!partes) return false;
+    const data = new Date(Date.UTC(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3])));
+    return data.getUTCFullYear() === Number(partes[1])
+      && data.getUTCMonth() === Number(partes[2]) - 1
+      && data.getUTCDate() === Number(partes[3]);
+  };
   if (de && !validarData(de)) throw new Error('Data inicial inválida.');
   if (ate && !validarData(ate)) throw new Error('Data final inválida.');
   if (de && ate && de > ate) throw new Error('A data inicial não pode ser posterior à data final.');
@@ -1543,7 +1570,7 @@ export async function historicoMovimentacoes(filtros = {}) {
   const where = condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '';
   const [[contagem]] = await db.query(`
     SELECT COUNT(*) AS total
-    FROM movimentacao_estoque m
+    FROM ${registrosSql} m
     INNER JOIN produtos p ON p.id = m.produto_id
     ${where}
   `, parametros);
@@ -1553,8 +1580,10 @@ export async function historicoMovimentacoes(filtros = {}) {
   const offset = (paginaAtual - 1) * limite;
   const [rows] = await db.query(`
     SELECT m.id, m.data_movimentacao, m.produto_id, p.nome AS produto_nome,
-           m.tipo, m.quantidade, m.observacao, u.nome AS usuario_nome
-    FROM movimentacao_estoque m
+           m.tipo, m.quantidade, m.observacao, u.nome AS usuario_nome,
+           CASE WHEN m.pedido_id IS NULL THEN NULL
+                ELSE CONCAT('Pedido #', m.pedido_id) END AS origem_destino
+    FROM ${registrosSql} m
     INNER JOIN produtos p ON p.id = m.produto_id
     LEFT JOIN usuario u ON u.id = m.usuario_id
     ${where}
@@ -1562,11 +1591,20 @@ export async function historicoMovimentacoes(filtros = {}) {
     LIMIT ? OFFSET ?
   `, [...parametros, limite, offset]);
   const [tipos] = await db.query(
-    'SELECT DISTINCT tipo FROM movimentacao_estoque ORDER BY tipo'
+    `SELECT DISTINCT registros.tipo
+     FROM ${registrosSql} registros
+     ORDER BY registros.tipo`
+  );
+  const [usuarios] = await db.query(
+    `SELECT DISTINCT u.id, u.nome
+     FROM ${registrosSql} registros
+     INNER JOIN usuario u ON u.id = registros.usuario_id
+     ORDER BY u.nome`
   );
   return {
     items: rows,
     tipos: tipos.map((row) => row.tipo),
+    usuarios,
     pagination: {
       pagina: paginaAtual,
       limite,

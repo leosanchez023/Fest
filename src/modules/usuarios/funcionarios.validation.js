@@ -79,6 +79,19 @@ function isValidDate(value) {
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
+function isValidCpf(value) {
+  if (!/^\d{11}$/.test(value) || /^(\d)\1{10}$/.test(value)) return false;
+  const checkDigit = (length) => {
+    const sum = value.slice(0, length).split("").reduce(
+      (total, digit, index) => total + Number(digit) * (length + 1 - index),
+      0
+    );
+    const remainder = sum % 11;
+    return remainder < 2 ? 0 : 11 - remainder;
+  };
+  return checkDigit(9) === Number(value[9]) && checkDigit(10) === Number(value[10]);
+}
+
 export function normalizeFuncionarioInput(input, { creating = false } = {}) {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new ApiError(400, "INVALID_BODY", "Envie um objeto JSON ou um formulário válido.");
@@ -122,7 +135,7 @@ export function normalizeFuncionarioInput(input, { creating = false } = {}) {
     value = String(value ?? "").trim();
     if (field === "cpf") {
       value = value.replace(/\D/g, "");
-      if (value && value.length !== 11) throw new ApiError(400, "INVALID_CPF", "CPF deve conter 11 dígitos.");
+      if (value && !isValidCpf(value)) throw new ApiError(400, "INVALID_CPF", "Informe um CPF válido.");
       result[field] = value || null;
       continue;
     }

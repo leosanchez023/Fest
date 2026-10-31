@@ -63,5 +63,13 @@ assert.throws(
   () => normalizeFuncionarioInput({ cpf: "123" }),
   (error) => error instanceof ApiError && error.code === "INVALID_CPF"
 );
+assert.throws(
+  () => normalizeFuncionarioInput({ cpf: "12345678900" }),
+  (error) => error instanceof ApiError && error.code === "INVALID_CPF"
+);
+assert.throws(
+  () => normalizeFuncionarioInput({ cpf: "111.111.111-11" }),
+  (error) => error instanceof ApiError && error.code === "INVALID_CPF"
+);
 
 console.log("Funcionario validation tests passed");

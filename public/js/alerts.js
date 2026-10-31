@@ -4,6 +4,7 @@
   const defaults = {
     buttonsStyling: false,
     customClass: {
+      container: 'fest-swal-container',
       popup: 'fest-swal',
       confirmButton: 'fest-swal__confirm',
       cancelButton: 'fest-swal__cancel',
@@ -12,16 +13,34 @@
     },
     focusConfirm: false,
     allowOutsideClick: true,
+    position: 'center',
     confirmButtonText: 'OK',
     cancelButtonText: 'Cancelar',
     reverseButtons: true
   };
 
   const show = (config) => window.Swal.fire({ ...defaults, ...config });
+  const toast = (icon, title, text) => window.Swal.fire({
+    ...defaults,
+    icon,
+    title,
+    text,
+    toast: true,
+    position: 'top-end',
+    timer: 2500,
+    timerProgressBar: true,
+    showConfirmButton: false,
+    showCloseButton: true,
+    customClass: {
+      ...defaults.customClass,
+      container: 'fest-swal-container fest-swal-container--toast',
+      popup: 'fest-swal fest-swal--toast'
+    }
+  });
 
   window.FestAlert = {
     success(title, text) {
-      return show({ icon: 'success', title, text, confirmButtonText: 'OK' });
+      return toast('success', title, text);
     },
     error(title, text) {
       return show({ icon: 'error', title, text, confirmButtonText: 'Entendi' });

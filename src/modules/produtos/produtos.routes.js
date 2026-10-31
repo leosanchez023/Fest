@@ -9,6 +9,11 @@ const router = express.Router();
 // ==============================
 
 router.get(
+  "/cadastro",
+  controller.cadastro
+);
+
+router.get(
   "/",
   controller.listar
 );

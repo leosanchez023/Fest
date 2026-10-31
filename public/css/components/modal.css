@@ -17,7 +17,7 @@
 
 /* MODAL CONTAINER */
 .modal {
-  padding: 32px;
+  padding: var(--modal-padding, 24px);
   width: 100%;
   max-width: 1100px;
   background: var(--color-card);

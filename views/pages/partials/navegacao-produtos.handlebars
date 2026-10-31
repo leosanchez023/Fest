@@ -1,0 +1,14 @@
+<nav class="tabs product-navigation" aria-label="Navegação de produtos e estoque">
+  <a class="tab{{#if (eq activeSection "estoque")}} active{{/if}}"
+     href="/produtos"{{#if (eq activeSection "estoque")}} aria-current="page"{{/if}}>
+    <i class="fa-solid fa-clipboard icon-sm" aria-hidden="true"></i> Estoque
+  </a>
+  <a class="tab{{#if (eq activeSection "cadastro")}} active{{/if}}"
+     href="/produtos/cadastro"{{#if (eq activeSection "cadastro")}} aria-current="page"{{/if}}>
+    <i class="fa-solid fa-box icon-sm" aria-hidden="true"></i> Cadastro de Produtos
+  </a>
+  <a class="tab{{#if (eq activeSection "historico")}} active{{/if}}"
+     href="/estoque/movimentacoes"{{#if (eq activeSection "historico")}} aria-current="page"{{/if}}>
+    <i class="fa-solid fa-clock-rotate-left icon-sm" aria-hidden="true"></i> Histórico de Movimentações
+  </a>
+</nav>

@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="/css/pages/clientes.css">
+<link rel="stylesheet" href="/css/components/record-table-actions.css">
 
 <title>Cadastro de Clientes</title>
 
@@ -9,21 +10,21 @@
 
 <!-- BARRA DE FERRAMENTAS -->
 <section class="client-toolbar">
-    <form class="filter-form" onsubmit="submitFilter(event)">
+    <form class="filter-form">
         <input
             id="searchInput"
             name="q"
             type="search"
             placeholder="Pesquisar nome, email ou CPF"
             value="{{q}}">
-        <select id="limitSelect" name="limit" aria-label="Clientes por página">
+        <select id="limitSelect" name="limit" aria-label="Clientes por página" data-current-limit="{{limit}}">
             <option value="10">10 por página</option>
             <option value="25">25 por página</option>
             <option value="50">50 por página</option>
         </select>
         <button class="btn btn-secondary" type="submit">Buscar</button>
     </form>
-    <button type="button" class="btn btn-primary" onclick="openForm()">
+    <button id="btn-new-client" type="button" class="btn btn-primary">
         <i class="fa-solid fa-plus icon-sm"></i> Novo Cliente
     </button>
 </section>
@@ -57,13 +58,12 @@
         <table class="client-table">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Nome</th>
                     <th>Email</th>
                     <th>Telefone</th>
                     <th>CPF</th>
                     <th>Endereço</th>
-                    <th>Ações</th>
+                    <th aria-label="Opções do cliente"></th>
                 </tr>
             </thead>
 
@@ -72,41 +72,16 @@
                     {{#each clientes}}
 
                             <!-- LINHA DO CLIENTE -->
-                            <tr>
-                                <td>{{this.cliente_id}}</td>
+                            <tr class="client-table-row record-table-row" data-client-id="{{this.cliente_id}}" data-client-name="{{this.nome}}" tabindex="0" aria-label="Abrir detalhes de {{this.nome}}">
                                 <td>{{this.nome}}</td>
                                 <td>{{this.email}}</td>
                                 <td>{{this.telefone}}</td>
                                 <td>{{this.cpf}}</td>
                                 <td>{{this.rua}} {{this.numero}} - {{this.cidade}}/{{this.estado}}</td>
-
-                                <!-- AÇÕES -->
-                                <td>
-                                    <button
-                                        type="button"
-                                        class="btn btn-secondary btn-sm js-client-details"
-                                        data-client-id="{{this.cliente_id}}">
-                                        Detalhes
+                                <td class="record-row-menu-cell">
+                                    <button type="button" class="client-row-menu-toggle record-row-menu-toggle" aria-label="Opções de {{this.nome}}" aria-haspopup="menu" aria-controls="clientRowMenu" aria-expanded="false">
+                                        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
                                     </button>
-                                    <a
-                                        class="btn btn-secondary btn-sm"
-                                        href="/clientes/editar/{{this.cliente_id}}">
-                                        Editar
-                                    </a>
-
-                                    <!-- BOTÃO EXCLUIR -->
-                                    <form
-                                        class="inline-form js-delete-client"
-                                        method="post"
-                                        action="/clientes/excluir/{{this.cliente_id}}"
-                                        data-client-name="{{this.nome}}">
-
-                                        <button
-                                            type="submit"
-                                            class="btn btn-danger btn-sm">
-                                            Excluir
-                                        </button>
-                                    </form>
                                 </td>
                             </tr>
                         {{/each}}
@@ -115,7 +90,7 @@
                     <!-- CASO NÃO TENHA CLIENTES -->
                     <tr>
                         <td
-                            colspan="7"
+                            colspan="6"
                             class="empty-row">
                             Nenhum cliente encontrado.
                         </td>
@@ -131,7 +106,7 @@
         <button
             class="btn"
             type="button"
-            onclick="goToPage({{prevPage}})"
+            data-page="{{prevPage}}"
             {{#if isFirst}}disabled{{/if}}>
             Anterior
         </button>
@@ -141,20 +116,31 @@
         <button
             class="btn"
             type="button"
-            onclick="goToPage({{nextPage}})"
+            data-page="{{nextPage}}"
             {{#if isLast}}disabled{{/if}}>
             Próxima
         </button>
     </div>
 </main>
 
-<dialog id="clientDetailsDialog" class="client-details-dialog" aria-labelledby="clientDetailsTitle">
-    <div class="client-details-header">
+<div id="clientRowMenu" class="record-row-menu" popover="auto" role="menu" aria-label="Ações do cliente">
+    <a id="clientMenuEdit" role="menuitem" href="#">
+        <i class="fa-solid fa-pen" aria-hidden="true"></i> Editar cliente
+    </a>
+    <form id="clientMenuDelete" method="post" action="#">
+        <button type="submit" class="record-row-delete" role="menuitem">
+            <i class="fa-solid fa-trash" aria-hidden="true"></i> Excluir cliente
+        </button>
+    </form>
+</div>
+
+<dialog id="clientDetailsDialog" class="record-details-dialog" aria-labelledby="clientDetailsTitle">
+    <div class="record-details-header">
         <h2 id="clientDetailsTitle">Detalhes do cliente</h2>
-        <button type="button" class="btn btn-secondary btn-sm" data-close-details aria-label="Fechar detalhes">Fechar</button>
+        <button type="button" class="record-details-close" data-close-details aria-label="Fechar detalhes">×</button>
     </div>
-    <p class="client-details-error" role="alert" hidden></p>
-    <dl class="client-details-grid">
+    <p class="record-details-error" role="alert" hidden></p>
+    <dl class="record-details-grid">
         <div><dt>Nome</dt><dd data-detail="nome"></dd></div>
         <div><dt>CPF</dt><dd data-detail="cpf"></dd></div>
         <div><dt>E-mail</dt><dd data-detail="email"></dd></div>
@@ -170,13 +156,3 @@
 
 <!-- JAVASCRIPT DA PÁGINA -->
 <script src="/js/clientes.js"></script>
-
-<script>
-    (function(){
-        // Mantém o limite selecionado na paginação
-        const limitSelect = document.getElementById('limitSelect');
-        const currentLimit = '{{limit}}';
-
-        if(limitSelect && currentLimit){ limitSelect.value = currentLimit;}
-    })();
-</script>

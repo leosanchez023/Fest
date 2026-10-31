@@ -1,0 +1,105 @@
+<link rel="stylesheet" href="/css/pages/produtos.css">
+<link rel="stylesheet" href="/css/pages/estoque.css">
+<link rel="stylesheet" href="/css/pages/historico-movimentacoes.css">
+
+<main class="wrap history-page">
+  {{> navegacao-produtos activeSection="historico"}}
+  <div class="page-meta" data-title="Histórico de Movimentações" data-subtitle="Consulte as movimentações registradas para os produtos e o estoque."></div>
+
+  {{#if erro}}
+    <div class="history-error" role="alert">{{erro}}</div>
+  {{/if}}
+
+  <section class="card history-card" aria-labelledby="history-heading">
+    <header class="card-title">
+      <h2 id="history-heading"><i class="fa-solid fa-clock-rotate-left icon-sm" aria-hidden="true"></i> Movimentações registradas</h2>
+    </header>
+
+    <div class="history-content">
+      <div class="historico-filtros history-filters">
+        <label class="history-filter history-filter--product">
+          <span>Produto</span>
+          <input id="historico-produto" type="search" placeholder="Pesquisar produto ou código">
+        </label>
+        <label class="history-filter">
+          <span>Tipo de movimentação</span>
+          <select id="historico-tipo" aria-label="Tipo de movimentação">
+            <option value="">Todos os tipos</option>
+            {{#each tipos}}
+              <option value="{{this}}">{{this}}</option>
+            {{/each}}
+          </select>
+        </label>
+        <label class="history-filter">
+          <span>Responsável</span>
+          <select id="historico-usuario" aria-label="Usuário responsável">
+            <option value="">Todos os responsáveis</option>
+            {{#each usuarios}}
+              <option value="{{this.id}}">{{this.nome}}</option>
+            {{/each}}
+          </select>
+        </label>
+        <label class="history-filter">
+          <span>Data inicial</span>
+          <input id="historico-de" type="date">
+        </label>
+        <label class="history-filter">
+          <span>Data final</span>
+          <input id="historico-ate" type="date">
+        </label>
+        <div class="history-filter-actions">
+          <button id="historico-aplicar" type="button" class="btn btn-primary">Aplicar filtros</button>
+          <button id="historico-limpar" type="button" class="btn btn-secondary">Limpar</button>
+        </div>
+      </div>
+
+      <div class="scroll history-table-wrap">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th scope="col">Data e horário</th>
+              <th scope="col">Produto</th>
+              <th scope="col">Tipo</th>
+              <th scope="col" class="num">Quantidade</th>
+              <th scope="col">Responsável</th>
+              <th scope="col">Origem / destino</th>
+              <th scope="col">Observação</th>
+            </tr>
+          </thead>
+          <tbody id="hist">
+            {{#each items}}
+              <tr>
+                <td>{{this.data_hora}}</td>
+                <td>{{this.produto_nome}}</td>
+                <td>{{this.tipo}}</td>
+                <td class="num">{{this.quantidade}}</td>
+                <td>{{#if this.usuario_nome}}{{this.usuario_nome}}{{else}}-{{/if}}</td>
+                <td>{{#if this.origem_destino}}{{this.origem_destino}}{{else}}-{{/if}}</td>
+                <td>{{#if this.observacao}}{{this.observacao}}{{else}}-{{/if}}</td>
+              </tr>
+            {{else}}
+              <tr><td colspan="7">{{#if erro}}O histórico não pôde ser carregado.{{else}}Nenhuma movimentação encontrada.{{/if}}</td></tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="historico-paginacao history-pagination">
+        <label for="historico-limite">Registros por página</label>
+        <select id="historico-limite">
+          <option value="10">10</option>
+          <option value="25" selected>25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+        <span id="historico-resumo" aria-live="polite"
+          data-pagina="{{pagination.pagina}}"
+          data-total="{{pagination.total}}"
+          data-total-paginas="{{pagination.totalPaginas}}"></span>
+        <nav id="historico-paginas" aria-label="Paginação do histórico"></nav>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="/js/historico-movimentacoes.js"></script>

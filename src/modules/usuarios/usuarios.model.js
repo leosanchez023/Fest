@@ -40,6 +40,13 @@ function actionRowsToMap(rows) {
   return permissions;
 }
 
+function hasAdminManagementGrants(actionGrants = {}) {
+  // A flag administrativa só representa acesso completo quando as quatro ações estão concedidas.
+  return ["view", "create", "edit", "remove"].every((action) =>
+    Number(actionGrants.cadastro_admin?.[action]) === 1
+  );
+}
+
 export async function buscarAcoesUsuarios(ids, connection) {
   if (!ids.length) return {};
   const executor = getConnection(connection);
@@ -103,12 +110,15 @@ export async function buscarUsuariosComPermissoes(filters = {}) {
   const ids = rows.map((row) => row.id);
   const actionsByUser = await buscarAcoesUsuarios(ids);
   return {
-    rows: rows.map((row) => ({
-      ...row,
-      perms: actionsByUser[row.id] || emptyActionMap(),
-      isAdmin: Number(row.cadastro_admin) === 1,
-      lastAccess: row.lastAccessAt
-    })),
+    rows: rows.map((row) => {
+      const grants = actionsByUser[row.id] || emptyActionMap();
+      return {
+        ...row,
+        perms: grants,
+        isAdmin: Number(row.cadastro_admin) === 1 && hasAdminManagementGrants(grants),
+        lastAccess: row.lastAccessAt
+      };
+    }),
     total: Number(total)
   };
 }
@@ -141,7 +151,7 @@ export async function buscarPerfilFuncionario(id, connection) {
   const profile = rows[0];
   profile.permissions = Object.fromEntries(PERMISSION_KEYS.map((key) => [key, Number(permissions[0]?.[key] || 0)]));
   profile.perms = actionRowsToMap(actionRows);
-  profile.isAdmin = profile.permissions.cadastro_admin === 1;
+  profile.isAdmin = Number(profile.permissions.cadastro_admin) === 1 && hasAdminManagementGrants(profile.perms);
   profile.lastAccess = profile.lastAccessAt;
   return profile;
 }

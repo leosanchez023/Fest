@@ -35,6 +35,33 @@ export async function index(req, res) {
   }
 }
 
+export async function paginaHistorico(req, res) {
+  try {
+    const dados = await service.historicoMovimentacoes({ pagina: 1, limite: 25 });
+    res.render('pages/historico-movimentacoes', {
+      layout: 'main',
+      ...dados,
+      items: dados.items.map((item) => {
+        const data = new Date(item.data_movimentacao);
+        return {
+          ...item,
+          data_hora: Number.isNaN(data.getTime()) ? item.data_movimentacao : data.toLocaleString('pt-BR')
+        };
+      })
+    });
+  } catch (error) {
+    console.error('Erro ao abrir histórico de movimentações:', error);
+    res.status(500).render('pages/historico-movimentacoes', {
+      layout: 'main',
+      erro: 'Não foi possível carregar o histórico de movimentações.',
+      items: [],
+      tipos: [],
+      usuarios: [],
+      pagination: { pagina: 1, limite: 25, total: 0, totalPaginas: 0 }
+    });
+  }
+}
+
 export async function resumo(req, res) {
   try {
     const dados = await service.resumoEstoque();

@@ -38,7 +38,7 @@
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    padding: 26px 30px 50px;
+    padding: 0 0 24px;
   }
 
   .relatorios-page .topbar {
@@ -47,7 +47,7 @@
     justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
-    margin-bottom: 22px;
+    margin-bottom: var(--page-section-gap, 18px);
   }
 
   .relatorios-page .topbar h1 {
@@ -518,7 +518,7 @@
   }
 
   @media (max-width: 860px) {
-    .relatorios-page .main { padding: 18px 16px 40px; }
+    .relatorios-page .main { padding: 0 0 24px; }
     .relatorios-page .menu-toggle { display: inline-flex; }
   }
 
@@ -539,7 +539,6 @@
     </div>
     <div class="actions">
       <button class="btn" id="btnPrint">🖨️ Imprimir / PDF</button>
-      <button class="btn primary" id="btnCsv">⬇️ Exportar CSV</button>
     </div>
   </div>
 

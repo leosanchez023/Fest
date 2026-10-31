@@ -504,17 +504,18 @@ function renderTable() {
 
     tbody.innerHTML = lista.map((fornecedor) => {
         const id = Number(fornecedor.id);
-        return `<tr>
+        const nome = escapeHTML(fornecedor.nome);
+        return `<tr class="record-table-row supplier-table-row" data-supplier-id="${id}" data-supplier-name="${nome}" tabindex="0" aria-label="Abrir detalhes de ${nome}">
             <td>${escapeHTML(fornecedor.nome)}</td>
             <td>${escapeHTML(fornecedor.categoria || "-")}</td>
             <td>${escapeHTML(fornecedor.telefone || "-")}</td>
             <td>${escapeHTML(fornecedor.email || "-")}</td>
             <td>${escapeHTML(fornecedor.cidade || "-")}</td>
             <td>${escapeHTML(fornecedor.status || "-")}</td>
-            <td style="text-align:center">
-                <button class="iconbtn" type="button" title="Visualizar" aria-label="Visualizar" onclick="viewSupplier(${id})"><i class="fa-solid fa-eye"></i></button>
-                <button class="iconbtn" type="button" title="Editar" aria-label="Editar" onclick="editSupplier(${id})"><i class="fa-solid fa-pen"></i></button>
-                <button class="iconbtn" type="button" title="Excluir" aria-label="Excluir" onclick="deleteSupplier(${id})"><i class="fa-solid fa-trash"></i></button>
+            <td class="record-row-menu-cell">
+                <button type="button" class="record-row-menu-toggle" aria-label="Opções de ${nome}" aria-haspopup="menu" aria-controls="supplierRowMenu" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                </button>
             </td>
         </tr>`;
     }).join("");
@@ -540,29 +541,31 @@ async function viewSupplier(id) {
             throw new Error(f.error || "Não foi possível carregar o fornecedor.");
         }
 
-        const campos = [
-            ["CNPJ / CPF", f.cnpj],
-            ["Responsável", f.responsavel],
-            ["Categoria", f.categoria],
-            ["Telefone", f.telefone],
-            ["WhatsApp", f.whatsapp],
-            ["E-mail", f.email],
-            ["Site", f.site],
-            ["Endereço", [f.rua, f.numero, f.bairro].filter(Boolean).join(", ")],
-            ["Cidade / Estado", [f.cidade, f.estado].filter(Boolean).join(" / ")],
-            ["CEP", f.cep],
-            ["Produtos ou serviços", f.produtos],
-            ["Prazo de entrega", f.entrega],
-            ["Forma de pagamento", f.pagamento],
-            ["Observações", f.observacoes],
-            ["Status", f.status]
-        ];
-        document.getElementById("profile-content").innerHTML = `
-            <h3>${escapeHTML(f.nome)}</h3>
-            ${campos.map(([rotulo, valor]) => `<p><strong>${escapeHTML(rotulo)}:</strong> ${escapeHTML(valor || "-")}</p>`).join("")}
-        `;
-
-        document.getElementById("modal-profile").classList.add("open");
+        const dialog = document.getElementById("supplierDetailsDialog");
+        if (!dialog) return;
+        const values = {
+            nome: f.nome,
+            cnpj: f.cnpj,
+            responsavel: f.responsavel,
+            categoria: f.categoria,
+            telefone: f.telefone,
+            whatsapp: f.whatsapp,
+            email: f.email,
+            site: f.site,
+            endereco: [f.rua, f.numero, f.bairro].filter(Boolean).join(", "),
+            cidade_estado: [f.cidade, f.estado].filter(Boolean).join(" / "),
+            cep: f.cep,
+            produtos: f.produtos,
+            entrega: f.entrega,
+            pagamento: f.pagamento,
+            status: f.status,
+            observacoes: f.observacoes
+        };
+        dialog.querySelectorAll("[data-supplier-detail]").forEach((field) => {
+            field.textContent = values[field.dataset.supplierDetail] || "—";
+        });
+        dialog.querySelector(".record-details-error").hidden = true;
+        dialog.showModal();
 
     } catch (erro) {
         console.error(erro);
@@ -572,10 +575,13 @@ async function viewSupplier(id) {
 
 // FECHAR MODAL DE PERFIL
 function closeProfile() {
+    document.getElementById("supplierDetailsDialog")?.close();
+}
 
-    const modal = document.getElementById("modal-profile");
-
-    if (modal) {modal.classList.remove("open");}
+function closeProfileOutside(event) {
+    if (event.target === document.getElementById("supplierDetailsDialog")) {
+        closeProfile();
+    }
 }
 
 // LIBERAR FUNÇÕES PARA O HTML
@@ -695,6 +701,76 @@ document.addEventListener("DOMContentLoaded",() => {
     console.log("Módulo fornecedores carregado");
     carregarEventos();
     carregarFiltros();
+    document.getElementById("btn-new-supplier")?.addEventListener("click", openForm);
+    document.getElementById("supplier-form")?.addEventListener("submit", saveSupplier);
+    document.getElementById("btn-cancel-supplier")?.addEventListener("click", closeForm);
+    document.getElementById("modal-form")?.addEventListener("click", closeFormOutside);
+    document.getElementById("btn-search-suppliers")?.addEventListener("click", renderTable);
+    document.getElementById("btn-clear-supplier-filters")?.addEventListener("click", limparFiltros);
+    const rowMenu = document.getElementById("supplierRowMenu");
+    let menuToggle = null;
+    document.getElementById("supplier-tbody")?.addEventListener("click", (event) => {
+        const toggle = event.target.closest(".record-row-menu-toggle");
+        if (toggle) {
+            event.stopPropagation();
+            if (!rowMenu) return;
+
+            if (rowMenu.matches(":popover-open")) {
+                rowMenu.hidePopover();
+                if (menuToggle === toggle) return;
+            }
+
+            const row = toggle.closest(".supplier-table-row");
+            if (!row?.dataset.supplierId) return;
+            menuToggle = toggle;
+            rowMenu.showPopover();
+
+            const buttonRect = toggle.getBoundingClientRect();
+            const menuRect = rowMenu.getBoundingClientRect();
+            const left = Math.max(12, Math.min(buttonRect.right - menuRect.width, window.innerWidth - menuRect.width - 12));
+            const top = buttonRect.bottom + menuRect.height + 8 <= window.innerHeight
+                ? buttonRect.bottom + 6
+                : Math.max(12, buttonRect.top - menuRect.height - 6);
+            rowMenu.style.left = `${left}px`;
+            rowMenu.style.top = `${top}px`;
+            return;
+        }
+
+        const row = event.target.closest(".supplier-table-row");
+        if (row) viewSupplier(row.dataset.supplierId);
+    });
+    document.getElementById("supplier-tbody")?.addEventListener("keydown", (event) => {
+        const row = event.target.closest(".supplier-table-row");
+        if (
+            row &&
+            !event.target.closest(".record-row-menu-toggle") &&
+            (event.key === "Enter" || event.key === " ")
+        ) {
+            event.preventDefault();
+            viewSupplier(row.dataset.supplierId);
+        }
+    });
+    rowMenu?.addEventListener("toggle", (event) => {
+        if (event.newState === "closed") {
+            document.querySelectorAll("#supplier-tbody .record-row-menu-toggle").forEach((toggle) => {
+                toggle.setAttribute("aria-expanded", "false");
+            });
+            menuToggle = null;
+        } else {
+            menuToggle?.setAttribute("aria-expanded", "true");
+        }
+    });
+    rowMenu?.addEventListener("click", (event) => {
+        const action = event.target.closest("[data-record-action]");
+        const supplierId = menuToggle?.closest(".supplier-table-row")?.dataset.supplierId;
+        if (!action || !supplierId) return;
+        rowMenu.hidePopover();
+        if (action.dataset.recordAction === "edit") editSupplier(supplierId);
+        else if (action.dataset.recordAction === "delete") deleteSupplier(supplierId);
+    });
+    const detailsDialog = document.getElementById("supplierDetailsDialog");
+    detailsDialog?.addEventListener("click", closeProfileOutside);
+    detailsDialog?.querySelector("[data-close-supplier-details]")?.addEventListener("click", closeProfile);
     fetchSuppliers()
 });
 

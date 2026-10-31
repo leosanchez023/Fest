@@ -3,8 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const sidebar = document.getElementById("appSidebar");
   const sidebarToggle = document.getElementById("sidebarToggle");
   const sidebarOverlay = document.getElementById("sidebarOverlay");
-  const accountToggle = document.getElementById("accountToggle");
-  const accountMenu = document.getElementById("accountMenu");
   const mobileBreakpoint = window.matchMedia("(max-width: 900px)");
 
   if (!layout || !sidebar || !sidebarToggle) return;
@@ -65,7 +63,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const targetPath = new URL(link.href).pathname.replace(/\/$/, "") || "/";
     const requiredHashMatches = !link.dataset.navHash || window.location.hash === link.dataset.navHash;
     const excludedHashMatches = !link.dataset.navHashExclude || window.location.hash !== link.dataset.navHashExclude;
-    if ((path === targetPath || path.startsWith(`${targetPath}/`)) && requiredHashMatches && excludedHashMatches) {
+    const excludedPath = link.dataset.navExcludePath?.replace(/\/$/, "");
+    const excludedPathMatches = !excludedPath || (path !== excludedPath && !path.startsWith(`${excludedPath}/`));
+    if ((path === targetPath || path.startsWith(`${targetPath}/`)) && requiredHashMatches && excludedHashMatches && excludedPathMatches) {
       link.classList.add("is-active");
       link.setAttribute("aria-current", "page");
       const group = link.closest("[data-sidebar-group]");
@@ -118,7 +118,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const targetPath = new URL(link.href).pathname.replace(/\/$/, "") || "/";
       const requiredHashMatches = !link.dataset.navHash || window.location.hash === link.dataset.navHash;
       const excludedHashMatches = !link.dataset.navHashExclude || window.location.hash !== link.dataset.navHashExclude;
-      const isActive = (path === targetPath || path.startsWith(`${targetPath}/`)) && requiredHashMatches && excludedHashMatches;
+      const excludedPath = link.dataset.navExcludePath?.replace(/\/$/, "");
+      const excludedPathMatches = !excludedPath || (path !== excludedPath && !path.startsWith(`${excludedPath}/`));
+      const isActive = (path === targetPath || path.startsWith(`${targetPath}/`)) && requiredHashMatches && excludedHashMatches && excludedPathMatches;
 
       link.classList.toggle("is-active", isActive);
       if (isActive) {
@@ -142,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  const userName = document.querySelector(".app-header__account-name")?.textContent.trim();
+  const userName = document.querySelector(".app-sidebar__footer-copy strong")?.textContent.trim();
   if (userName) {
     const words = userName.split(/\s+/).filter(Boolean);
     const initials = words.length > 1
@@ -153,29 +155,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  if (accountToggle && accountMenu) {
-    const setAccountMenuOpen = (open) => {
-      accountMenu.hidden = !open;
-      accountToggle.setAttribute("aria-expanded", String(open));
-    };
-
-    accountToggle.addEventListener("click", () => {
-      setAccountMenuOpen(accountMenu.hidden);
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!event.target.closest(".app-header__account-wrap")) setAccountMenuOpen(false);
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key !== "Escape") return;
-      setAccountMenuOpen(false);
-      if (mobileBreakpoint.matches && layout.classList.contains("is-sidebar-open")) {
-        setMobileOpen(false);
-        sidebarToggle.focus();
-      }
-    });
-  }
-
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && mobileBreakpoint.matches && layout.classList.contains("is-sidebar-open")) {
+      setMobileOpen(false);
+      sidebarToggle.focus();
+    }
+  });
   syncLayout();
 });

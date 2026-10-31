@@ -1,7 +1,7 @@
 @media (max-width:768px) {
 
   .main {
-    padding:20px;
+    padding:0 0 24px;
   }
 
   .kpi-grid {
@@ -42,7 +42,7 @@
 
   .modal {
     max-height: calc(100vh - 24px);
-    padding: 18px;
+    padding: var(--modal-padding-compact, 18px);
   }
 
 }

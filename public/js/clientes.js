@@ -66,11 +66,52 @@ function showClientDetails(cliente) {
         const field = dialog.querySelector(`[data-detail="${key}"]`);
         if (field) field.textContent = value || "—";
     });
-    dialog.querySelector(".client-details-error").hidden = true;
+    dialog.querySelector(".record-details-error").hidden = true;
     dialog.showModal();
 }
 
+async function loadClientDetails(clientId) {
+    const dialog = document.getElementById("clientDetailsDialog");
+    const errorBox = dialog?.querySelector(".record-details-error");
+    if (!dialog || !errorBox) return;
+
+    dialog.querySelectorAll("[data-detail]").forEach((field) => {
+        field.textContent = "—";
+    });
+    errorBox.hidden = true;
+    errorBox.textContent = "";
+
+    try {
+        const response = await fetch(`/clientes/detalhes/${encodeURIComponent(clientId)}`, {
+            headers: { "Accept": "application/json" }
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(result.erro || "Não foi possível carregar os detalhes.");
+        }
+        showClientDetails(result.cliente);
+    } catch (error) {
+        errorBox.textContent = error.message || "Não foi possível carregar os detalhes.";
+        errorBox.hidden = false;
+        dialog.showModal();
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    const filterForm = document.querySelector(".filter-form");
+    const limitSelect = document.getElementById("limitSelect");
+    const currentLimit = limitSelect?.dataset.currentLimit;
+    if (limitSelect && currentLimit) limitSelect.value = currentLimit;
+    filterForm?.addEventListener("submit", submitFilter);
+    document.getElementById("btn-new-client")?.addEventListener("click", openForm);
+
+    document.querySelector(".pagination-row")?.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-page]");
+        if (!button || button.disabled) return;
+        const page = Number(button.dataset.page);
+        if (Number.isInteger(page)) goToPage(page);
+    });
+
     const form = document.getElementById("formulariocard");
     const container = document.getElementById("formContainer");
     const submitButton = form?.querySelector('button[type="submit"]');
@@ -132,72 +173,102 @@ document.addEventListener("DOMContentLoaded", () => {
         if (form) form.dataset.submitting = "false";
     });
 
-    document.querySelectorAll(".js-client-details").forEach((button) => {
-        button.addEventListener("click", async () => {
-            const dialog = document.getElementById("clientDetailsDialog");
-            const errorBox = dialog?.querySelector(".client-details-error");
-            dialog?.querySelectorAll("[data-detail]").forEach((field) => {
-                field.textContent = "—";
+    const rowMenu = document.getElementById("clientRowMenu");
+    const editLink = document.getElementById("clientMenuEdit");
+    const deleteForm = document.getElementById("clientMenuDelete");
+    let menuToggle = null;
+
+    document.querySelector(".client-table tbody")?.addEventListener("click", (event) => {
+        const toggle = event.target.closest(".record-row-menu-toggle");
+        if (toggle) {
+            event.stopPropagation();
+            if (!rowMenu || !editLink || !deleteForm) return;
+
+            if (rowMenu.matches(":popover-open")) {
+                rowMenu.hidePopover();
+                if (menuToggle === toggle) return;
+            }
+
+            const row = toggle.closest(".client-table-row");
+            const clientId = row?.dataset.clientId;
+            if (!clientId) return;
+
+            editLink.href = `/clientes/editar/${encodeURIComponent(clientId)}`;
+            deleteForm.action = `/clientes/excluir/${encodeURIComponent(clientId)}`;
+            deleteForm.dataset.clientName = row.dataset.clientName || "este cliente";
+            menuToggle = toggle;
+            rowMenu.showPopover();
+
+            const buttonRect = toggle.getBoundingClientRect();
+            const menuRect = rowMenu.getBoundingClientRect();
+            const left = Math.max(12, Math.min(buttonRect.right - menuRect.width, window.innerWidth - menuRect.width - 12));
+            const top = buttonRect.bottom + menuRect.height + 8 <= window.innerHeight
+                ? buttonRect.bottom + 6
+                : Math.max(12, buttonRect.top - menuRect.height - 6);
+            rowMenu.style.left = `${left}px`;
+            rowMenu.style.top = `${top}px`;
+            return;
+        }
+
+        const row = event.target.closest(".client-table-row");
+        if (row) loadClientDetails(row.dataset.clientId);
+    });
+
+    document.querySelector(".client-table tbody")?.addEventListener("keydown", (event) => {
+        const row = event.target.closest(".client-table-row");
+        if (
+            row &&
+            !event.target.closest(".record-row-menu-toggle") &&
+            (event.key === "Enter" || event.key === " ")
+        ) {
+            event.preventDefault();
+            loadClientDetails(row.dataset.clientId);
+        }
+    });
+
+    rowMenu?.addEventListener("toggle", (event) => {
+        if (event.newState === "closed") {
+            document.querySelectorAll(".record-row-menu-toggle").forEach((toggle) => {
+                toggle.setAttribute("aria-expanded", "false");
             });
-            if (errorBox) {
-                errorBox.hidden = true;
-                errorBox.textContent = "";
-            }
-            try {
-                const response = await fetch(`/clientes/detalhes/${encodeURIComponent(button.dataset.clientId)}`, {
-                    headers: { "Accept": "application/json" }
-                });
-                const result = await response.json().catch(() => ({}));
-                if (!response.ok) {
-                    throw new Error(result.erro || "Não foi possível carregar os detalhes.");
-                }
-                showClientDetails(result.cliente);
-            } catch (error) {
-                if (dialog && errorBox) {
-                    errorBox.textContent = error.message || "Não foi possível carregar os detalhes.";
-                    errorBox.hidden = false;
-                    dialog.showModal();
-                } else {
-                    alertError("Erro", error.message || "Não foi possível carregar os detalhes.");
-                }
-            }
-        });
+            menuToggle = null;
+        } else {
+            menuToggle?.setAttribute("aria-expanded", "true");
+        }
     });
 
     document.getElementById("clientDetailsDialog")
-        ?.querySelector("[data-close-details]")
-        ?.addEventListener("click", () => {
-            document.getElementById("clientDetailsDialog")?.close();
+        ?.addEventListener("click", (event) => {
+            const dialog = event.currentTarget;
+            if (event.target === dialog || event.target.closest("[data-close-details]")) dialog.close();
         });
 
-    document.querySelectorAll(".js-delete-client").forEach((deleteForm) => {
-        deleteForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            if (
-                deleteForm.dataset.submitting === "true" ||
-                deleteForm.dataset.confirming === "true"
-            ) return;
-            deleteForm.dataset.confirming = "true";
-            const button = deleteForm.querySelector('button[type="submit"]');
-            if (button) button.disabled = true;
-            const name = deleteForm.dataset.clientName || "este cliente";
-            let confirmation;
-            try {
-                confirmation = window.FestAlert?.confirm
-                    ? await window.FestAlert.confirm("Excluir cliente", `Deseja excluir ${name}?`)
-                    : { isConfirmed: window.confirm(`Deseja excluir ${name}?`) };
-            } catch {
-                confirmation = { isConfirmed: false };
-                alertError("Erro", "Não foi possível confirmar a exclusão.");
-            }
-            if (!confirmation?.isConfirmed) {
-                deleteForm.dataset.confirming = "false";
-                if (button) button.disabled = false;
-                return;
-            }
+    deleteForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (
+            deleteForm.dataset.submitting === "true" ||
+            deleteForm.dataset.confirming === "true"
+        ) return;
+        deleteForm.dataset.confirming = "true";
+        const button = deleteForm.querySelector('button[type="submit"]');
+        if (button) button.disabled = true;
+        const name = deleteForm.dataset.clientName || "este cliente";
+        let confirmation;
+        try {
+            confirmation = window.FestAlert?.confirm
+                ? await window.FestAlert.confirm("Excluir cliente", `Deseja excluir ${name}?`)
+                : { isConfirmed: window.confirm(`Deseja excluir ${name}?`) };
+        } catch {
+            confirmation = { isConfirmed: false };
+            alertError("Erro", "Não foi possível confirmar a exclusão.");
+        }
+        if (!confirmation?.isConfirmed) {
+            deleteForm.dataset.confirming = "false";
+            if (button) button.disabled = false;
+            return;
+        }
 
-            deleteForm.dataset.submitting = "true";
-            deleteForm.submit();
-        });
+        deleteForm.dataset.submitting = "true";
+        deleteForm.submit();
     });
 });

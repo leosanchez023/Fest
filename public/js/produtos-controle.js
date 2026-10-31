@@ -179,91 +179,6 @@
     }
   }
 
-  let paginaHistorico = 1;
-
-  function filtrosHistorico() {
-    return {
-      produto: document.getElementById('historico-produto')?.value.trim() || '',
-      tipo: document.getElementById('historico-tipo')?.value || '',
-      de: document.getElementById('historico-de')?.value || '',
-      ate: document.getElementById('historico-ate')?.value || ''
-    };
-  }
-
-  async function carregarHistoricoControle() {
-    const query = new URLSearchParams();
-    Object.entries(filtrosHistorico()).forEach(([key, value]) => {
-      if (value) query.set(key, value);
-    });
-    query.set('pagina', String(paginaHistorico));
-    query.set('limite', document.getElementById('historico-limite')?.value || '25');
-    const tbody = document.getElementById('hist');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="6">Carregando movimentações...</td></tr>';
-    try {
-      const resposta = await jsonFetch(`/estoque/historico?${query}`);
-      if (!tbody) return;
-      const historico = resposta.data?.items || [];
-      const tipos = resposta.data?.tipos || [];
-      const tipoSelect = document.getElementById('historico-tipo');
-      if (tipoSelect) {
-        const selecionado = tipoSelect.value;
-        tipoSelect.innerHTML = '<option value="">Todos os tipos</option>' + tipos
-          .map((tipo) => `<option value="${escapeHtml(tipo)}">${escapeHtml(tipo.replaceAll('_', ' '))}</option>`)
-          .join('');
-        tipoSelect.value = selecionado;
-      }
-      const pagina = resposta.data?.pagination || { pagina: 1, limite: 25, total: 0, totalPaginas: 0 };
-      paginaHistorico = pagina.pagina;
-      tbody.innerHTML = historico.length ? historico.map((item) => `<tr>
-        <td>${escapeHtml(new Date(item.data_movimentacao).toLocaleString('pt-BR'))}</td>
-        <td>${escapeHtml(item.produto_nome)}</td>
-        <td>${escapeHtml(item.tipo)}</td>
-        <td class="num">${Number(item.quantidade || 0)}</td>
-        <td>${escapeHtml(item.usuario_nome || '-')}</td>
-        <td>${escapeHtml(item.observacao || '-')}</td>
-      </tr>`).join('') : '<tr><td colspan="6">Nenhuma movimentação encontrada.</td></tr>';
-      renderPaginacaoHistorico(pagina);
-    } catch (error) {
-      if (tbody) tbody.innerHTML = `<tr><td colspan="6">${escapeHtml(error.message || 'Não foi possível carregar o histórico.')}</td></tr>`;
-      const resumo = document.getElementById('historico-resumo');
-      if (resumo) resumo.textContent = 'Falha ao carregar os resultados.';
-      const paginas = document.getElementById('historico-paginas');
-      if (paginas) paginas.replaceChildren();
-    }
-  }
-
-  function renderPaginacaoHistorico(pagina) {
-    const resumo = document.getElementById('historico-resumo');
-    const nav = document.getElementById('historico-paginas');
-    if (resumo) {
-      resumo.textContent = `Página ${pagina.pagina} de ${pagina.totalPaginas} — ${pagina.total} movimentações`;
-    }
-    if (!nav) return;
-    const pages = new Set([1, pagina.pagina - 1, pagina.pagina, pagina.pagina + 1, pagina.totalPaginas]);
-    const valid = [...pages].filter((n) => n > 0 && n <= pagina.totalPaginas).sort((a, b) => a - b);
-    let previous = 0;
-    const numbers = [];
-    for (const n of valid) {
-      if (previous && n > previous + 1) numbers.push('<span aria-hidden="true">…</span>');
-      numbers.push(`<button type="button" data-history-page="${n}" ${n === pagina.pagina ? 'aria-current="page" disabled' : ''}>${n}</button>`);
-      previous = n;
-    }
-    nav.innerHTML = `<button type="button" data-history-page="${pagina.pagina - 1}" ${pagina.pagina <= 1 ? 'disabled' : ''}>Anterior</button>
-      ${numbers.join('')}
-      <button type="button" data-history-page="${pagina.pagina + 1}" ${pagina.pagina >= pagina.totalPaginas ? 'disabled' : ''}>Próxima</button>`;
-  }
-
-  function limparHistorico() {
-    ['historico-produto', 'historico-de', 'historico-ate'].forEach((id) => {
-      const campo = document.getElementById(id);
-      if (campo) campo.value = '';
-    });
-    const tipo = document.getElementById('historico-tipo');
-    if (tipo) tipo.value = '';
-    paginaHistorico = 1;
-    carregarHistoricoControle();
-  }
-
   function configurarControle() {
     ['busca', 'filtro-categoria', 'filtro-fornecedor', 'filtro-minimo', 'filtro-ordenacao'].forEach((id) => {
       document.getElementById(id)?.addEventListener(id === 'busca' ? 'input' : 'change', carregarProdutosControle);
@@ -281,27 +196,11 @@
       if (target.hasAttribute('data-stock-save')) salvarEstoque(target.dataset.stockSave, row, target);
       if (target.hasAttribute('data-stock-cancel')) carregarProdutosControle();
     });
-    document.getElementById('historico-aplicar')?.addEventListener('click', () => {
-      paginaHistorico = 1;
-      carregarHistoricoControle();
-    });
-    document.getElementById('historico-limpar')?.addEventListener('click', limparHistorico);
-    document.getElementById('historico-limite')?.addEventListener('change', () => {
-      paginaHistorico = 1;
-      carregarHistoricoControle();
-    });
-    document.getElementById('historico-paginas')?.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-history-page]');
-      if (!button || button.disabled) return;
-      paginaHistorico = Number(button.dataset.historyPage);
-      carregarHistoricoControle();
-    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     configurarControle();
     carregarResumoEstoque();
     carregarProdutosControle();
-    carregarHistoricoControle();
   });
 })();

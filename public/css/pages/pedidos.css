@@ -451,7 +451,7 @@ body{ font-family:var(--mp-font); background:var(--color-background); display:bl
 .container .btn-blue{background:var(--color-info);color:#fff}
 .container .btn-green{background:var(--color-success);color:#fff}
 .container .btn-remove{width:30px;height:30px;border:1px solid #f2bfc5;border-radius:7px;background:#fdebed;color:#ae2735;cursor:pointer}
-.container .resumo{max-width:520px;margin-left:auto}
+.container .resumo{max-width:520px;margin-right:auto;margin-left:0}
 .container .resumo-total{color:var(--color-text);border-top-color:var(--color-border)}
 .container .resumo-total span:last-child{color:var(--color-primary-dark);font-size:1.2rem}
 #q{max-width:420px}
@@ -461,8 +461,7 @@ body{ font-family:var(--mp-font); background:var(--color-background); display:bl
 .address-result:hover{background:#f0fdfa;border-color:var(--color-primary)}
 .address-result strong,.address-result small{display:block}
 .address-result small{margin-top:4px;color:var(--color-text-muted);line-height:1.4}
-.address-lookup-note{margin:8px 0 0;color:var(--color-text-muted);font-size:.8rem;line-height:1.5}
-.address-lookup-note a,.address-attribution a{color:var(--color-primary-dark)}
+.address-attribution a{color:var(--color-primary-dark)}
 .address-search-status,.address-search-error,.address-attribution{padding:10px 12px;font-size:.85rem;line-height:1.5}
 .address-search-error{color:var(--color-danger)}
 .address-attribution{align-self:flex-start}

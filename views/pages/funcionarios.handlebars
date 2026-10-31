@@ -1,4 +1,3 @@
-<div class="page-meta" data-title="Funcionários" data-subtitle="Gerencie usuários, cargos e permissões do sistema"></div>
 <style>#employeeModule{
   --bg:#eef1f7;
   --surface:#ffffff;
@@ -22,14 +21,10 @@
   --shadow-md:0 6px 18px -6px rgba(16,24,40,.16);
   --shadow-lg:0 24px 48px -12px rgba(16,24,40,.28);
   --font:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
-}#employeeModule *{box-sizing:border-box}#employeeModule{margin:0;padding:0}#employeeModule{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}#employeeModule button,#employeeModule input,#employeeModule select,#employeeModule textarea{font:inherit;color:inherit}#employeeModule h1,#employeeModule h2,#employeeModule h3,#employeeModule h4{margin:0;font-weight:700;letter-spacing:-.01em}#employeeModule .app{max-width:1440px;margin:0 auto;padding:24px}#employeeModule .topbar{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:space-between;
-  background:linear-gradient(120deg,var(--brand) 0%,#12629f 55%,var(--brand-2) 100%);
-  color:#fff;border-radius:18px;padding:22px 24px;box-shadow:var(--shadow-md);position:relative;overflow:hidden}#employeeModule .topbar::after{content:"";position:absolute;right:-60px;top:-80px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.07)}#employeeModule .topbar h1{font-size:24px;display:flex;align-items:center;gap:10px}#employeeModule .topbar p{margin:6px 0 0;opacity:.85;font-size:13.5px}#employeeModule .topbar .actions{display:flex;gap:10px;flex-wrap:wrap;position:relative;z-index:1}#employeeModule .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;background:var(--surface);
+}#employeeModule *{box-sizing:border-box}#employeeModule{margin:0;padding:0}#employeeModule{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}#employeeModule button,#employeeModule input,#employeeModule select,#employeeModule textarea{font:inherit;color:inherit}#employeeModule h1,#employeeModule h2,#employeeModule h3,#employeeModule h4{margin:0;font-weight:700;letter-spacing:-.01em}#employeeModule .app{max-width:1440px;margin:0 auto;padding:24px}#employeeModule .employee-navigation-row{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}#employeeModule .employee-navigation-row .tabs{margin:0;flex:0 1 auto}#employeeModule .employee-navigation-row>.btn{flex:none}#employeeModule .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;background:var(--surface);
   color:var(--ink);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;
-  transition:transform .12s ease,box-shadow .12s ease,background .12s ease,opacity .12s}#employeeModule .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}#employeeModule .btn:active{transform:translateY(0)}#employeeModule .btn-primary{background:var(--accent);color:#fff}#employeeModule .btn-ghost{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.3)}#employeeModule .btn-outline{background:transparent;border-color:var(--line);color:var(--ink-2)}#employeeModule .btn-soft{background:var(--brand-soft);color:var(--brand)}#employeeModule .btn-danger{background:var(--danger-soft);color:var(--danger)}#employeeModule .btn-sm{padding:6px 10px;font-size:12.5px;border-radius:8px}#employeeModule .tabs{display:flex;gap:6px;margin:22px 0 18px;background:var(--surface);padding:6px;border-radius:12px;
-  box-shadow:var(--shadow-sm);width:fit-content;max-width:100%;overflow:auto}#employeeModule .tab{border:0;background:transparent;padding:9px 16px;border-radius:9px;cursor:pointer;font-weight:600;color:var(--ink-2);white-space:nowrap}#employeeModule .tab.is-active{background:var(--brand);color:#fff;box-shadow:var(--shadow-sm)}#employeeModule .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}#employeeModule .kpi{background:var(--surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm);
-  border:1px solid var(--line);display:flex;gap:14px;align-items:center;animation:employee-rise .35s ease both}#employeeModule .kpi .ico{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:var(--brand-soft)}#employeeModule .kpi .val{font-size:26px;font-weight:800;letter-spacing:-.02em}#employeeModule .kpi .lbl{color:var(--ink-3);font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}#employeeModule .kpi small{color:var(--ink-2);font-size:12.5px}#employeeModule .kpi.ok .ico{background:var(--ok-soft)}#employeeModule .kpi.danger .ico{background:var(--danger-soft)}#employeeModule .kpi.warn .ico{background:var(--warn-soft)}
-@keyframes employee-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}#employeeModule .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);margin-top:18px;overflow:hidden}#employeeModule .panel-head{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line);background:var(--surface-2)}#employeeModule .panel-head h3{font-size:15px}#employeeModule .panel-head .sub{color:var(--ink-3);font-size:12.5px}#employeeModule .toolbar{display:flex;flex-wrap:wrap;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}#employeeModule .field{display:flex;flex-direction:column;gap:6px}#employeeModule .field label{font-size:11.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}#employeeModule input[type=text],#employeeModule input[type=email],#employeeModule input[type=password],#employeeModule input[type=date],#employeeModule input[type=tel],#employeeModule select,#employeeModule textarea{
+  transition:transform .12s ease,box-shadow .12s ease,background .12s ease,opacity .12s}#employeeModule .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}#employeeModule .btn:active{transform:translateY(0)}#employeeModule .btn-primary{background:var(--accent);color:#fff}#employeeModule .btn-ghost{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.3)}#employeeModule .btn-outline{background:transparent;border-color:var(--line);color:var(--ink-2)}#employeeModule .btn-soft{background:var(--brand-soft);color:var(--brand)}#employeeModule .btn-danger{background:var(--danger-soft);color:var(--danger)}#employeeModule .btn-sm{padding:6px 10px;font-size:12.5px;border-radius:8px}#employeeModule .tabs{display:flex;gap:6px;background:var(--surface);padding:6px;border-radius:12px;
+  box-shadow:var(--shadow-sm);width:fit-content;max-width:100%;overflow:auto}#employeeModule .tab{border:0;background:transparent;padding:9px 16px;border-radius:9px;cursor:pointer;font-weight:600;color:var(--ink-2);white-space:nowrap}#employeeModule .tab.is-active{background:var(--brand);color:#fff;box-shadow:var(--shadow-sm)}#employeeModule .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);margin-top:18px;overflow:hidden}#employeeModule .panel-head{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line);background:var(--surface-2)}#employeeModule .panel-head h3{font-size:15px}#employeeModule .panel-head .sub{color:var(--ink-3);font-size:12.5px}#employeeModule .toolbar{display:flex;flex-wrap:wrap;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}#employeeModule .field{display:flex;flex-direction:column;gap:6px}#employeeModule .field label{font-size:11.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}#employeeModule input[type=text],#employeeModule input[type=email],#employeeModule input[type=password],#employeeModule input[type=date],#employeeModule input[type=tel],#employeeModule select,#employeeModule textarea{
   border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 11px;outline:none;min-width:150px;transition:border .15s,box-shadow .15s}#employeeModule input:focus,#employeeModule select:focus,#employeeModule textarea:focus{border-color:var(--brand-2);box-shadow:0 0 0 3px rgba(29,123,196,.15)}#employeeModule .search{flex:1;min-width:220px}#employeeModule .search input{width:100%}#employeeModule .table-wrap{overflow:auto}#employeeModule table{width:100%;border-collapse:collapse;min-width:1080px}#employeeModule th{ text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);
   padding:12px 14px;background:var(--surface-2);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1}#employeeModule td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}#employeeModule tbody tr{transition:background .12s}#employeeModule tbody tr:hover{background:#f9fbfe}#employeeModule .person{display:flex;align-items:center;gap:11px}#employeeModule .avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;font-size:13px;flex:none;
   background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:var(--shadow-sm)}#employeeModule .avatar.lg{width:76px;height:76px;font-size:26px}#employeeModule .avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit}#employeeModule .person .nm{font-weight:700}#employeeModule .person .em{color:var(--ink-3);font-size:12.5px}#employeeModule .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;font-size:11.5px;font-weight:700;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}#employeeModule .badge.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}#employeeModule .badge.danger{background:var(--danger-soft);color:var(--danger);border-color:transparent}#employeeModule .badge.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}#employeeModule .badge.brand{background:var(--brand-soft);color:var(--brand);border-color:transparent}#employeeModule .dot{width:7px;height:7px;border-radius:50%;background:currentColor}#employeeModule .row-actions{display:flex;gap:4px}#employeeModule .iconbtn{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:#fff;cursor:pointer;display:grid;place-items:center;transition:.12s}#employeeModule .iconbtn:hover{background:var(--brand-soft);border-color:var(--brand-soft);transform:translateY(-1px)}#employeeModule .empty{padding:46px;text-align:center;color:var(--ink-3)}#employeeModule .overlay{position:fixed;inset:0;background:rgba(16,24,40,.55);backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;padding:28px 16px;overflow:auto;z-index:50}#employeeModule .overlay.open{display:flex;animation:employee-fade .18s ease}
@@ -40,34 +35,35 @@
 @media print{#employeeModule{background:#fff}#employeeModule .topbar .actions,#employeeModule .tabs,#employeeModule .toolbar,#employeeModule .row-actions,#employeeModule .overlay,#employeeModule #toasts{display:none !important}#employeeModule .panel{box-shadow:none}
 }
 </style>
+<style>
+#employeeModule .employee-navigation-row{flex-wrap:wrap}
+#employeeModule .overlay{align-items:center;padding:16px}
+#employeeModule .modal{display:flex;flex-direction:column;max-height:calc(100dvh - 32px);margin:auto 0}
+#employeeModule .modal-body{flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto}
+@media(max-width:600px){
+  #employeeModule .employee-navigation-row{align-items:stretch}
+  #employeeModule .employee-navigation-row .tabs{width:100%}
+  #employeeModule .employee-navigation-row>.btn{align-self:flex-end}
+  #employeeModule .overlay{padding:8px}
+  #employeeModule .modal{max-height:calc(100dvh - 16px)}
+  #employeeModule .modal-head,#employeeModule .modal-body,#employeeModule .modal-foot{padding-left:14px;padding-right:14px}
+}
+</style>
 <div id="employeeModule">
 <div class="app">
 
   <!-- ================= HEADER ================= -->
-  <header class="topbar">
-    <div>
-      <h1>👥 Funcionários</h1>
-      <p>Gerencie usuários, cargos e permissões do sistema — Serve Festa ERP</p>
-    </div>
-    <div class="actions">
-      <button class="btn btn-primary" onclick="UI.openEmployeeModal()">＋ Novo Funcionário</button>
-      <button class="btn btn-ghost" onclick="UI.exportList()">⬇ Exportar Lista</button>
-      <button class="btn btn-ghost" onclick="UI.openPermissionSettings()">🔐 Configurações de Permissões</button>
-      <button class="btn btn-ghost" onclick="window.print()">🖨 Imprimir</button>
-    </div>
-  </header>
-
-  <!-- ================= TABS ================= -->
-  <nav class="tabs">
-    <button class="tab is-active" data-tab="equipe" onclick="UI.setTab('equipe')">👥 Equipe</button>
-    <button class="tab" data-tab="auditoria" onclick="UI.setTab('auditoria')">🧾 Auditoria</button>
-    <button class="tab" data-tab="seguranca" onclick="UI.setTab('seguranca')">🛡 Segurança</button>
-  </nav>
+  <div class="employee-navigation-row">
+    <nav class="tabs" aria-label="Seções de funcionários">
+      <button class="tab is-active" type="button" data-tab="equipe">👥 Equipe</button>
+      <button class="tab" type="button" data-tab="auditoria">🧾 Auditoria</button>
+      <button class="tab" type="button" data-tab="seguranca">🛡 Segurança</button>
+    </nav>
+    <button class="btn btn-primary" type="button" data-ui-action="open-employee">＋ Novo Funcionário</button>
+  </div>
 
   <!-- ================= VIEW: EQUIPE ================= -->
   <section id="view-equipe">
-    <div class="kpis" id="kpis"></div>
-
     <div class="panel">
       <div class="panel-head">
         <div>
@@ -75,23 +71,23 @@
           <div class="sub" id="listCount">—</div>
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-outline btn-sm" onclick="UI.clearFilters()">Limpar filtros</button>
-          <button class="btn btn-soft btn-sm" onclick="UI.exportList()">Exportar CSV</button>
+          <button class="btn btn-outline btn-sm" data-ui-action="clear-filters">Limpar filtros</button>
+          <button class="btn btn-soft btn-sm" data-ui-action="export-list">Exportar CSV</button>
         </div>
       </div>
 
       <div class="toolbar">
         <div class="field search">
           <label>Pesquisar</label>
-          <input type="text" id="fSearch" placeholder="Nome, email, CPF ou telefone..." oninput="UI.render()">
+          <input type="text" id="fSearch" placeholder="Nome, email, CPF ou telefone...">
         </div>
         <div class="field">
           <label>Cargo</label>
-          <select id="fRole" onchange="UI.render()"><option value="">Todos</option></select>
+          <select id="fRole"><option value="">Todos</option></select>
         </div>
         <div class="field">
           <label>Status</label>
-          <select id="fStatus" onchange="UI.render()">
+          <select id="fStatus">
             <option value="">Todos</option>
             <option value="ativo">Ativo</option>
             <option value="bloqueado">Bloqueado</option>
@@ -100,11 +96,11 @@
         </div>
         <div class="field">
           <label>Permissão</label>
-          <select id="fPerm" onchange="UI.render()"><option value="">Qualquer módulo</option></select>
+          <select id="fPerm"><option value="">Qualquer módulo</option></select>
         </div>
         <div class="field">
           <label>Ordenar</label>
-          <select id="fSort" onchange="UI.render()">
+          <select id="fSort">
             <option value="recentes">Mais recentes</option>
             <option value="nome">Nome (A–Z)</option>
             <option value="acesso">Último acesso</option>
@@ -135,8 +131,8 @@
         <span class="sub">Somente eventos gravados pelo servidor são exibidos.</span>
       </div>
       <div class="toolbar">
-        <div class="field search"><label>Pesquisar</label><input type="text" id="aSearch" placeholder="Funcionário, ação ou módulo..." oninput="UI.renderAudit()"></div>
-        <div class="field"><label>Módulo</label><select id="aModule" onchange="UI.renderAudit()"><option value="">Todos</option></select></div>
+        <div class="field search"><label>Pesquisar</label><input type="text" id="aSearch" placeholder="Funcionário, ação ou módulo..."></div>
+        <div class="field"><label>Módulo</label><select id="aModule"><option value="">Todos</option></select></div>
       </div>
       <div class="table-wrap">
         <table style="min-width:760px">
@@ -162,14 +158,14 @@
 </div>
 
 <!-- ================= MODAL: CADASTRO / EDIÇÃO ================= -->
-<div class="overlay" id="mdEmployee">
-  <div class="modal">
+<div class="overlay" id="mdEmployee" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="empTitle">
     <div class="modal-head">
       <div><h3 id="empTitle">Novo funcionário</h3><div class="sub">Dados pessoais, acesso e permissões por módulo</div></div>
-      <button type="button" class="close" data-close-modal="mdEmployee" onclick="UI.close('mdEmployee')">✕</button>
+      <button type="button" class="close" data-close-modal="mdEmployee" aria-label="Fechar cadastro">✕</button>
     </div>
     <div class="modal-body">
-      <form id="empForm" onsubmit="UI.saveEmployee(); return false">
+      <form id="empForm">
         <input type="hidden" id="empId">
 
         <div class="section-title">👤 Dados pessoais</div>
@@ -178,7 +174,7 @@
           <div>
             <div style="font-weight:700">Foto do funcionário</div>
             <div style="color:var(--ink-3);font-size:12.5px;margin-bottom:8px">PNG ou JPG até 2MB. A prévia usa as iniciais quando não houver imagem.</div>
-            <input type="file" id="empPhoto" accept="image/png,image/jpeg" onchange="UI.previewPhoto(event)">
+            <input type="file" id="empPhoto" accept="image/png,image/jpeg">
           </div>
         </div>
         <div class="grid g3" style="margin-top:14px">
@@ -186,7 +182,7 @@
           <div class="field"><label>Telefone</label><input type="tel" id="empPhone" placeholder="(11) 98888-0000"></div>
           <div class="field"><label>CPF</label><input type="text" id="empCpf" placeholder="000.000.000-00"></div>
           <div class="field"><label>Data de nascimento</label><input type="date" id="empBirth"></div>
-          <div class="field"><label>Cargo</label><select id="empRole" onchange="UI.applyRolePreset()"></select></div>
+          <div class="field"><label>Cargo</label><select id="empRole"></select></div>
           <div class="field"><label>Cargo personalizado</label><input type="text" id="empCustomRole" placeholder="Usado quando o cargo for Personalizado"></div>
         </div>
 
@@ -205,14 +201,14 @@
 
         <div class="section-title" style="justify-content:space-between">
           <span>🔐 Permissões por módulo</span>
-          <button type="button" class="btn btn-soft btn-sm" onclick="UI.toggleAllPerms()">Selecionar todas as permissões</button>
+          <button type="button" class="btn btn-soft btn-sm" data-ui-action="toggle-permissions">Selecionar todas as permissões</button>
         </div>
         <div class="perm-grid" id="permGrid"></div>
       </form>
     </div>
     <div class="modal-foot">
-      <button type="button" class="btn btn-outline" data-close-modal="mdEmployee" onclick="UI.close('mdEmployee')">Cancelar</button>
-      <button type="button" class="btn btn-primary" onclick="UI.saveEmployee()">Salvar funcionário</button>
+      <button type="button" class="btn btn-outline" data-close-modal="mdEmployee">Cancelar</button>
+      <button type="submit" class="btn btn-primary" id="empSubmit" form="empForm">Cadastrar Funcionário</button>
     </div>
   </div>
 </div>
@@ -222,24 +218,24 @@
   <div class="modal">
     <div class="modal-head">
       <div><h3 id="permTitle">Alterar permissões</h3><div class="sub">Controle de acesso por módulo do ERP</div></div>
-      <button type="button" class="close" data-close-modal="mdPerms" onclick="UI.close('mdPerms')">✕</button>
+      <button type="button" class="close" data-close-modal="mdPerms">✕</button>
     </div>
     <div class="modal-body">
       <div id="templateSettings" class="hidden">
         <div class="field" style="margin-bottom:14px">
           <label for="templateRole">Modelo padrão por cargo</label>
-          <select id="templateRole" onchange="UI.loadRoleTemplate(this.value)"></select>
+          <select id="templateRole"></select>
         </div>
         <p class="sub" style="margin-bottom:16px">Salvar altera apenas os modelos usados como padrão. As permissões de funcionários existentes não serão alteradas.</p>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-        <button type="button" class="btn btn-soft btn-sm" onclick="UI.toggleAllPerms('permGridSolo')">Selecionar todas as permissões</button>
+        <button type="button" class="btn btn-soft btn-sm" data-ui-action="toggle-solo-permissions">Selecionar todas as permissões</button>
       </div>
       <div class="perm-grid" id="permGridSolo"></div>
     </div>
     <div class="modal-foot">
-      <button type="button" class="btn btn-outline" data-close-modal="mdPerms" onclick="UI.close('mdPerms')">Cancelar</button>
-      <button type="button" class="btn btn-primary" onclick="UI.savePerms()">Salvar permissões</button>
+      <button type="button" class="btn btn-outline" data-close-modal="mdPerms">Cancelar</button>
+      <button type="button" class="btn btn-primary" data-ui-action="save-permissions">Salvar permissões</button>
     </div>
   </div>
 </div>
@@ -249,10 +245,10 @@
   <div class="modal">
     <div class="modal-head">
       <div><h3>Perfil do funcionário</h3><div class="sub">Dados, permissões atuais, segurança e atividade</div></div>
-      <button type="button" class="close" data-close-modal="mdProfile" onclick="UI.close('mdProfile')">✕</button>
+      <button type="button" class="close" data-close-modal="mdProfile">✕</button>
     </div>
     <div class="modal-body" id="profileBody"></div>
-    <div class="modal-foot"><button type="button" class="btn btn-outline" data-close-modal="mdProfile" onclick="UI.close('mdProfile')">Fechar</button></div>
+    <div class="modal-foot"><button type="button" class="btn btn-outline" data-close-modal="mdProfile">Fechar</button></div>
   </div>
 </div>
 
@@ -422,17 +418,19 @@ const UI = {
     $("#permGridSolo").innerHTML = this.permCards("s");
     $("#templateRole").innerHTML = ROLES.filter(role=>role!=="Personalizado").map(role=>`<option value="${escapeHtml(role)}">${escapeHtml(role)}</option>`).join("");
     this.initModalBindings();
-    $("#empForm").addEventListener("input", () => {
-      $("#mdEmployee").dataset.dirty = "true";
-      this.updateAvatarInitials();
-    });
-    $("#empForm").addEventListener("change", () => { $("#mdEmployee").dataset.dirty = "true"; });
-    $("#permGridSolo").addEventListener("change", () => { $("#mdPerms").dataset.dirty = "true"; });
-    $("#empName").addEventListener("input", () => this.updateAvatarInitials());
+    this.render(true);
   },
 
   initModalBindings(){
     if (document.body.dataset.modalBindings === "true") return;
+
+    const empForm = $("#empForm");
+    const permGridSolo = $("#permGridSolo");
+    if (empForm.dataset.listenersBound === "true") {
+      document.body.dataset.modalBindings = "true";
+      return;
+    }
+
     $$(".overlay").forEach((overlay) => {
       if (overlay.dataset.bound === "true") return;
       overlay.addEventListener("click", (event) => {
@@ -440,13 +438,33 @@ const UI = {
       });
       overlay.dataset.bound = "true";
     });
+
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !event.defaultPrevented) {
         $$(".overlay.open").forEach((overlay) => this.close(overlay.id));
       }
     });
+
     document.body.dataset.modalBindings = "true";
     document.body.addEventListener("click", (event) => {
+      const tab = event.target.closest(".tab[data-tab]");
+      if (tab) {
+        this.setTab(tab.dataset.tab);
+        return;
+      }
+      const uiAction = event.target.closest("[data-ui-action]");
+      if (uiAction) {
+        const actions = {
+          "open-employee": () => this.openEmployeeModal(),
+          "clear-filters": () => this.clearFilters(),
+          "export-list": () => this.exportList(),
+          "toggle-permissions": () => this.toggleAllPerms(),
+          "toggle-solo-permissions": () => this.toggleAllPerms("permGridSolo"),
+          "save-permissions": () => this.savePerms()
+        };
+        actions[uiAction.dataset.uiAction]?.();
+        return;
+      }
       const closeTarget = event.target.closest("[data-close-modal]");
       if (closeTarget) {
         event.preventDefault();
@@ -474,13 +492,29 @@ const UI = {
       fallback.textContent = initials(image.alt);
       image.replaceWith(fallback);
     }, true);
-    $("#empForm").addEventListener("input", () => {
+
+    empForm.addEventListener("input", () => {
       $("#mdEmployee").dataset.dirty = "true";
       this.updateAvatarInitials();
     });
-    $("#empForm").addEventListener("change", () => { $("#mdEmployee").dataset.dirty = "true"; });
-    $("#permGridSolo").addEventListener("change", () => { $("#mdPerms").dataset.dirty = "true"; });
+    empForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.saveEmployee();
+    });
+    empForm.addEventListener("change", () => { $("#mdEmployee").dataset.dirty = "true"; });
+    permGridSolo.addEventListener("change", () => { $("#mdPerms").dataset.dirty = "true"; });
     $("#empName").addEventListener("input", () => this.updateAvatarInitials());
+    $("#empPhoto").addEventListener("change", (event) => this.previewPhoto(event));
+    $("#empRole").addEventListener("change", () => this.applyRolePreset());
+    $("#templateRole").addEventListener("change", (event) => this.loadRoleTemplate(event.target.value));
+    $("#fSearch").addEventListener("input", () => this.render());
+    ["fRole", "fStatus", "fPerm", "fSort"].forEach((id) =>
+      $("#"+id).addEventListener("change", () => this.render())
+    );
+    $("#aSearch").addEventListener("input", () => this.renderAudit());
+    $("#aModule").addEventListener("change", () => this.renderAudit());
+    empForm.dataset.listenersBound = "true";
+    permGridSolo.dataset.listenersBound = "true";
   },
 
   setTab(tab){
@@ -491,7 +525,7 @@ const UI = {
     if(tab==="seguranca") this.renderSecurity(true);
   },
 
-  /* ---------- KPIs + tabela ---------- */
+  /* ---------- Tabela ---------- */
   async render(forceReload=false){
     try {
       if (forceReload || !this.state.employeesLoaded) {
@@ -504,7 +538,6 @@ const UI = {
         $("#fRole").innerHTML = `<option value="">Todos</option>${roles.map(value=>`<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}`;
         if (roles.includes(selectedRole)) $("#fRole").value = selectedRole;
       }
-      this.renderKpis(this.state.employees);
       const list = this.filteredEmployees();
 
       $("#listCount").textContent = `${list.length} de ${this.state.employees.length} funcionário(s) exibidos`;
@@ -515,24 +548,6 @@ const UI = {
       $("#tbody").innerHTML = `<tr><td colspan="8" class="empty">${escapeHtml(error.message)}</td></tr>`;
       toast(error.message, "err");
     }
-  },
-
-  renderKpis(list){
-    const total = list.length;
-    const ativos = list.filter(e=>e.active).length;
-    const bloq = total - ativos;
-    const admins = list.filter(e=>e.isAdmin || e.perms?.cadastro_admin?.view).length;
-    const last = list.filter(e=>e.lastAccess).sort((a,b)=>new Date(b.lastAccess)-new Date(a.lastAccess))[0];
-    const cards = [
-      { c:"", i:"👥", v:total, l:"Total de funcionários", s:"Equipe cadastrada no ERP" },
-      { c:"ok", i:"🟢", v:ativos, l:"Usuários ativos", s:`${total? Math.round(ativos/total*100):0}% da equipe` },
-      { c:"danger", i:"🔴", v:bloq, l:"Usuários bloqueados", s:"Sem acesso ao sistema" },
-      { c:"warn", i:"🔐", v:admins, l:"Administradores", s:"Acesso administrativo" },
-      { c:"", i:"📅", v:last? escapeHtml(fmtTime(last.lastAccess)):"—", l:"Último acesso", s:last? `${escapeHtml(last.name)} • ${fmtDate(last.lastAccess)}` : "Sem registros" }
-    ];
-    $("#kpis").innerHTML = cards.map(k=>`
-      <div class="kpi ${k.c}"><div class="ico">${k.i}</div>
-        <div><div class="val">${k.v}</div><div class="lbl">${k.l}</div><small>${k.s}</small></div></div>`).join("");
   },
 
   row(e){
@@ -643,6 +658,7 @@ const UI = {
       this.state.currentPhoto = e?.photo || "";
       $("#mdEmployee").dataset.dirty = "false";
       $("#empTitle").textContent = e ? `Editar — ${e.name}` : "Novo funcionário";
+      $("#empSubmit").textContent = e ? "Salvar alterações" : "Cadastrar Funcionário";
       $("#empId").value = e?.id ?? "";
       $("#empName").value = e?.name ?? "";
       $("#empPhone").value = e?.phone ?? "";
@@ -653,6 +669,8 @@ const UI = {
       $("#empCustomRole").disabled = $("#empRole").value !== "Personalizado";
       $("#empEmail").value = e?.email ?? "";
       $("#empPass").value = ""; $("#empPass2").value = "";
+      $("#empPass").required = !e;
+      $("#empPass2").required = !e;
       $("#empActive").checked = e ? !!e.active : true;
       $("#empLogin").checked = e ? !!e.canLogin : true;
       $("#empPhoto").value = "";
@@ -671,6 +689,7 @@ const UI = {
         }
       this.writePerms("p", e?.perms || ROLE_PRESETS[$("#empRole").value]);
       this.open("mdEmployee");
+      $("#empName").focus();
     } catch (error) {
       toast(error.message, "err");
     }
@@ -696,6 +715,7 @@ const UI = {
   },
 
   async saveEmployee(){
+    const editing = Boolean(this.state.editingId);
     const name = $("#empName").value.trim(), email = $("#empEmail").value.trim();
     const p1 = $("#empPass").value, p2 = $("#empPass2").value;
     if(!name) return toast("Informe o nome completo.","err");
@@ -724,23 +744,23 @@ const UI = {
     if (p1) data.append("password", p1);
     if ($("#empPhoto").files[0]) data.append("photo", $("#empPhoto").files[0]);
 
-    const saveButton = $("#mdEmployee .modal-foot .btn-primary");
+    const saveButton = $("#empSubmit");
     this.state.busy = true;
     saveButton.disabled = true;
     saveButton.textContent = "Salvando...";
     try {
-      if(this.state.editingId) await API.updateEmployee(this.state.editingId, data);
+      if(editing) await API.updateEmployee(this.state.editingId, data);
       else await API.createEmployee(data);
       $("#mdEmployee").dataset.dirty = "false";
       this.close("mdEmployee");
-      toast(this.state.editingId ? "Funcionário atualizado com sucesso." : "Funcionário cadastrado com sucesso.","ok");
+      toast(editing ? "Funcionário atualizado com sucesso." : "Funcionário cadastrado com sucesso.","ok");
       await this.refreshAll();
     } catch (error) {
       toast(error.message, "err");
     } finally {
       this.state.busy = false;
       saveButton.disabled = false;
-      saveButton.textContent = "Salvar funcionário";
+      saveButton.textContent = editing ? "Salvar alterações" : "Cadastrar Funcionário";
     }
   },
 

@@ -38,7 +38,7 @@ async function dadosDoFormulario() {
 // PÁGINA
 // ===============================
 
-export async function listar(req, res) {
+async function renderizarProdutos(req, res, { activeSection = "estoque", mostrarCadastro = false } = {}) {
   try {
     console.log("=== ACESSANDO /PRODUTOS ===");
 
@@ -63,7 +63,9 @@ export async function listar(req, res) {
       produtos,
       filtros,
       fornecedores,
-      categorias
+      categorias,
+      activeSection,
+      mostrarCadastro
     });
 
   } catch (err) {
@@ -80,6 +82,18 @@ export async function listar(req, res) {
   }
 }
 
+export async function listar(req, res) {
+  return renderizarProdutos(req, res, {
+    activeSection: "estoque"
+  });
+}
+
+export async function cadastro(req, res) {
+  return renderizarProdutos(req, res, {
+    activeSection: "cadastro",
+    mostrarCadastro: true
+  });
+}
 
 
 
@@ -392,7 +406,9 @@ res.render(
 
  fornecedores,
  categorias,
- filtros: {}
+ filtros: {},
+ activeSection: "cadastro",
+ mostrarCadastro: true
 
  }
 

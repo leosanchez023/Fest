@@ -25,6 +25,7 @@ function hasAdminManagementGrants(actionGrants = {}) {
 async function transaction(callback) {
   const connection = await db.getConnection();
   try {
+    // Mantém alterações do usuário, permissões e auditoria na mesma transação.
     await connection.beginTransaction();
     const result = await callback(connection);
     await connection.commit();
@@ -94,6 +95,14 @@ export async function criarFuncionario(data, actorId, photoPath = null) {
       actionGrants = template?.actions;
     }
     permissions = normalizePermissions(permissions || {});
+    if (permissions.cadastro_admin === 1) {
+      const actorProfile = actorId
+        ? await model.buscarPerfilFuncionario(assertId(actorId), connection)
+        : null;
+      if (!actorProfile?.isAdmin) {
+        throw new ApiError(403, "ADMIN_PERMISSION_REQUIRED", "Somente um administrador autorizado pode conceder acesso administrativo.");
+      }
+    }
 
     const userId = await model.inserirUsuario({
       ...data,

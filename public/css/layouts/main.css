@@ -7,6 +7,12 @@ body {
 .app-layout {
     --sidebar-width: 264px;
     --sidebar-compact-width: 78px;
+    --page-padding-block: 26px;
+    --page-padding-inline: 28px;
+    --page-padding-bottom: 40px;
+    --page-section-gap: 18px;
+    --modal-padding: 24px;
+    --modal-padding-compact: 18px;
     min-height: 100vh;
     min-height: 100svh;
     background: #f4f7fb;
@@ -32,7 +38,7 @@ body {
     max-width: none;
     flex: 1;
     box-sizing: border-box;
-    padding: 26px 28px 40px;
+    padding: var(--page-padding-block) var(--page-padding-inline) var(--page-padding-bottom);
     background: #f4f7fb;
 }
 
@@ -68,7 +74,9 @@ body {
     }
 
     .page-content {
-        padding: 20px 16px 32px;
+        --page-padding-block: 20px;
+        --page-padding-inline: 16px;
+        --page-padding-bottom: 32px;
         overflow-x: visible;
         overscroll-behavior-inline: contain;
     }
@@ -86,6 +94,8 @@ body {
 
 @media (max-width: 560px) {
     .page-content {
-        padding: 18px 14px 28px;
+        --page-padding-block: 18px;
+        --page-padding-inline: 14px;
+        --page-padding-bottom: 28px;
     }
 }

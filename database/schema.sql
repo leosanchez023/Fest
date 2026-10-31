@@ -1,12 +1,11 @@
 -- =====================================================
--- FEST - SCHEMA FINAL PARA INSTALAÇÃO NOVA
+-- LOCAGEST - schema final para banco novo.
 -- =====================================================
--- Este arquivo representa a estrutura atual do sistema.
--- As migrações históricas em database/migrations continuam preservadas,
--- mas não são necessárias para criar um banco novo com a estrutura final.
--- Execute este arquivo conectado a um banco novo e vazio criado previamente.
+-- Em bancos existentes, aplique as migrations.
+-- Execute somente em um banco novo e vazio; este arquivo não altera dados.
 -- =====================================================
 
+-- Cadastros principais.
 CREATE TABLE endereco (
   id INT NOT NULL AUTO_INCREMENT,
   rua VARCHAR(150) DEFAULT NULL,
@@ -80,6 +79,7 @@ CREATE TABLE cliente (
     ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Catálogo de produtos e combos.
 CREATE TABLE produtos (
   id INT NOT NULL AUTO_INCREMENT,
   nome VARCHAR(255) NOT NULL,
@@ -141,6 +141,7 @@ CREATE TABLE combo_itens (
     FOREIGN KEY (produto_id) REFERENCES produtos(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Pedidos e configuração de entregas.
 CREATE TABLE pedidos (
   id INT NOT NULL AUTO_INCREMENT,
   cliente_id INT NOT NULL,
@@ -218,6 +219,7 @@ CREATE TABLE configuracoes_entrega (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Itens do pedido e produtos que compõem combos.
 CREATE TABLE pedido_itens (
   id INT NOT NULL AUTO_INCREMENT,
   pedido_id INT NOT NULL,
@@ -264,6 +266,7 @@ CREATE TABLE pedido_item_componentes (
     FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Pagamentos, devoluções e ocorrências dos pedidos.
 CREATE TABLE pagamentos (
   id INT NOT NULL AUTO_INCREMENT,
   pedido_id INT NOT NULL,
@@ -337,6 +340,7 @@ CREATE TABLE ocorrencias (
     FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Reservas, movimentações e histórico do estoque.
 CREATE TABLE reservas_estoque (
   id INT NOT NULL AUTO_INCREMENT,
   pedido_id INT NOT NULL,
@@ -402,6 +406,7 @@ CREATE TABLE estoque_historico (
     FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Permissões, modelos de cargo e auditoria de usuários.
 CREATE TABLE user_permissions (
   id INT NOT NULL AUTO_INCREMENT,
   usuario_id INT DEFAULT NULL,

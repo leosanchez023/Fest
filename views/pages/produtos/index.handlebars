@@ -14,25 +14,17 @@
 </div>
 {{/if}}
 
-<div class="tabs">
-    <button type="button" class="tab{{#unless produto}} active{{/unless}}" data-tab="produtos">
-        <i class="fa-solid fa-clipboard icon-sm"></i> Produtos Cadastrados
-    </button>
-
-    <button type="button" class="tab{{#if produto}} active{{/if}}" data-tab="cadastro">
-        <i class="fa-solid fa-box icon-sm"></i> Cadastro de Produtos
-    </button>
-</div>
+{{> navegacao-produtos activeSection=activeSection}}
 
 <!-- =======================
      ABA PRODUTOS
 ======================= -->
-<div id="aba-produtos" class="tab-content"{{#if produto}} style="display:none;"{{/if}}>
+<div id="aba-produtos" class="tab-content"{{#if mostrarCadastro}} style="display:none;"{{/if}}>
 
     <div class="wrap">
 
         <!-- PAGE META -->
-        <div class="page-meta" data-title="Controle de Estoque" data-subtitle="Gerencie produtos, estoque, movimentações e disponibilidade."></div>
+        <div class="page-meta" data-title="{{#if produto}}Editar produto{{else}}{{#if mostrarCadastro}}Cadastro de Produtos{{else}}Controle de Estoque{{/if}}{{/if}}" data-subtitle="{{#if produto}}Altere os dados do produto selecionado.{{else}}{{#if mostrarCadastro}}Gerencie produtos, preços e disponibilidade.{{else}}Gerencie produtos, estoque e disponibilidade.{{/if}}{{/if}}"></div>
 
         <!-- ===========================
              KPIs
@@ -334,65 +326,11 @@
 
 
 
-        <!-- HISTÓRICO -->
-        <div class="card">
-
-            <div class="card-title">
-                <h2><i class="fa-solid fa-clock-rotate-left icon-sm"></i> Histórico de Movimentação</h2>
-            </div>
-
-            <div class="historico-filtros">
-                <input id="historico-produto" type="search" placeholder="Produto ou código">
-                <select id="historico-tipo" aria-label="Tipo de movimentação">
-                    <option value="">Todos os tipos</option>
-                </select>
-                <input id="historico-de" type="date" aria-label="Data inicial">
-                <input id="historico-ate" type="date" aria-label="Data final">
-                <button id="historico-aplicar" type="button" class="btn btn-primary">Aplicar filtros</button>
-                <button id="historico-limpar" type="button" class="btn btn-secondary">Limpar</button>
-            </div>
-
-            <div class="scroll">
-
-                <table>
-
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Produto</th>
-                            <th>Tipo</th>
-                            <th class="num">Quantidade</th>
-                            <th>Responsável</th>
-                            <th>Observação</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="hist"></tbody>
-
-                </table>
-
-            </div>
-            <div class="historico-paginacao">
-                <label for="historico-limite">Registros por página</label>
-                <select id="historico-limite">
-                    <option value="10">10</option>
-                    <option value="25" selected>25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-                <span id="historico-resumo" aria-live="polite"></span>
-                <nav id="historico-paginas" aria-label="Paginação do histórico"></nav>
-            </div>
-
-        </div>
-
     </div>
 
-<div id="aba-cadastro" class="tab-content"{{#unless produto}} style="display:none;"{{/unless}}>
+<div id="aba-cadastro" class="tab-content"{{#unless mostrarCadastro}}{{#unless produto}} style="display:none;"{{/unless}}{{/unless}}>
 
     <div class="container">
-
-        <div class="page-meta" data-title="{{#if produto}}Editar produto{{else}}Produtos{{/if}}" data-subtitle="{{#if produto}}Altere os dados do produto selecionado.{{else}}Gerencie produtos, preços e disponibilidade{{/if}}"></div>
 
         <!-- FORM -->
         <div class="card">
@@ -515,7 +453,7 @@
                         {{/if}}
                     </button>
 
-                    <a href="{{#if produto}}/produtos#cadastro{{else}}/produtos{{/if}}" class="btn btn-secondary">
+                    <a href="/produtos/cadastro" class="btn btn-secondary">
                         Cancelar
                     </a>
 
@@ -1112,49 +1050,6 @@ async function baixarEstoque(id){
 
 
 }
-
-
-
-
-
-
-// ==========================================
-// ABAS
-// ==========================================
-
-
-const btnProdutos = document.querySelector('[data-tab="produtos"]');
-
-
-
-const btnCadastro = document.querySelector('[data-tab="cadastro"]');
-
-
-
-const abaProdutos =
-document.getElementById(
-    "aba-produtos"
-);
-
-
-
-const abaCadastro =
-document.getElementById(
-    "aba-cadastro"
-);
-
-
-
-
-function abrirAba(nome) {
-    const cadastro = nome === "cadastro";
-    document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === nome));
-    if (abaProdutos) abaProdutos.style.display = cadastro ? "none" : "block";
-    if (abaCadastro) abaCadastro.style.display = cadastro ? "block" : "none";
-}
-
-if (btnProdutos) btnProdutos.addEventListener("click", () => abrirAba("produtos"));
-if (btnCadastro) btnCadastro.addEventListener("click", () => abrirAba("cadastro"));
 
 
 

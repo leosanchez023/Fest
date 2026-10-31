@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import db from '../database/connection.js';
-import { criarUsuario } from '../src/modules/usuarios/usuarios.service.js';
+import { criarFuncionario, criarUsuario } from '../src/modules/usuarios/usuarios.service.js';
 
 process.env.NODE_ENV = 'test';
 const { default: app } = await import('../app.js');
@@ -19,6 +20,17 @@ async function runSecurityChecks() {
     }),
     /pelo menos 8 caracteres/i,
     'Senha curta deve ser rejeitada'
+  );
+
+  await assert.rejects(
+    () => criarFuncionario({
+      nome: 'Teste de administrador não autorizado',
+      email: `security-admin-${randomUUID()}@example.test`,
+      senha: 'Senha-Valid-2026!',
+      permissoes: { cadastro_admin: 1 }
+    }, null),
+    (error) => error.code === 'ADMIN_PERMISSION_REQUIRED' && error.status === 403,
+    'Usuário sem identidade administrativa não pode conceder permissões administrativas'
   );
 
   const invalidLoginResponse = await request(app)
