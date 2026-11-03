@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import db from '../database/connection.js';
+import { assertTestDatabase } from './helpers/test-database.js';
 import {
   calcularDisponibilidade,
   reservarEstoque
@@ -25,107 +26,116 @@ async function criarPedido({
   misto = false,
   valorTotal = 10
 } = {}) {
-  const [produtoResult] = await db.query(
+  const { rows: [produtoResult] } = await db.query(
     `INSERT INTO produtos
       (nome, estoque, estoque_reservado, estoque_em_uso, estoque_manutencao,
        estoque_danificado, estoque_minimo, ativo, tipo_produto)
-     VALUES (?, ?, 0, ?, 0, 0, 0, 1, 'PRODUTO')`,
+     VALUES ($1, $2, 0, $3, 0, 0, 0, 1, 'PRODUTO')
+     RETURNING id`,
     [`__TESTE_DEVOLUCAO_${tag}_${fixtures.length}`, estoque, emUso]
   );
-  const produtoId = produtoResult.insertId;
-  const [clienteResult] = await db.query(
-    'INSERT INTO cliente (nome, email) VALUES (?, ?)',
+  const produtoId = produtoResult.id;
+  const { rows: [clienteResult] } = await db.query(
+    'INSERT INTO cliente (nome, email) VALUES ($1, $2) RETURNING id',
     [`__TESTE_DEVOLUCAO_${tag}_${fixtures.length}`, `__devolucao_${tag}_${fixtures.length}@example.test`]
   );
-  const [pedidoResult] = await db.query(
+  const { rows: [pedidoResult] } = await db.query(
     `INSERT INTO pedidos (cliente_id, status, status_documento, tipo_pedido, valor_total)
-     VALUES (?, 'ENTREGUE', 'PEDIDO', 'ALUGUEL', ?)`,
-    [clienteResult.insertId, valorTotal]
+     VALUES ($1, 'ENTREGUE', 'PEDIDO', 'ALUGUEL', $2)
+     RETURNING id`,
+    [clienteResult.id, valorTotal]
   );
-  const pedidoId = pedidoResult.insertId;
+  const pedidoId = pedidoResult.id;
   let comboId = null;
   let itemId;
 
   if (combo) {
-    const [comboResult] = await db.query('INSERT INTO combos (nome) VALUES (?)', [`__TESTE_COMBO_${tag}_${fixtures.length}`]);
-    comboId = comboResult.insertId;
+    const { rows: [comboResult] } = await db.query(
+      'INSERT INTO combos (nome) VALUES ($1) RETURNING id',
+      [`__TESTE_COMBO_${tag}_${fixtures.length}`]
+    );
+    comboId = comboResult.id;
     await db.query(
-      'INSERT INTO combo_itens (combo_id, produto_id, quantidade) VALUES (?, ?, 2)',
+      'INSERT INTO combo_itens (combo_id, produto_id, quantidade) VALUES ($1, $2, 2)',
       [comboId, produtoId]
     );
-    const [itemResult] = await db.query(
+    const { rows: [itemResult] } = await db.query(
       `INSERT INTO pedido_itens
         (pedido_id, produto_id, combo_id, tipo_item, quantidade, quantidade_entregue, valor_unitario, subtotal)
-       VALUES (?, NULL, ?, 'ALUGUEL', ?, ?, 0, 0)`,
+       VALUES ($1, NULL, $2, 'ALUGUEL', $3, $4, 0, 0)
+       RETURNING id`,
       [pedidoId, comboId, quantidade, quantidade]
     );
-    itemId = itemResult.insertId;
+    itemId = itemResult.id;
     await db.query(
       `INSERT INTO pedido_item_componentes
         (pedido_item_id, pedido_id, produto_id, quantidade_por_unidade, quantidade_total)
-       VALUES (?, ?, ?, 2, ?)`,
+       VALUES ($1, $2, $3, 2, $4)`,
       [itemId, pedidoId, produtoId, quantidade * 2]
     );
   } else {
-    const [itemResult] = await db.query(
+    const { rows: [itemResult] } = await db.query(
       `INSERT INTO pedido_itens
         (pedido_id, produto_id, tipo_item, quantidade, quantidade_entregue, valor_unitario, subtotal)
-       VALUES (?, ?, 'ALUGUEL', ?, ?, 0, 0)`,
+       VALUES ($1, $2, 'ALUGUEL', $3, $4, 0, 0)
+       RETURNING id`,
       [pedidoId, produtoId, quantidade, quantidade]
     );
-    itemId = itemResult.insertId;
+    itemId = itemResult.id;
   }
 
   let saleItemId = null;
   if (misto) {
-    const [saleResult] = await db.query(
+    const { rows: [saleResult] } = await db.query(
       `INSERT INTO pedido_itens
         (pedido_id, produto_id, tipo_item, quantidade, quantidade_entregue, valor_unitario, subtotal)
-       VALUES (?, ?, 'VENDA', 1, 1, 0, 0)`,
+       VALUES ($1, $2, 'VENDA', 1, 1, 0, 0)
+       RETURNING id`,
       [pedidoId, produtoId]
     );
-    saleItemId = saleResult.insertId;
+    saleItemId = saleResult.id;
   }
 
-  const fixture = { pedidoId, itemId, produtoId, clienteId: clienteResult.insertId, comboId, saleItemId };
+  const fixture = { pedidoId, itemId, produtoId, clienteId: clienteResult.id, comboId, saleItemId };
   fixtures.push(fixture);
   return fixture;
 }
 
 async function estadoProduto(produtoId) {
-  const [[produto]] = await db.query(
+  const { rows: [produto] } = await db.query(
     `SELECT estoque, estoque_reservado, estoque_em_uso, estoque_manutencao, estoque_danificado
-     FROM produtos WHERE id = ?`,
+     FROM produtos WHERE id = $1`,
     [produtoId]
   );
   return { ...produto, disponivel: calcularDisponibilidade(produto) };
 }
 
 async function quantidadeDevolvida(itemId) {
-  const [[item]] = await db.query(
-    'SELECT quantidade_devolvida FROM pedido_itens WHERE id = ?',
+  const { rows: [item] } = await db.query(
+    'SELECT quantidade_devolvida FROM pedido_itens WHERE id = $1',
     [itemId]
   );
   return Number(item.quantidade_devolvida);
 }
 
 async function statusPedido(pedidoId) {
-  const [[pedido]] = await db.query(
-    'SELECT status, conferencia_finalizada FROM pedidos WHERE id = ?',
+  const { rows: [pedido] } = await db.query(
+    'SELECT status, conferencia_finalizada FROM pedidos WHERE id = $1',
     [pedidoId]
   );
   return pedido;
 }
 
 async function contarMovimentos(produtoId, tipo) {
-  const [[rows]] = await db.query(
-    'SELECT COUNT(*) AS total FROM movimentacao_estoque WHERE produto_id = ? AND tipo = ?',
+  const { rows: [movementCount] } = await db.query(
+    'SELECT COUNT(*) AS total FROM movimentacao_estoque WHERE produto_id = $1 AND tipo = $2',
     [produtoId, tipo]
   );
-  return Number(rows.total);
+  return Number(movementCount.total);
 }
 
 try {
+  await assertTestDatabase(db);
   const retornoCompleto = await criarPedido({ quantidade: 2, estoque: 2, emUso: 2 });
   await registrarDevolucao(retornoCompleto.pedidoId, {
     itens: [{ id: retornoCompleto.itemId, quantidade_boa: 2 }]
@@ -143,10 +153,10 @@ try {
   assert.equal(estado.disponivel, 1, 'O item faltante deve continuar em uso e indisponível');
   assert.equal(await quantidadeDevolvida(pendencia.itemId), 1, 'Somente o item fisicamente recebido conta como devolvido');
   assert.equal((await statusPedido(pendencia.pedidoId)).status, 'PENDENTE');
-  const [[registroFaltante]] = await db.query(
+  const { rows: [registroFaltante] } = await db.query(
     `SELECT quantidade_recebida, quantidade_faltando, quantidade_danificada
      FROM devolucao_itens WHERE devolucao_id = (
-       SELECT MAX(id) FROM devolucoes WHERE pedido_id = ?
+       SELECT MAX(id) FROM devolucoes WHERE pedido_id = $1
      )`,
     [pendencia.pedidoId]
   );
@@ -173,10 +183,10 @@ try {
   assert.equal(estado.disponivel, 2);
   assert.equal(await quantidadeDevolvida(pendencia.itemId), 2);
   assert.equal(await contarMovimentos(pendencia.produtoId, 'RETORNO'), 2);
-  const [[registrosDevolucao]] = await db.query(
+  const { rows: [registrosDevolucao] } = await db.query(
     `SELECT SUM(quantidade_recebida) AS recebida, SUM(quantidade_faltando) AS faltando
      FROM devolucao_itens WHERE devolucao_id IN
-       (SELECT id FROM devolucoes WHERE pedido_id = ?)`,
+       (SELECT id FROM devolucoes WHERE pedido_id = $1)`,
     [pendencia.pedidoId]
   );
   assert.equal(Number(registrosDevolucao.recebida), 2);
@@ -239,8 +249,8 @@ try {
   assert.equal((await estadoProduto(rollback.produtoId)).estoque_em_uso, 1);
   assert.equal(await quantidadeDevolvida(rollback.itemId), 0);
   assert.equal(await contarMovimentos(rollback.produtoId, 'RETORNO'), 0);
-  const [[devolucoesRollback]] = await db.query(
-    'SELECT COUNT(*) AS total FROM devolucoes WHERE pedido_id = ?',
+  const { rows: [devolucoesRollback] } = await db.query(
+    'SELECT COUNT(*) AS total FROM devolucoes WHERE pedido_id = $1',
     [rollback.pedidoId]
   );
   assert.equal(Number(devolucoesRollback.total), 0);
@@ -280,10 +290,10 @@ try {
   });
   assert.equal((await estadoProduto(combo.produtoId)).estoque_em_uso, 0);
   assert.equal(await quantidadeDevolvida(combo.itemId), 2);
-  const [[historicoCombo]] = await db.query(
+  const { rows: [historicoCombo] } = await db.query(
     `SELECT SUM(quantidade_recebida) AS recebida, SUM(quantidade_faltando) AS faltando
      FROM devolucao_itens WHERE devolucao_id IN
-       (SELECT id FROM devolucoes WHERE pedido_id = ?)`,
+       (SELECT id FROM devolucoes WHERE pedido_id = $1)`,
     [combo.pedidoId]
   );
   assert.equal(Number(historicoCombo.recebida), 4);
@@ -296,7 +306,7 @@ try {
   await inserirPagamento(ocorrenciaAberta.pedidoId, { valor: 10, forma_pagamento: 'PIX' });
   await db.query(
     `INSERT INTO ocorrencias (pedido_id, tipo, descricao, valor, status)
-     VALUES (?, 'Operacional', 'Pendência de teste', 0, 'ABERTO')`,
+     VALUES ($1, 'Operacional', 'Pendência de teste', 0, 'ABERTO')`,
     [ocorrenciaAberta.pedidoId]
   );
   await marcarConferencia(ocorrenciaAberta.pedidoId);
@@ -304,7 +314,7 @@ try {
   assert.equal((await statusPedido(ocorrenciaAberta.pedidoId)).status, 'PENDENTE');
   await db.query(
     `UPDATE ocorrencias SET status = 'RESOLVIDO'
-     WHERE pedido_id = ? AND tipo = 'Operacional'`,
+     WHERE pedido_id = $1 AND tipo = 'Operacional'`,
     [ocorrenciaAberta.pedidoId]
   );
   await marcarConferencia(ocorrenciaAberta.pedidoId);
@@ -318,7 +328,7 @@ try {
     await db.query('DELETE FROM pagamentos WHERE pedido_id = ?', [fixture.pedidoId]);
     await db.query(
       `DELETE FROM devolucao_itens WHERE devolucao_id IN
-        (SELECT id FROM devolucoes WHERE pedido_id = ?)`,
+        (SELECT id FROM devolucoes WHERE pedido_id = $1)`,
       [fixture.pedidoId]
     );
     await db.query('DELETE FROM devolucoes WHERE pedido_id = ?', [fixture.pedidoId]);

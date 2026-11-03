@@ -1,5 +1,16 @@
 import * as model from './combos.model.js';
 
+function normalizarAtivo(valor, padrao) {
+  if (valor === undefined || valor === null) return padrao;
+  if (valor === true || valor === 1 || String(valor).toLowerCase() === 'true' || String(valor) === '1') {
+    return true;
+  }
+  if (valor === false || valor === 0 || String(valor).toLowerCase() === 'false' || String(valor) === '0') {
+    return false;
+  }
+  throw new Error('Estado do combo inválido.');
+}
+
 export async function listarCombos() {
   return await model.listarCombos();
 }
@@ -52,7 +63,7 @@ export async function criarCombo(dados) {
     descricao: dados.descricao || '',
     codigo: dados.codigo || null,
     preco,
-    ativo: dados.ativo !== false,
+    ativo: normalizarAtivo(dados.ativo, true),
     itens: itensValidados
   });
 
@@ -111,7 +122,7 @@ export async function atualizarCombo(id, dados) {
     descricao: dados.descricao || '',
     codigo: dados.codigo || null,
     preco,
-    ativo: dados.ativo !== false,
+    ativo: normalizarAtivo(dados.ativo, undefined),
     itens: itensValidados
   });
 }
@@ -129,7 +140,7 @@ export async function desativarCombo(id) {
 }
 
 export async function atualizarStatusCombo(id, ativo) {
-  return await model.atualizarStatusCombo(id, ativo);
+  return await model.atualizarStatusCombo(id, normalizarAtivo(ativo, undefined));
 }
 
 export async function calcularDisponibilidadeCombo(comboId) {

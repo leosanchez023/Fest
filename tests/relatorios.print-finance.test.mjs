@@ -1,17 +1,17 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import db from "../database/connection.js";
-import { construirFiltros, montarDadosRelatorio } from "../src/modules/relatorios/relatorios.routes.js";
+import { construirFiltros, montarDadosImpressao, montarDadosRelatorio } from "../src/modules/relatorios/relatorios.routes.js";
 
-const originalExecute = db.execute;
+const originalQuery = db.query;
 
 try {
   const filtros = construirFiltros({ tab: "financeiro", status: "Pago" });
   assert.match(filtros.pedidosSql, /- COALESCE\(pg\.total_pago, 0\) \+ COALESCE\(pg\.reembolsos, 0\)/);
 
-  db.execute = async (sql) => {
+  db.query = async (sql) => {
     if (sql.includes("FROM pedidos p")) {
-      return [[
+      const rows = [
         {
           id: 1,
           cliente_id: 2,
@@ -34,9 +34,10 @@ try {
           total_pago: 100,
           reembolsos: 100
         }
-      ]];
+      ];
+      return { rows, rowCount: rows.length };
     }
-    if (sql.includes("FROM produtos")) return [[]];
+    if (sql.includes("FROM produtos")) return { rows: [], rowCount: 0 };
     throw new Error(`Unexpected report SQL: ${sql}`);
   };
   const report = await montarDadosRelatorio({ tab: "financeiro" });
@@ -45,15 +46,36 @@ try {
   assert.equal(report.pedidos[1].saldo, 100);
   assert.equal(report.pedidos[1].fin, "Pendente");
 
-  const script = await readFile(new URL("../public/js/relatorios.js", import.meta.url), "utf8");
-  const printCss = await readFile(new URL("../public/css/pages/relatorios.css", import.meta.url), "utf8");
-  assert.match(script, /beforeprint[\s\S]*state\.printing=true/);
-  assert.match(script, /state\.printing\?sorted:sorted\.slice/);
-  assert.match(printCss, /@media print/);
-  assert.match(printCss, /\.app-sidebar[\s\S]*display:\s*none/);
+  const printable = await montarDadosImpressao({
+    tab: "pedidos",
+    from: "2026-10-01",
+    to: "2026-10-02",
+    q: "60,00"
+  }, "Ana Teste");
+  assert.equal(printable.rows.length, 1);
+  assert.equal(printable.responsible, "Ana Teste");
+  assert.equal(printable.period, "01/10/2026 a 02/10/2026");
+  assert.equal(printable.rows[0].cells.find((cell) => cell.label === "Nº").value, "1");
+  assert.equal(printable.rows[0].cells.find((cell) => cell.label === "Valor").value.replace(/\u00a0/g, " "), "R$ 100,00");
+  assert.equal(printable.summary.find((item) => item.label === "Pedidos").value, 1);
+  assert.deepEqual(printable.selectedFilters, ["Busca: 60,00"]);
 
-  console.log("Testes de saldo líquido, situação financeira e impressão integral de relatórios ok");
+  const script = await readFile(new URL("../public/js/relatorios.js", import.meta.url), "utf8");
+  const printCss = await readFile(new URL("../public/css/pages/relatorios-impressao.css", import.meta.url), "utf8");
+  const printView = await readFile(new URL("../views/pages/relatorios_impressao.handlebars", import.meta.url), "utf8");
+  assert.match(script, /window\.open\(`\/relatorios\/imprimir\?/);
+  assert.doesNotMatch(script, /beforeprint|window\.print\(\)/);
+  assert.match(printCss, /@page[\s\S]*size:\s*A4/);
+  assert.match(printCss, /@media print/);
+  assert.match(printCss, /display:\s*table-header-group/);
+  assert.match(printCss, /break-inside:\s*avoid/);
+  assert.match(printCss, /counter\(page\)/);
+  assert.match(printView, /LOCAGEST/);
+  assert.match(printView, /Responsável/);
+  assert.match(printView, /Período selecionado/);
+
+  console.log("Testes de saldo líquido, impressão dedicada e filtros do relatório ok");
 } finally {
-  db.execute = originalExecute;
+  db.query = originalQuery;
   await db.end();
 }

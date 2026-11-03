@@ -1,8 +1,8 @@
 async function deletarProduto(id) {
   const result = await window.FestAlert?.confirm?.(
     "Confirmar exclusão",
-    "Tem certeza que quer excluir este produto?"
-  ) ?? { isConfirmed: true };
+    "Tem certeza de que deseja excluir este produto? O histórico e os vínculos existentes serão preservados."
+  ) ?? { isConfirmed: window.confirm("Tem certeza de que deseja excluir este produto? O histórico e os vínculos existentes serão preservados.") };
 
   if (!result.isConfirmed) return;
 
@@ -10,17 +10,58 @@ async function deletarProduto(id) {
     const res = await fetch(`/produtos/deletar/${id}`, { method: 'DELETE' });
     const data = await res.json();
 
-    if (res.ok) {
-      await window.FestAlert.success("Produto excluído", "O produto foi removido com sucesso.");
+    if (res.ok && data.sucesso) {
+      if (window.FestAlert?.success) {
+        await window.FestAlert.success("Produto excluído", data.mensagem || "O produto foi removido da listagem; o histórico foi preservado.");
+      } else {
+        window.alert(data.mensagem || "O produto foi removido da listagem; o histórico foi preservado.");
+      }
       window.location.reload();
     } else {
-      await window.FestAlert.error("Não foi possível excluir", data.mensagem || "Erro ao deletar");
+      const message = data.erro || data.mensagem || "Não foi possível excluir o produto.";
+      if (window.FestAlert?.error) await window.FestAlert.error("Não foi possível excluir", message);
+      else window.alert(message);
     }
   } catch (err) {
-    await window.FestAlert.error("Erro de conexão", "Não foi possível concluir a exclusão.");
     console.error(err);
+    if (window.FestAlert?.error) await window.FestAlert.error("Erro de conexão", "Não foi possível concluir a exclusão.");
+    else window.alert("Não foi possível concluir a exclusão.");
   }
 }
+
+window.deletarProduto = deletarProduto;
+
+function fecharMenusProduto() {
+  document.querySelectorAll(".product-menu").forEach((menu) => { menu.hidden = true; });
+  document.querySelectorAll("[data-product-list-menu], [data-product-menu]").forEach((button) => {
+    button.setAttribute("aria-expanded", "false");
+  });
+}
+
+document.addEventListener("click", (event) => {
+  const menuButton = event.target.closest("[data-product-list-menu]");
+  if (menuButton) {
+    const menu = document.getElementById(`menu-lista-produto-${menuButton.dataset.productListMenu}`);
+    const abrir = menu?.hidden;
+    fecharMenusProduto();
+    if (menu && abrir) {
+      menu.hidden = false;
+      menuButton.setAttribute("aria-expanded", "true");
+    }
+    return;
+  }
+  const deleteButton = event.target.closest("[data-product-list-delete]");
+  if (deleteButton) {
+    fecharMenusProduto();
+    deletarProduto(deleteButton.dataset.productListDelete);
+    return;
+  }
+  if (!event.target.closest(".product-actions")) fecharMenusProduto();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") fecharMenusProduto();
+});
 
 function abrirAbaProdutos(nome) {
   const abaProdutos = document.getElementById("aba-produtos");

@@ -4,10 +4,10 @@ export async function buscarOrcamentos(query) {
   const termo = String(query?.search || query?.q || '').trim();
   const where = `WHERE p.status_documento = 'ORCAMENTO'
     AND p.status <> 'CANCELADO'
-    ${termo ? 'AND (c.nome LIKE ? OR c.telefone LIKE ? OR CAST(p.id AS CHAR) LIKE ?)' : ''}`;
+    ${termo ? 'AND (c.nome ILIKE $1 OR c.telefone ILIKE $2 OR CAST(p.id AS TEXT) ILIKE $3)' : ''}`;
   const params = termo ? [`%${termo}%`, `%${termo}%`, `%${termo}%`] : [];
 
-  const [rows] = await db.query(
+  const { rows: rows } = await db.query(
     `SELECT p.*, c.nome as cliente,
       (SELECT COALESCE(SUM(valor),0) FROM pagamentos WHERE pedido_id = p.id) as valor_pago
      FROM pedidos p

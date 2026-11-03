@@ -90,9 +90,7 @@ export async function calcularFrete() {
         <strong>Rota de ida:</strong> ${result.distanciaKm.toFixed(2)} km<br>
         ${result.sentidoDistancia === "IDA_VOLTA" ? `<strong>Rota de retorno:</strong> ${result.distanciaRetornoKm.toFixed(2)} km<br>` : ""}
         <strong>Distância cobrada (${result.sentidoDistancia === "IDA" ? "somente ida" : "ida e volta"}):</strong> ${result.distanciaCobradaKm.toFixed(2)} km<br>
-        <strong>Regra aplicada:</strong> ${esc(result.formula)}<br>
         ${result.numeroLocalizado ? "<strong>Número:</strong> localização do imóvel encontrada pelo Photon.<br>" : result.destinoAproximado ? `<strong>Atenção:</strong> ${result.numeroLookupFalhou ? "não foi possível consultar o número do imóvel; " : "o número não possui ponto geográfico confiável; "}a rota usa a localização aproximada da rua.<br>` : ""}
-        ${result.origemAproximada ? "<strong>Atenção:</strong> a origem usa uma localização aproximada.<br>" : ""}
         <strong>Frete:</strong> ${fmt(result.valorFrete)}
       `;
     }

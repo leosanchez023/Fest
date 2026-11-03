@@ -13,20 +13,21 @@ const password = "Valid-Test-Password-42";
 let userId;
 
 try {
-  const [[database]] = await db.query("SELECT DATABASE() AS name");
+  const { rows: databases } = await db.query("SELECT current_database() AS name");
   assert.equal(
-    database.name,
+    databases[0]?.name,
     "fest_auth_test",
     "Authentication integration tests must run only against the isolated fest_auth_test database"
   );
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const [userResult] = await db.query(
+  const { rows: [userResult] } = await db.query(
     `INSERT INTO usuario (nome, email, senha, cargo, ativo, login_habilitado)
-     VALUES ('Auth Integration Test', ?, ?, 'Administrador', 1, 1)`,
+     VALUES ('Auth Integration Test', $1, $2, 'Administrador', 1, 1)
+     RETURNING id`,
     [email, passwordHash]
   );
-  userId = userResult.insertId;
+  userId = userResult.id;
 
   const anonymousResponse = await request(app).get("/usuarios");
   assert.equal(anonymousResponse.status, 302, "Protected pages must redirect anonymous users");
@@ -64,7 +65,7 @@ try {
   assert.equal(unknownEmail.status, 302);
   assert.equal(unknownEmail.headers.location, "/");
 
-  await db.query("UPDATE usuario SET ativo = 0 WHERE id = ?", [userId]);
+  await db.query("UPDATE usuario SET ativo = 0 WHERE id = $1", [userId]);
   const inactiveLogin = await request.agent(app)
     .post("/login")
     .type("form")
@@ -72,7 +73,7 @@ try {
   assert.equal(inactiveLogin.status, 302);
   assert.equal(inactiveLogin.headers.location, "/");
 
-  await db.query("UPDATE usuario SET ativo = 1, login_habilitado = 0 WHERE id = ?", [userId]);
+  await db.query("UPDATE usuario SET ativo = 1, login_habilitado = 0 WHERE id = $1", [userId]);
   const disabledLogin = await request.agent(app)
     .post("/login")
     .type("form")
@@ -80,15 +81,15 @@ try {
   assert.equal(disabledLogin.status, 302);
   assert.equal(disabledLogin.headers.location, "/");
 
-  await db.query("UPDATE usuario SET login_habilitado = 1 WHERE id = ?", [userId]);
+  await db.query("UPDATE usuario SET login_habilitado = 1 WHERE id = $1", [userId]);
   await db.query(
     `INSERT INTO user_permissions (usuario_id, cadastro_admin)
-     VALUES (?, 1)`,
+     VALUES ($1, 1)`,
     [userId]
   );
   await db.query(
     `INSERT INTO user_permission_actions (usuario_id, module_key, action_key)
-     VALUES (?, 'cadastro_admin', 'view')`,
+     VALUES ($1, 'cadastro_admin', 'view')`,
     [userId]
   );
 
@@ -136,10 +137,10 @@ try {
   console.log("Authentication integration tests passed");
 } finally {
   if (userId) {
-    await db.query("DELETE FROM funcionario_login_eventos WHERE usuario_id = ?", [userId]);
-    await db.query("DELETE FROM user_permission_actions WHERE usuario_id = ?", [userId]);
-    await db.query("DELETE FROM user_permissions WHERE usuario_id = ?", [userId]);
-    await db.query("DELETE FROM usuario WHERE id = ?", [userId]);
+    await db.query("DELETE FROM funcionario_login_eventos WHERE usuario_id = $1", [userId]);
+    await db.query("DELETE FROM user_permission_actions WHERE usuario_id = $1", [userId]);
+    await db.query("DELETE FROM user_permissions WHERE usuario_id = $1", [userId]);
+    await db.query("DELETE FROM usuario WHERE id = $1", [userId]);
   }
   await db.end();
 }

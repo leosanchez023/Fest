@@ -1,5 +1,8 @@
 // VARIÁVEIS GLOBAIS
 let suppliers = [];
+let supplierSummary = { total: 0, ativos: 0, novos: 0 };
+let supplierPage = 1;
+let supplierLimit = 10;
 let supplierSaveInFlight = false;
 let supplierLoadRequest = 0;
 const supplierDeletesInFlight = new Set();
@@ -403,20 +406,37 @@ async function deleteSupplier(id) {
 }
 
 // BUSCAR FORNECEDORES
-async function fetchSuppliers() {
+async function fetchSuppliers(options = {}) {
     const requestId = ++supplierLoadRequest;
+    const page = options.page ?? supplierPage;
+    const selectedLimit = Number(document.getElementById("supplier-page-size")?.value);
+    const limit = options.limit ?? ([10, 25, 50].includes(selectedLimit) ? selectedLimit : supplierLimit);
+    const params = new URLSearchParams({
+        q: document.getElementById("search")?.value.trim() || "",
+        categoria: document.getElementById("filter-category")?.value || "",
+        status: document.getElementById("filter-status")?.value || "",
+        page: String(page),
+        limit: String(limit)
+    });
 
     try {
-
-        const response = await fetch("/fornecedores/data");
+        const response = await fetch(`/fornecedores/data?${params.toString()}`);
         const dados = await response.json();
-        if (!response.ok || !Array.isArray(dados)) {
+        if (!response.ok || !Array.isArray(dados.fornecedores)) {
             throw new Error(dados.error || "Não foi possível carregar os fornecedores.");
         }
         if (requestId !== supplierLoadRequest) return;
-        suppliers = dados;
+        suppliers = dados.fornecedores;
+        supplierSummary = dados.summary || {
+            total: dados.total || 0,
+            ativos: suppliers.filter((fornecedor) => fornecedor.status === "Ativo").length,
+            novos: 0
+        };
+        supplierPage = dados.page || page;
+        supplierLimit = dados.limit || limit;
 
         renderTable();
+        renderPagination(dados);
         atualizarKPIs();
         document.querySelector(".supplier-message-error")?.remove();
 
@@ -425,32 +445,34 @@ async function fetchSuppliers() {
         if (requestId !== supplierLoadRequest) return;
         const tbody = document.getElementById("supplier-tbody");
         if (tbody) tbody.innerHTML = '<tr><td colspan="7">Não foi possível carregar os fornecedores.</td></tr>';
+        const pagination = document.getElementById("pagination");
+        if (pagination) pagination.replaceChildren();
     }
 }
 
 // ATUALIZAR INDICADORES
 function atualizarKPIs() {
-
-    const total = suppliers.length;
-    const ativos = suppliers.filter(fornecedor =>fornecedor.status === "Ativo").length;
-    const agora = new Date();
-    const novos = suppliers.filter((fornecedor) => {
-        if (!fornecedor.criadoEm) return false;
-        const data = new Date(String(fornecedor.criadoEm).replace(" ", "T"));
-        return !Number.isNaN(data.getTime())
-            && data.getFullYear() === agora.getFullYear()
-            && data.getMonth() === agora.getMonth();
-    }).length;
     const totalElement = document.getElementById("kpi-total");
     const ativosElement = document.getElementById("kpi-active");
     const novosElement = document.getElementById("kpi-new");
 
-    if (totalElement) {totalElement.textContent = total;}
-
-    if (ativosElement) {ativosElement.textContent = ativos;}
-    if (novosElement) {novosElement.textContent = novos;}
+    if (totalElement) totalElement.textContent = supplierSummary.total;
+    if (ativosElement) ativosElement.textContent = supplierSummary.ativos;
+    if (novosElement) novosElement.textContent = supplierSummary.novos;
 }
 
+function renderPagination(data) {
+    const pagination = document.getElementById("pagination");
+    if (!pagination) return;
+    const page = Number(data.page) || 1;
+    const totalPages = Number(data.totalPages) || 1;
+    const total = Number(data.total) || 0;
+    pagination.innerHTML = `
+        <button type="button" class="btn" data-supplier-page="${Math.max(1, page - 1)}" ${page <= 1 ? "disabled" : ""}>Anterior</button>
+        <span>Página ${page} de ${totalPages} (${total} fornecedores)</span>
+        <button type="button" class="btn" data-supplier-page="${Math.min(totalPages, page + 1)}" ${page >= totalPages ? "disabled" : ""}>Próxima</button>
+    `;
+}
 
 
 // RENDERIZAR TABELA DE FORNECEDORES
@@ -464,45 +486,12 @@ function renderTable() {
         return;
     }
 
-    const pesquisa = document
-        .getElementById("search")
-        ?.value
-        .toLowerCase() || "";
-
-    const categoria = document
-        .getElementById("filter-category")
-        ?.value || "";
-
-    const status = document
-        .getElementById("filter-status")
-        ?.value || "";
-
-    const lista = suppliers
-    .filter(fornecedor => {
-
-        const texto =
-        `
-            ${fornecedor.nome}
-            ${fornecedor.email}
-            ${fornecedor.telefone}
-            ${fornecedor.cnpj}
-            ${fornecedor.cidade}
-        `
-        .toLowerCase();
-
-            const buscaOk = texto.includes(pesquisa);
-            const categoriaOk = !categoria ||fornecedor.categoria === categoria;
-            const statusOk = !status || fornecedor.status === status;
-
-            return buscaOk && categoriaOk && statusOk;
-        });
-
-    if (!lista.length) {
+    if (!suppliers.length) {
         tbody.innerHTML = '<tr><td colspan="7">Nenhum fornecedor encontrado.</td></tr>';
         return;
     }
 
-    tbody.innerHTML = lista.map((fornecedor) => {
+    tbody.innerHTML = suppliers.map((fornecedor) => {
         const id = Number(fornecedor.id);
         const nome = escapeHTML(fornecedor.nome);
         return `<tr class="record-table-row supplier-table-row" data-supplier-id="${id}" data-supplier-name="${nome}" tabindex="0" aria-label="Abrir detalhes de ${nome}">
@@ -523,8 +512,7 @@ function renderTable() {
 
 // FILTROS DA TABELA
 function aplicarFiltros() {
-
-    renderTable();
+    return fetchSuppliers({ page: 1 });
 }
 
 // VISUALIZAR PERFIL DO FORNECEDOR
@@ -599,18 +587,25 @@ window.aplicarFiltros = aplicarFiltros;
 
 // EVENTOS DOS FILTROS
 function carregarFiltros() {
-    const pesquisa = document.getElementById("search");
     const categoria = document.getElementById("filter-category");
     const status = document.getElementById("filter-status");
+    const pageSize = document.getElementById("supplier-page-size");
+    const categoriaInicial = categoria?.dataset.currentCategory;
+    const statusInicial = status?.dataset.currentStatus;
+    const limiteInicial = Number(pageSize?.dataset.currentLimit);
 
-    // Pesquisa por texto
-    if (pesquisa) {pesquisa.addEventListener("input",() => {renderTable();});}
+    if (categoriaInicial) categoria.value = categoriaInicial;
+    if (statusInicial) status.value = statusInicial;
+    if ([10, 25, 50].includes(limiteInicial)) {
+        pageSize.value = String(limiteInicial);
+        supplierLimit = limiteInicial;
+    }
 
-    // Filtro por categoria
-    if (categoria) {categoria.addEventListener("change",() => {renderTable();});}
-
-    // Filtro por status
-    if (status) {status.addEventListener("change",() => {renderTable();});}
+    categoria?.addEventListener("change", () => fetchSuppliers({ page: 1 }));
+    status?.addEventListener("change", () => fetchSuppliers({ page: 1 }));
+    pageSize?.addEventListener("change", () => {
+        fetchSuppliers({ page: 1, limit: Number(pageSize.value) });
+    });
 }
 
 // LIMPAR FILTROS
@@ -625,7 +620,7 @@ function limparFiltros() {
 
     if (status) {status.value = "";}
 
-    renderTable();
+    fetchSuppliers({ page: 1 });
 }
 
 // BUSCAR FORNECEDOR POR NOME
@@ -705,7 +700,15 @@ document.addEventListener("DOMContentLoaded",() => {
     document.getElementById("supplier-form")?.addEventListener("submit", saveSupplier);
     document.getElementById("btn-cancel-supplier")?.addEventListener("click", closeForm);
     document.getElementById("modal-form")?.addEventListener("click", closeFormOutside);
-    document.getElementById("btn-search-suppliers")?.addEventListener("click", renderTable);
+    document.getElementById("btn-search-suppliers")?.addEventListener("click", () => {
+        fetchSuppliers({ page: 1 });
+    });
+    document.getElementById("search")?.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            fetchSuppliers({ page: 1 });
+        }
+    });
     document.getElementById("btn-clear-supplier-filters")?.addEventListener("click", limparFiltros);
     const rowMenu = document.getElementById("supplierRowMenu");
     let menuToggle = null;
@@ -749,6 +752,11 @@ document.addEventListener("DOMContentLoaded",() => {
             event.preventDefault();
             viewSupplier(row.dataset.supplierId);
         }
+    });
+    document.getElementById("pagination")?.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-supplier-page]");
+        if (!button || button.disabled) return;
+        fetchSuppliers({ page: Number(button.dataset.supplierPage) });
     });
     rowMenu?.addEventListener("toggle", (event) => {
         if (event.newState === "closed") {

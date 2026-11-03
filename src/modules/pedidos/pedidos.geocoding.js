@@ -359,8 +359,7 @@ export async function buscarSugestoesEndereco(termo, filtros = {}, broad = false
 }
 
 function addressMatchesPlace(address, place) {
-  for (const field of ["rua", "bairro", "cidade", "estado", "cep"]) {
-    if (field === "bairro" && !normalize(place.address?.bairro)) continue;
+  for (const field of ["rua", "cidade", "estado", "cep"]) {
     if (normalizeMatch(address?.[field]) !== normalizeMatch(place.address?.[field])) {
       throw geocodingError("O endereço foi alterado após a seleção. Selecione novamente o resultado.", 400);
     }

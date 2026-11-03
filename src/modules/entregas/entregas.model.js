@@ -26,31 +26,32 @@ const buildPedidosWhere = ({ search, from, to, status, pay, delivery, kpi }) => 
   const params = [];
 
   if (search) {
-    clauses.push("(c.nome LIKE ? OR c.telefone LIKE ? OR p.telefone_contato LIKE ? OR CAST(p.id AS CHAR) LIKE ?)");
     const term = `%${search}%`;
+    const first = params.length + 1;
+    clauses.push(`(c.nome ILIKE $${first} OR c.telefone ILIKE $${first + 1} OR p.telefone_contato ILIKE $${first + 2} OR CAST(p.id AS TEXT) ILIKE $${first + 3})`);
     params.push(term, term, term, term);
   }
   if (from) {
-    clauses.push("p.data_evento >= ?");
+    clauses.push(`p.data_evento >= $${params.length + 1}`);
     params.push(from);
   }
   if (to) {
-    clauses.push("p.data_evento <= ?");
+    clauses.push(`p.data_evento <= $${params.length + 1}`);
     params.push(to);
   }
   if (status) {
-    clauses.push("p.status = ?");
+    clauses.push(`p.status = $${params.length + 1}`);
     params.push(status);
   }
 
   if (delivery === "Aguardando Entrega") {
-    clauses.push("p.status IN ('ORCAMENTO','CONFIRMADO') AND (p.data_entrega IS NULL OR p.data_entrega >= CURDATE())");
+    clauses.push("p.status IN ('ORCAMENTO','CONFIRMADO') AND (p.data_entrega IS NULL OR p.data_entrega >= CURRENT_DATE)");
   } else if (delivery === "Em Rota") {
     clauses.push("p.status = 'EM_PREPARO'");
   } else if (delivery === "Entregue") {
     clauses.push("p.status = 'ENTREGUE'");
   } else if (delivery === "Entrega Atrasada") {
-    clauses.push(`p.data_entrega < CURDATE()
+    clauses.push(`p.data_entrega < CURRENT_DATE
       AND p.status NOT IN ('ENTREGUE','RETIRADO','CONFERENCIA','PENDENTE','FINALIZADO','CANCELADO')`);
   }
 
@@ -65,9 +66,9 @@ const buildPedidosWhere = ({ search, from, to, status, pay, delivery, kpi }) => 
   if (kpi === "active") {
     clauses.push("p.status NOT IN ('FINALIZADO','CANCELADO')");
   } else if (kpi === "delivery") {
-    clauses.push("DATE(p.data_entrega) = CURDATE()");
+    clauses.push("DATE(p.data_entrega) = CURRENT_DATE");
   } else if (kpi === "pickup") {
-    clauses.push("DATE(p.data_retirada) = CURDATE()");
+    clauses.push("DATE(p.data_retirada) = CURRENT_DATE");
   } else if (kpi === "late") {
     clauses.push(`${valorCreditadoSql} < p.valor_total AND p.status NOT IN ('FINALIZADO','CANCELADO')`);
   }
@@ -83,12 +84,12 @@ export async function buscarPedidos({ search, from, to, status, pay, delivery, s
     LEFT JOIN endereco e ON e.id = p.endereco_id
     WHERE ${where.sql}
   `;
-  const [[count]] = await db.query(`SELECT COUNT(*) AS total ${joins}`, where.params);
+  const { rows: [count] } = await db.query(`SELECT COUNT(*) AS total ${joins}`, where.params);
   const offset = (page - 1) * limit;
   const orderClause = sort === "event_asc"
     ? "ORDER BY p.data_evento ASC, p.id ASC"
     : "ORDER BY p.data_evento DESC, p.id DESC";
-  const [rows] = await db.query(`
+  const { rows: rows } = await db.query(`
     SELECT
       p.id,
       p.status,
@@ -115,13 +116,13 @@ export async function buscarPedidos({ search, from, to, status, pay, delivery, s
       ${valorCreditadoSql} AS valor_creditado
     ${joins}
     ${orderClause}
-    LIMIT ? OFFSET ?
+    LIMIT $${where.params.length + 1} OFFSET $${where.params.length + 2}
   `, [...where.params, limit, offset]);
   return { rows, total: Number(count.total), page, limit };
 }
 
 export async function buscarPedidoPorId(id) {
-  const [rows] = await db.query(`
+  const { rows: rows } = await db.query(`
     SELECT
       p.*,
       c.nome AS cliente,
@@ -141,41 +142,41 @@ export async function buscarPedidoPorId(id) {
     FROM pedidos p
     LEFT JOIN cliente c ON c.id = p.cliente_id
     LEFT JOIN endereco e ON e.id = p.endereco_id
-    WHERE p.id = ?
+    WHERE p.id = $1
   `, [id]);
   return rows[0] || null;
 }
 
 export async function itensDoPedido(pedidoId) {
-  const [rows] = await db.query(`
+  const { rows: rows } = await db.query(`
     SELECT pi.*, pr.nome AS produto_nome, cb.nome AS combo_nome
     FROM pedido_itens pi
     LEFT JOIN produtos pr ON pr.id = pi.produto_id
     LEFT JOIN combos cb ON cb.id = pi.combo_id
-    WHERE pi.pedido_id = ?
+    WHERE pi.pedido_id = $1
   `, [pedidoId]);
   return rows;
 }
 
 export async function pagamentosDoPedido(pedidoId) {
-  const [rows] = await db.query(
-    `SELECT * FROM pagamentos WHERE pedido_id = ? ORDER BY data_pagamento DESC`,
+  const { rows: rows } = await db.query(
+    `SELECT * FROM pagamentos WHERE pedido_id = $1 ORDER BY data_pagamento DESC`,
     [pedidoId]
   );
   return rows;
 }
 
 export async function ocorrenciasDoPedido(pedidoId) {
-  const [rows] = await db.query(
-    `SELECT * FROM ocorrencias WHERE pedido_id = ? ORDER BY data_ocorrencia DESC`,
+  const { rows: rows } = await db.query(
+    `SELECT * FROM ocorrencias WHERE pedido_id = $1 ORDER BY data_ocorrencia DESC`,
     [pedidoId]
   );
   return rows;
 }
 
 export async function devolucoesDoPedido(pedidoId) {
-  const [rows] = await db.query(
-    `SELECT * FROM devolucoes WHERE pedido_id = ? ORDER BY created_at DESC`,
+  const { rows: rows } = await db.query(
+    `SELECT * FROM devolucoes WHERE pedido_id = $1 ORDER BY created_at DESC`,
     [pedidoId]
   );
   return rows;
@@ -197,10 +198,11 @@ const calcularStatusFinal = (pedido) => {
 };
 
 export async function atualizarStatusAposPagamento(pedidoId) {
-  const conn = await db.getConnection();
+  const client = await db.connect();
+  const conn = client;
   try {
-    await conn.beginTransaction();
-    const [rows] = await conn.query(
+    await client.query('BEGIN');
+    const { rows: rows } = await conn.query(
       `SELECT
         p.status,
         p.status_documento,
@@ -226,18 +228,18 @@ export async function atualizarStatusAposPagamento(pedidoId) {
             0
         ) AS qtd_devolvida
      FROM pedidos p
-     WHERE p.id = ? FOR UPDATE`,
+     WHERE p.id = $1 FOR UPDATE`,
       [pedidoId]
     );
 
     const pedido = rows[0];
     if (!pedido) {
-      await conn.commit();
+      await client.query('COMMIT');
       return null;
     }
 
     if (Number(pedido.conferencia_finalizada || 0) !== 1) {
-      await conn.commit();
+      await client.query('COMMIT');
       return pedido.status;
     }
 
@@ -245,14 +247,14 @@ export async function atualizarStatusAposPagamento(pedidoId) {
 
     if (novoStatus && novoStatus !== pedido.status) {
       await conn.query(
-        `UPDATE pedidos SET status=? WHERE id=?`,
+        `UPDATE pedidos SET status=$1 WHERE id=$2`,
         [novoStatus, pedidoId]
       );
     }
-    await conn.commit();
+    await client.query('COMMIT');
     return novoStatus;
   } catch (error) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     throw error;
   } finally {
     conn.release();
@@ -266,11 +268,12 @@ export async function inserirPagamento(pedidoId, dados) {
     throw new Error('Valor de pagamento inválido.');
   }
 
-  const conn = await db.getConnection();
+  const client = await db.connect();
+  const conn = client;
   try {
-    await conn.beginTransaction();
-    const [pedidos] = await conn.query(
-      'SELECT id, status, valor_total FROM pedidos WHERE id = ? FOR UPDATE',
+    await client.query('BEGIN');
+    const { rows: pedidos } = await conn.query(
+      'SELECT id, status, valor_total FROM pedidos WHERE id = $1 FOR UPDATE',
       [pedidoId]
     );
     const pedido = pedidos[0];
@@ -279,10 +282,10 @@ export async function inserirPagamento(pedidoId, dados) {
       throw new Error('Não é possível registrar pagamento para este pedido.');
     }
 
-    const [[totais]] = await conn.query(
+    const { rows: [totais] } = await conn.query(
       `SELECT COALESCE(SUM(CASE WHEN valor > 0 THEN valor ELSE 0 END), 0) AS pagos,
               COALESCE(SUM(CASE WHEN valor < 0 THEN ABS(valor) ELSE 0 END), 0) AS reembolsado
-       FROM pagamentos WHERE pedido_id = ?`,
+       FROM pagamentos WHERE pedido_id = $1`,
       [pedidoId]
     );
     const saldo = Number(pedido.valor_total) - Number(totais.pagos) - Number(totais.reembolsado);
@@ -290,16 +293,16 @@ export async function inserirPagamento(pedidoId, dados) {
       throw new Error('O pagamento não pode exceder o saldo pendente.');
     }
 
-    const [result] = await conn.query(
-      `INSERT INTO pagamentos (pedido_id, usuario_id, valor, forma_pagamento, observacao) VALUES (?, ?, ?, ?, ?)`,
+    const result = await conn.query(
+      `INSERT INTO pagamentos (pedido_id, usuario_id, valor, forma_pagamento, observacao) VALUES ($1, $2, $3, $4, $5)`,
       [pedidoId, usuario_id || null, pagamento, forma_pagamento || null, observacao || null]
     );
     await conn.query(
       `INSERT INTO ocorrencias (pedido_id, usuario_id, tipo, descricao, valor, status, data_ocorrencia)
-       VALUES (?, ?, 'Pagamento', ?, ?, 'RESOLVIDO', NOW())`,
+       VALUES ($1, $2, 'Pagamento', $3, $4, 'RESOLVIDO', NOW())`,
       [pedidoId, usuario_id || null, `Pagamento registrado no valor de ${pagamento.toFixed(2)}${forma_pagamento ? ` via ${forma_pagamento}` : ''}`, pagamento]
     );
-    await conn.commit();
+    await client.query('COMMIT');
     try {
       await atualizarStatusAposPagamento(pedidoId);
     } catch (error) {
@@ -307,7 +310,7 @@ export async function inserirPagamento(pedidoId, dados) {
     }
     return result;
   } catch (error) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     throw error;
   } finally {
     conn.release();
@@ -338,16 +341,17 @@ export async function marcarEntregue(pedidoId, dados) {
     : null;
 
 
-  const conn = await db.getConnection();
+  const client = await db.connect();
+  const conn = client;
   try {
-    await conn.beginTransaction();
-    const [pedidos] = await conn.query(
-      `SELECT id, status, status_documento FROM pedidos WHERE id = ? FOR UPDATE`,
+    await client.query('BEGIN');
+    const { rows: pedidos } = await conn.query(
+      `SELECT id, status, status_documento FROM pedidos WHERE id = $1 FOR UPDATE`,
       [pedidoId]
     );
     if (!pedidos.length) throw new Error('Pedido não encontrado.');
     if (pedidos[0].status === 'ENTREGUE') {
-      await conn.rollback();
+      await client.query('ROLLBACK');
       return pedidos[0];
     }
     if (pedidos[0].status_documento !== 'PEDIDO' ||
@@ -355,8 +359,8 @@ export async function marcarEntregue(pedidoId, dados) {
       throw new Error('O pedido não pode ser entregue no estado atual.');
     }
 
-    const [itensPedido] = await conn.query(
-      `SELECT * FROM pedido_itens WHERE pedido_id = ? FOR UPDATE`,
+    const { rows: itensPedido } = await conn.query(
+      `SELECT * FROM pedido_itens WHERE pedido_id = $1 FOR UPDATE`,
       [pedidoId]
     );
 
@@ -365,9 +369,9 @@ export async function marcarEntregue(pedidoId, dados) {
       const quantidade = Number(item.quantidade || 0);
       if ((item.tipo_item || '').toUpperCase() === 'VENDA') continue;
       if (item.combo_id) {
-        const [componentes] = await conn.query(
+        const { rows: componentes } = await conn.query(
           `SELECT produto_id, quantidade_total
-           FROM pedido_item_componentes WHERE pedido_item_id = ? FOR UPDATE`,
+           FROM pedido_item_componentes WHERE pedido_item_id = $1 FOR UPDATE`,
           [item.id]
         );
         if (!componentes.length) throw new Error(`Combo do item ${item.id} não possui componentes registrados.`);
@@ -396,18 +400,18 @@ export async function marcarEntregue(pedidoId, dados) {
       `
       UPDATE pedido_itens
       SET quantidade_entregue = quantidade
-      WHERE pedido_id = ?
+      WHERE pedido_id = $1
       `,
       [
         pedidoId
       ]
     );
 
-    const [result] = await conn.query(
+    const result = await conn.query(
       `
       UPDATE pedidos
-      SET status='ENTREGUE', data_entrega=?, data_entrega_hora=?, responsavel_entrega=?, observacao_entrega=?
-      WHERE id=?
+      SET status='ENTREGUE', data_entrega=$1, data_entrega_hora=$2, responsavel_entrega=$3, observacao_entrega=$4
+      WHERE id=$5
       `,
       [data, dataHora, responsavel_entrega || null, observacao_entrega || null, pedidoId]
     );
@@ -424,7 +428,7 @@ export async function marcarEntregue(pedidoId, dados) {
         status,
         data_ocorrencia
       )
-      VALUES (?, ?, 'Entrega', ?, 0, 'RESOLVIDO', NOW())
+      VALUES ($1, $2, 'Entrega', $3, 0, 'RESOLVIDO', NOW())
       `,
       [
         pedidoId,
@@ -433,10 +437,10 @@ export async function marcarEntregue(pedidoId, dados) {
       ]
     );
 
-    await conn.commit();
+    await client.query('COMMIT');
     return result;
   } catch (error) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     throw error;
   } finally {
     conn.release();
@@ -466,32 +470,33 @@ export async function registrarDevolucao(pedidoId, dados) {
     usuario_id: usuario_id || null
   })).digest('hex');
 
-  const conn = await db.getConnection();
+  const client = await db.connect();
+  const conn = client;
   try {
-    await conn.beginTransaction();
-    const [pedidos] = await conn.query(
-      'SELECT id, status, status_documento FROM pedidos WHERE id = ? FOR UPDATE',
+    await client.query('BEGIN');
+    const { rows: pedidos } = await conn.query(
+      'SELECT id, status, status_documento FROM pedidos WHERE id = $1 FOR UPDATE',
       [pedidoId]
     );
     if (!pedidos.length) throw new Error('Pedido não encontrado.');
-    const [devolucoesExistentes] = await conn.query(
+    const { rows: devolucoesExistentes } = await conn.query(
       `SELECT id, hash_requisicao FROM devolucoes
-       WHERE pedido_id = ? AND chave_idempotencia = ? FOR UPDATE`,
+       WHERE pedido_id = $1 AND chave_idempotencia = $2 FOR UPDATE`,
       [pedidoId, chaveIdempotencia]
     );
     if (devolucoesExistentes.length) {
       if (devolucoesExistentes[0].hash_requisicao !== hashRequisicao) {
         throw new Error('O identificador da devolução já foi utilizado com outros dados.');
       }
-      await conn.commit();
-      return { insertId: devolucoesExistentes[0].id, duplicate: true };
+      await client.query('COMMIT');
+      return { id: devolucoesExistentes[0].id, duplicate: true };
     }
     if (pedidos[0].status_documento !== 'PEDIDO' ||
         !['ENTREGUE', 'CONFERENCIA', 'PENDENTE'].includes(pedidos[0].status)) {
       throw new Error('O pedido não está em uma situação que permita devolução.');
     }
 
-    const [devolucaoResult] = await conn.query(
+    const devolucaoResult = await conn.query(
       `INSERT INTO devolucoes (
           pedido_id,
           usuario_id,
@@ -501,7 +506,8 @@ export async function registrarDevolucao(pedidoId, dados) {
           hash_requisicao,
           created_at
        )
-       VALUES (?, ?, NOW(), ?, ?, ?, NOW())`,
+       VALUES ($1, $2, NOW(), $3, $4, $5, NOW())
+       RETURNING id`,
       [
         pedidoId,
         usuario_id || null,
@@ -511,7 +517,7 @@ export async function registrarDevolucao(pedidoId, dados) {
       ]
     );
 
-    const devolucaoId = devolucaoResult.insertId;
+    const devolucaoId = devolucaoResult.rows[0].id;
 
     const itensProcessados = new Set();
     for (const item of itens) {
@@ -521,9 +527,9 @@ export async function registrarDevolucao(pedidoId, dados) {
       }
       itensProcessados.add(itemId);
 
-      const [pedidoItemRows] = await conn.query(
+      const { rows: pedidoItemRows } = await conn.query(
         `SELECT id, pedido_id, produto_id, combo_id, tipo_item, quantidade, quantidade_entregue, quantidade_devolvida
-         FROM pedido_itens WHERE id = ? AND pedido_id = ? FOR UPDATE`,
+         FROM pedido_itens WHERE id = $1 AND pedido_id = $2 FOR UPDATE`,
         [itemId, pedidoId]
       );
       const pedidoItem = pedidoItemRows[0];
@@ -561,15 +567,15 @@ export async function registrarDevolucao(pedidoId, dados) {
         }));
         if (quantidadeRecebida > 0) {
           await conn.query(
-            `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE id = ? AND pedido_id = ?`,
+            `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + $1 WHERE id = $2 AND pedido_id = $3`,
             [quantidadeRecebida, itemId, pedidoId]
           );
         }
 
-        const [componentes] = await conn.query(
+        const { rows: componentes } = await conn.query(
           `SELECT produto_id, quantidade_por_unidade
            FROM pedido_item_componentes
-           WHERE pedido_item_id = ? FOR UPDATE`,
+           WHERE pedido_item_id = $1 FOR UPDATE`,
           [itemId]
         );
         for (const componente of componentes) {
@@ -577,7 +583,7 @@ export async function registrarDevolucao(pedidoId, dados) {
           await conn.query(
             `INSERT INTO devolucao_itens
               (devolucao_id, produto_id, quantidade_recebida, quantidade_faltando, quantidade_danificada, observacao)
-             VALUES (?, ?, ?, ?, ?, ?)`,
+             VALUES ($1, $2, $3, $4, $5, $6)`,
             [
               devolucaoId,
               componente.produto_id,
@@ -594,7 +600,7 @@ export async function registrarDevolucao(pedidoId, dados) {
       if (!produtoId) throw new Error('Produto inválido no item devolvido.');
       if (quantidadeRecebida > 0) {
         await conn.query(
-          `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + ? WHERE id = ? AND pedido_id = ?`,
+          `UPDATE pedido_itens SET quantidade_devolvida = quantidade_devolvida + $1 WHERE id = $2 AND pedido_id = $3`,
           [quantidadeRecebida, itemId, pedidoId]
         );
       }
@@ -624,7 +630,7 @@ export async function registrarDevolucao(pedidoId, dados) {
       await conn.query(
         `INSERT INTO devolucao_itens
           (devolucao_id, produto_id, quantidade_recebida, quantidade_faltando, quantidade_danificada, observacao)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5, $6)`,
         [
           devolucaoId,
           produtoId,
@@ -636,12 +642,12 @@ export async function registrarDevolucao(pedidoId, dados) {
       );
     }
 
-    const [[pedido]] = await conn.query(
+    const { rows: [pedido] } = await conn.query(
       `SELECT
           COALESCE(SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade ELSE 0 END),0) AS qtd_total,
           COALESCE(SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade_devolvida ELSE 0 END),0) AS qtd_devolvida
        FROM pedido_itens
-       WHERE pedido_id = ?`,
+       WHERE pedido_id = $1`,
       [pedidoId]
     );
 
@@ -652,38 +658,38 @@ export async function registrarDevolucao(pedidoId, dados) {
     if (todosDevolvidos) {
       await conn.query(
         `UPDATE pedidos
-         SET status=IF(status = 'PENDENTE', status, 'RETIRADO'),
-             data_retirada=CURDATE(),
-             responsavel_retirada=?
-         WHERE id=?`,
+         SET status=CASE WHEN status = 'PENDENTE' THEN status ELSE 'RETIRADO' END,
+             data_retirada=CURRENT_DATE,
+             responsavel_retirada=$1
+         WHERE id=$2`,
         [responsavel || null, pedidoId]
       );
 
       await conn.query(
         `INSERT INTO ocorrencias
           (pedido_id, usuario_id, tipo, descricao, valor, status, data_ocorrencia)
-         VALUES (?, ?, 'Devolução', 'Devolução concluída', 0, 'RESOLVIDO', NOW())`,
+         VALUES ($1, $2, 'Devolução', 'Devolução concluída', 0, 'RESOLVIDO', NOW())`,
         [pedidoId, usuario_id || null]
       );
 
     } else {
       await conn.query(
-        `UPDATE pedidos SET status = 'PENDENTE' WHERE id = ?`,
+        `UPDATE pedidos SET status = 'PENDENTE' WHERE id = $1`,
         [pedidoId]
       );
       await conn.query(
         `INSERT INTO ocorrencias
           (pedido_id, usuario_id, tipo, descricao, valor, status, data_ocorrencia)
-         VALUES (?, ?, 'Devolução', 'Devolução parcial registrada', 0, 'RESOLVIDO', NOW())`,
+         VALUES ($1, $2, 'Devolução', 'Devolução parcial registrada', 0, 'RESOLVIDO', NOW())`,
         [pedidoId, usuario_id || null]
       );
     }
 
-    await conn.commit();
+    await client.query('COMMIT');
     return devolucaoResult;
 
   } catch (err) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     throw err;
   } finally {
     conn.release();
@@ -692,15 +698,15 @@ export async function registrarDevolucao(pedidoId, dados) {
 
 export async function marcarRetirado(pedidoId, dados) {
   const { responsavel_retirada } = dados;
-  const [result] = await db.query(
+  const result = await db.query(
     `UPDATE pedidos
-     SET status = 'RETIRADO', data_retirada = CURDATE(), responsavel_retirada = ?
-     WHERE id = ? AND status_documento = 'PEDIDO'
+     SET status = 'RETIRADO', data_retirada = CURRENT_DATE, responsavel_retirada = $1
+     WHERE id = $2 AND status_documento = 'PEDIDO'
        AND status NOT IN ('CANCELADO', 'FINALIZADO', 'RETIRADO')`,
     [responsavel_retirada || null, pedidoId]
   );
-  if (!result.affectedRows) {
-    const [rows] = await db.query('SELECT status FROM pedidos WHERE id = ?', [pedidoId]);
+  if (!result.rowCount) {
+    const { rows: rows } = await db.query('SELECT status FROM pedidos WHERE id = $1', [pedidoId]);
     if (!rows.length) throw new Error('Pedido não encontrado.');
     if (rows[0].status === 'RETIRADO') return result;
     throw new Error('O pedido não pode ser marcado como retirado no estado atual.');
@@ -709,24 +715,25 @@ export async function marcarRetirado(pedidoId, dados) {
 }
 
 export async function marcarConferencia(id) {
-  const [result] = await db.query(
+  const result = await db.query(
     `UPDATE pedidos SET status = 'CONFERENCIA'
-     WHERE id = ? AND status_documento = 'PEDIDO'
+     WHERE id = $1 AND status_documento = 'PEDIDO'
        AND status IN ('ENTREGUE', 'RETIRADO', 'PENDENTE')`,
     [id]
   );
-  if (result.affectedRows) return result;
-  const [rows] = await db.query('SELECT status FROM pedidos WHERE id = ?', [id]);
+  if (result.rowCount) return result;
+  const { rows: rows } = await db.query('SELECT status FROM pedidos WHERE id = $1', [id]);
   if (!rows.length) throw new Error('Pedido não encontrado.');
   if (rows[0].status === 'CONFERENCIA') return result;
   throw new Error('O pedido não pode entrar em conferência no estado atual.');
 }
 
 export async function finalizarConferencia(pedidoId) {
-  const conn = await db.getConnection();
+  const client = await db.connect();
+  const conn = client;
   try {
-    await conn.beginTransaction();
-    const [pedidos] = await conn.query(
+    await client.query('BEGIN');
+    const { rows: pedidos } = await conn.query(
       `SELECT p.id, p.status, p.status_documento, p.valor_total,
          ${valorCreditadoSql} AS valor_pago,
          (SELECT COUNT(*)
@@ -739,7 +746,7 @@ export async function finalizarConferencia(pedidoId) {
           FROM pedido_itens WHERE pedido_id = p.id) AS qtd_total,
          (SELECT COALESCE(SUM(CASE WHEN tipo_item <> 'VENDA' THEN quantidade_devolvida ELSE 0 END), 0)
           FROM pedido_itens WHERE pedido_id = p.id) AS qtd_devolvida
-       FROM pedidos p WHERE p.id = ? FOR UPDATE`,
+       FROM pedidos p WHERE p.id = $1 FOR UPDATE`,
       [pedidoId]
     );
     const pedido = pedidos[0];
@@ -752,14 +759,14 @@ export async function finalizarConferencia(pedidoId) {
     const devolucaoOK = Number(pedido.qtd_total) === Number(pedido.qtd_devolvida);
     const operacaoOK = Number(pedido.ocorrencias_pendentes || 0) === 0;
     const novoStatus = pagamentoOK && devolucaoOK && operacaoOK ? 'FINALIZADO' : 'PENDENTE';
-    const [result] = await conn.query(
-      `UPDATE pedidos SET conferencia_finalizada = 1, status = ? WHERE id = ?`,
+    const result = await conn.query(
+      `UPDATE pedidos SET conferencia_finalizada = 1, status = $1 WHERE id = $2`,
       [novoStatus, pedidoId]
     );
-    await conn.commit();
+    await client.query('COMMIT');
     return { ...result, status: novoStatus };
   } catch (error) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     throw error;
   } finally {
     conn.release();
@@ -767,9 +774,10 @@ export async function finalizarConferencia(pedidoId) {
 }
 
 export async function inserirOcorrencia(pedidoId, dados) {
-  const conn = await db.getConnection();
+  const client = await db.connect();
+  const conn = client;
   try {
-    await conn.beginTransaction();
+    await client.query('BEGIN');
     const { tipo, descricao, valor, usuario_id } = dados;
     const valorCobrança = Number(valor || 0);
     if (!valorMonetarioValido(valorCobrança) || valorCobrança < 0) {
@@ -777,8 +785,8 @@ export async function inserirOcorrencia(pedidoId, dados) {
     }
     const descricaoFinal = descricao || null;
 
-    const [pedidos] = await conn.query(
-      'SELECT id, status FROM pedidos WHERE id = ? FOR UPDATE',
+    const { rows: pedidos } = await conn.query(
+      'SELECT id, status FROM pedidos WHERE id = $1 FOR UPDATE',
       [pedidoId]
     );
     if (!pedidos.length) throw new Error('Pedido não encontrado.');
@@ -786,23 +794,23 @@ export async function inserirOcorrencia(pedidoId, dados) {
       throw new Error('Não é possível alterar ocorrências deste pedido.');
     }
 
-    const [result] = await conn.query(
+    const result = await conn.query(
       `INSERT INTO ocorrencias (pedido_id, usuario_id, tipo, descricao, valor, status)
-       VALUES (?, ?, ?, ?, ?, 'ABERTO')`,
+       VALUES ($1, $2, $3, $4, $5, 'ABERTO')`,
       [pedidoId, usuario_id || null, tipo || 'Geral', descricaoFinal, valorCobrança]
     );
 
     if ((tipo || '').toString().toUpperCase() === 'COBRANCA' && valorCobrança > 0) {
       await conn.query(
-        `UPDATE pedidos SET valor_total = valor_total + ? WHERE id = ?`,
+        `UPDATE pedidos SET valor_total = valor_total + $1 WHERE id = $2`,
         [valorCobrança, pedidoId]
       );
     }
 
-    await conn.commit();
+    await client.query('COMMIT');
     return result;
   } catch (err) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     throw err;
   } finally {
     conn.release();
@@ -811,33 +819,33 @@ export async function inserirOcorrencia(pedidoId, dados) {
 
 export async function kpis() {
 
-  const [[ativos]] = await db.query(`
+  const { rows: [ativos] } = await db.query(`
     SELECT COUNT(*) AS total
     FROM pedidos
     WHERE status_documento = 'PEDIDO'
       AND status NOT IN ('FINALIZADO','CANCELADO')
   `);
 
-  const [[entregasHoje]] = await db.query(`
+  const { rows: [entregasHoje] } = await db.query(`
     SELECT COUNT(*) AS total
     FROM pedidos
     WHERE status_documento = 'PEDIDO'
-      AND DATE(data_entrega) = CURDATE()
+      AND DATE(data_entrega) = CURRENT_DATE
   `);
 
-  const [[retiradasHoje]] = await db.query(`
+  const { rows: [retiradasHoje] } = await db.query(`
     SELECT COUNT(*) AS total
     FROM pedidos
     WHERE status_documento = 'PEDIDO'
-      AND DATE(data_retirada) = CURDATE()
+      AND DATE(data_retirada) = CURRENT_DATE
   `);
 
-  const [[recebido]] = await db.query(`
+  const { rows: [recebido] } = await db.query(`
     SELECT COALESCE(SUM(CASE WHEN valor > 0 THEN valor ELSE 0 END),0) AS total
     FROM pagamentos
   `);
 
-  const [[saldo]] = await db.query(`
+  const { rows: [saldo] } = await db.query(`
     SELECT COALESCE(SUM(GREATEST(
       p.valor_total - ${valorCreditadoSql},
       0
@@ -847,7 +855,7 @@ export async function kpis() {
       AND p.status NOT IN ('FINALIZADO','CANCELADO')
   `);
 
-  const [[atrasados]] = await db.query(`
+  const { rows: [atrasados] } = await db.query(`
     SELECT COUNT(*) AS total
     FROM pedidos p
     WHERE p.status_documento = 'PEDIDO'
@@ -871,44 +879,45 @@ export async function inserirReembolso(pedidoId, dados) {
   if (!valorMonetarioValido(valorNum) || valorNum <= 0) {
     throw new Error('Valor de reembolso inválido.');
   }
-  const conn = await db.getConnection();
+  const client = await db.connect();
+  const conn = client;
   try {
-    await conn.beginTransaction();
-    const [pedidos] = await conn.query(
-      'SELECT id, status FROM pedidos WHERE id = ? FOR UPDATE',
+    await client.query('BEGIN');
+    const { rows: pedidos } = await conn.query(
+      'SELECT id, status FROM pedidos WHERE id = $1 FOR UPDATE',
       [pedidoId]
     );
     if (!pedidos.length) throw new Error('Pedido não encontrado.');
     if (['CANCELADO', 'FINALIZADO'].includes(pedidos[0].status)) {
       throw new Error('Não é possível reembolsar este pedido no estado atual.');
     }
-    const [pagos] = await conn.query(
+    const { rows: pagos } = await conn.query(
       `SELECT COALESCE(SUM(CASE WHEN valor > 0 THEN valor ELSE 0 END), 0) AS pagos,
               COALESCE(SUM(CASE WHEN valor < 0 THEN ABS(valor) ELSE 0 END), 0) AS reembolsado
-       FROM pagamentos WHERE pedido_id = ?`,
+       FROM pagamentos WHERE pedido_id = $1`,
       [pedidoId]
     );
     const saldoPago = Number(pagos[0].pagos) - Number(pagos[0].reembolsado);
     if (valorNum > saldoPago) throw new Error('Reembolso não pode exceder o valor efetivamente pago.');
 
-    const [result] = await conn.query(
+    const result = await conn.query(
       `INSERT INTO pagamentos (pedido_id, usuario_id, valor, forma_pagamento, observacao)
-       VALUES (?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5)`,
       [pedidoId, usuario_id || null, -valorNum, forma_pagamento || 'TRANSFERENCIA', observacao || null]
     );
 
-    if (result.affectedRows) {
+    if (result.rowCount) {
       await conn.query(
       `INSERT INTO ocorrencias (pedido_id, usuario_id, tipo, descricao, valor, status, data_ocorrencia)
-       VALUES (?, ?, 'Reembolso', ?, ?, 'RESOLVIDO', NOW())`,
+       VALUES ($1, $2, 'Reembolso', $3, $4, 'RESOLVIDO', NOW())`,
       [pedidoId, usuario_id || null, `Reembolso de ${Number(valorNum).toFixed(2)}`, valorNum || 0]
       );
     }
 
-    await conn.commit();
+    await client.query('COMMIT');
     return result;
   } catch (error) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     throw error;
   } finally {
     conn.release();

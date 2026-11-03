@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>LOCAGEST | {{report.title}}</title>
+  <link rel="stylesheet" href="/css/pages/relatorios-impressao.css">
+</head>
+<body>
+  <main class="print-document">
+    <header class="report-header">
+      <div class="brand-block">
+        <p class="brand">LOCAGEST</p>
+        <h1>{{report.title}}</h1>
+      </div>
+      <dl class="report-meta">
+        <div><dt>Período selecionado</dt><dd>{{report.period}}</dd></div>
+        <div><dt>Gerado em</dt><dd>{{report.generatedAt}}</dd></div>
+        <div><dt>Responsável</dt><dd>{{report.responsible}}</dd></div>
+      </dl>
+    </header>
+
+    {{#if report.selectedFilters.length}}
+    <section class="selected-filters" aria-label="Filtros aplicados">
+      <strong>Filtros aplicados:</strong>
+      {{#each report.selectedFilters}}<span>{{this}}</span>{{/each}}
+    </section>
+    {{/if}}
+
+    <section class="summary" aria-label="Resumo do relatório">
+      {{#each report.summary}}
+      <article class="summary-card">
+        <h2>{{this.label}}</h2>
+        <p>{{this.value}}</p>
+      </article>
+      {{/each}}
+    </section>
+
+    <section class="report-table-section">
+      <div class="table-title">
+        <h2>{{report.label}}</h2>
+        <span>{{report.rows.length}} registro(s)</span>
+      </div>
+      <table>
+        <thead>
+          <tr>{{#each report.columns}}<th class="{{#if this.alignRight}}align-right{{/if}}">{{this.label}}</th>{{/each}}</tr>
+        </thead>
+        <tbody>
+          {{#if report.hasRows}}
+            {{#each report.rows}}
+            <tr>{{#each this.cells}}
+              <td class="{{#if this.alignRight}}align-right{{/if}}">
+                {{#if this.statusClass}}<span class="status {{this.statusClass}}">{{this.value}}</span>{{else}}{{this.value}}{{/if}}
+              </td>
+            {{/each}}</tr>
+            {{/each}}
+          {{else}}
+            <tr><td class="empty" colspan="{{report.columns.length}}">Nenhum registro encontrado para os filtros selecionados.</td></tr>
+          {{/if}}
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="report-footer">
+      <span>LOCAGEST · Documento gerado para impressão</span>
+      <span>{{report.generatedAt}}</span>
+      <span class="page-number"></span>
+    </footer>
+  </main>
+  <script src="/js/relatorios-impressao.js" defer></script>
+</body>
+</html>

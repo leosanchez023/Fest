@@ -14,10 +14,10 @@ export default function configureAuth(passport) {
     async (req, email, senha, done) => {
       const emailNormalizado = normalizarEmail(email);
       try {
-        const [users] = await db.query(
+        const { rows: users } = await db.query(
           `SELECT id, nome, email, senha, ativo, login_habilitado
            FROM usuario
-           WHERE email = ?
+           WHERE LOWER(email) = $1
            LIMIT 1`,
           [emailNormalizado]
         );
@@ -60,10 +60,10 @@ export default function configureAuth(passport) {
 
   passport.deserializeUser(async (id, done) => {
     try {
-      const [users] = await db.query(
+      const { rows: users } = await db.query(
         `SELECT id, nome, email, ativo, login_habilitado
          FROM usuario
-         WHERE id = ?
+         WHERE id = $1
          LIMIT 1`,
         [id]
       );

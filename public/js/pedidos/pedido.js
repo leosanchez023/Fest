@@ -1,7 +1,10 @@
 ﻿import { state } from "./state.js";
 import { $, esc, fmt } from "./utils.js";
 import { updateResumo } from "./financeiro.js";
-import { preencherCamposEnderecoParaEdicao } from "./endereco.js";
+import {
+  enderecoCorrespondeASelecao,
+  preencherCamposEnderecoParaEdicao
+} from "./endereco.js";
 
 export function adicionarItem() {
   const prodQuery = $("prod-query");
@@ -14,7 +17,11 @@ export function adicionarItem() {
     return;
   }
 
-  const qtd = Math.max(1, Number(prodQtd?.value) || 1);
+  const qtd = Number(prodQtd?.value);
+  if (!Number.isSafeInteger(qtd) || qtd <= 0 || qtd > 9999) {
+    window.FestAlert?.warning?.("Quantidade inválida", "Informe uma quantidade inteira entre 1 e 9999.");
+    return;
+  }
   const chave = selecionado.origem === "COMBO" ? `c:${selecionado.id}` : `p:${selecionado.id}`;
   const existente = state.itens.findIndex((item) => item.chave === chave);
 
@@ -47,8 +54,13 @@ export function adicionarItem() {
 }
 
 export function montarPedido() {
-  const totalText = $("r-total")?.textContent || "0";
-  const total = Number(totalText.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
+  const totalProdutos = state.itens.reduce(
+    (soma, item) => soma + Number(item.preco) * Number(item.quantidade),
+    0
+  );
+  const valorFrete = Number($("frete")?.value || 0);
+  const valorDesconto = Number($("desconto")?.value || 0);
+  const total = totalProdutos + valorFrete - valorDesconto;
   const endereco = {
     rua: $("end-rua")?.value.trim() || "",
     numero: $("end-numero")?.value.trim() || "",
@@ -61,11 +73,7 @@ export function montarPedido() {
   const camposEndereco = ["rua", "numero", "bairro", "cidade", "estado", "cep", "referencia"];
   const enderecoAindaSelecionado = state.enderecoSelecionado
     && camposEndereco.every((campo) => String(state.enderecoSelecionado[campo] || "").trim() === endereco[campo]);
-  const destinoGeocodificado = state.enderecoSelecionado?.selectionToken
-    && ["rua", "bairro", "cidade", "estado", "cep"].every(
-      (campo) => String(state.enderecoSelecionado[campo] || "").trim() === endereco[campo]
-    );
-
+  const destinoGeocodificado = enderecoCorrespondeASelecao(state.enderecoSelecionado, endereco);
   return {
     cliente_id: state.clienteSelecionado?.id || null,
 
@@ -79,7 +87,7 @@ export function montarPedido() {
 
   endereco_id: enderecoAindaSelecionado ? state.enderecoSelecionado.id || null : null,
   endereco,
-  endereco_origem: "",
+  endereco_origem: state.rotaCalculada?.origem || "",
   origem_token: "",
   destino_token: destinoGeocodificado ? state.enderecoSelecionado.selectionToken : "",
   recalcular_rota: state.recalcularRota,
@@ -89,20 +97,19 @@ export function montarPedido() {
       ? "MISTO"
       : state.itens.some((item) => item.tipo_item === "VENDA") ? "VENDA" : "ALUGUEL",
     distancia_km: Number($("distancia-km")?.value) || 0,
-    valor_frete: Number($("frete")?.value) || 0,
-    valor_desconto: Number($("desconto")?.value) || 0,
-    valor_pago: Number($("pago")?.value) || 0,
+    valor_frete: valorFrete,
+    valor_desconto: valorDesconto,
+    valor_pago: Number($("pago")?.value || 0),
     forma_pagamento: $("forma-pagamento")?.value || null,
     observacao_pagamento: $("obs-pagamento")?.value || null,
     observacoes: $("observacoes")?.value || null,
     data_evento: $("data-evento")?.value || null,
     data_entrega: $("data-entrega")?.value || null,
     data_retirada: $("data-retirada")?.value || null,
-    valor_produtos: state.itens.reduce(
-  (total, item) =>
-    total + (Number(item.preco) * Number(item.quantidade)),
-  0
-),
+    local_evento: $("local-evento")?.value.trim() || null,
+    observacao_entrega: $("observacao-entrega")?.value.trim() || null,
+    observacao_retirada: $("observacao-retirada")?.value.trim() || null,
+    valor_produtos: totalProdutos,
     itens: state.itens.map((item) => ({
       produto_id: item.produto_id,
       combo_id: item.combo_id,
@@ -116,25 +123,55 @@ export function montarPedido() {
   };
 }
 
+let salvamentoEmAndamento = false;
+
+async function avisar(tipo, titulo, mensagem) {
+  if (window.FestAlert?.[tipo]) {
+    await window.FestAlert[tipo](titulo, mensagem);
+    return;
+  }
+  if (tipo !== "success") window.alert(`${titulo}\n\n${mensagem}`);
+}
+
 export async function enviarPedido(saveAs = "CONFIRMADO") {
+  if (salvamentoEmAndamento) return false;
+  try {
+    validarFormulario();
+  } catch (error) {
+    await avisar("warning", "Dados incompletos", error.message);
+    return false;
+  }
+
   if (!state.clienteSelecionado) {
-    await window.FestAlert?.warning?.("Pedido", "Selecione um cliente.");
+    await avisar("warning", "Pedido", "Selecione um cliente.");
     return false;
   }
 
   if (!state.itens.length) {
-    await window.FestAlert?.warning?.("Pedido", "Adicione pelo menos um item.");
+    await avisar("warning", "Pedido", "Adicione pelo menos um item.");
     return false;
   }
 
   if (!state.rotaCalculada && !state.podeManterRotaSalva) {
-    await window.FestAlert?.warning?.("Pedido", "Calcule uma rota válida antes de salvar o pedido.");
+    await avisar("warning", "Pedido", "Calcule uma rota válida antes de salvar o pedido.");
     return false;
   }
 
   const pedido = montarPedido();
   pedido.status = saveAs === "ORCAMENTO" ? "ORCAMENTO" : "CONFIRMADO";
   pedido.status_documento = saveAs === "ORCAMENTO" ? "ORCAMENTO" : "PEDIDO";
+
+  if (state.editingId && state.editingStatusDocumento === "PEDIDO" && saveAs === "ORCAMENTO") {
+    await avisar("warning", "Pedido confirmado", "Um pedido confirmado não pode ser convertido novamente em orçamento.");
+    return false;
+  }
+
+  const buttons = [$("btn-confirmar-modal"), $("btn-gerar-orcamento-modal")].filter(Boolean);
+  salvamentoEmAndamento = true;
+  buttons.forEach((button) => {
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+  });
 
   try {
     let url = "/pedidos/criar";
@@ -151,32 +188,44 @@ export async function enviarPedido(saveAs = "CONFIRMADO") {
       body: JSON.stringify(pedido)
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.erro || "Erro ao salvar o pedido");
 
-    if (state.editingId) {
-      await window.FestAlert?.success?.("Orçamento atualizado", "Orçamento atualizado com sucesso!");
-      const retorno = new URLSearchParams(window.location.search).get("retorno");
-      window.location.href = retorno === "entregas"
-        ? `/entregas?pedido=${encodeURIComponent(state.editingId)}`
-        : '/orcamentos';
-      return true;
+    const pedidoId = data.pedidoId || state.editingId;
+    if (!pedidoId) throw new Error("O servidor não retornou o identificador do registro salvo.");
+
+    const convertendoOrcamento = state.editingId
+      && state.editingStatusDocumento === "ORCAMENTO"
+      && saveAs === "CONFIRMADO";
+    if (convertendoOrcamento) {
+      const conversao = await fetch(`/orcamentos/${pedidoId}/convert`, { method: "POST" });
+      const resultadoConversao = await conversao.json().catch(() => ({}));
+      if (!conversao.ok || !resultadoConversao.success) {
+        throw new Error(resultadoConversao.message || "O orçamento foi salvo, mas não foi possível convertê-lo em pedido.");
+      }
     }
 
-    await window.FestAlert?.success?.("Pedido salvo", saveAs === "ORCAMENTO" ? "Orçamento salvo com sucesso!" : "Pedido confirmado com sucesso!");
-    state.itens = [];
-    renderItens();
-    updateResumo();
-    document.querySelector("form")?.reset();
-
-    state.clienteSelecionado = null;
-    state.enderecoSelecionado = null;
+    const eOrcamento = saveAs === "ORCAMENTO";
+    await avisar(
+      "success",
+      eOrcamento ? "Orçamento salvo" : "Pedido confirmado",
+      eOrcamento ? "Orçamento salvo com sucesso." : "Pedido confirmado com sucesso."
+    );
+    window.location.href = eOrcamento
+      ? "/orcamentos"
+      : `/entregas?pedido=${encodeURIComponent(pedidoId)}`;
     return true;
 
   } catch (err) {
     console.error(err);
-    await window.FestAlert?.error?.("Erro ao salvar", err.message || "Não foi possível salvar o pedido.");
+    await avisar("error", "Erro ao salvar", err.message || "Não foi possível salvar o pedido.");
     return false;
+  } finally {
+    salvamentoEmAndamento = false;
+    buttons.forEach((button) => {
+      button.disabled = false;
+      button.removeAttribute("aria-busy");
+    });
   }
 }
 
@@ -188,6 +237,8 @@ async function carregarPedidoParaEdicao(id) {
 
     const pedido = data.pedido || {};
     const itens = data.itens || [];
+    const pagamentos = data.pagamentos || [];
+    const valorPago = pagamentos.reduce((soma, pagamento) => soma + Number(pagamento.valor || 0), 0);
 
     // Cliente
     state.clienteSelecionado = {
@@ -217,9 +268,12 @@ async function carregarPedidoParaEdicao(id) {
     // Campos simples
     if ($("tel-cliente")) $("tel-cliente").value = state.clienteSelecionado.telefone || "";
     if ($("tel-contato")) $("tel-contato").value = pedido.telefone_contato || "";
-    if ($("data-evento")) $("data-evento").value = pedido.data_evento ? pedido.data_evento.split('T')[0] : "";
-    if ($("data-entrega")) $("data-entrega").value = pedido.data_entrega ? pedido.data_entrega.split('T')[0] : "";
-    if ($("data-retirada")) $("data-retirada").value = pedido.data_retirada ? pedido.data_retirada.split('T')[0] : "";
+    if ($("data-evento")) $("data-evento").value = pedido.data_evento ? String(pedido.data_evento).split('T')[0] : "";
+    if ($("data-entrega")) $("data-entrega").value = pedido.data_entrega ? String(pedido.data_entrega).split('T')[0] : "";
+    if ($("data-retirada")) $("data-retirada").value = pedido.data_retirada ? String(pedido.data_retirada).split('T')[0] : "";
+    if ($("local-evento")) $("local-evento").value = pedido.local_evento || "";
+    if ($("observacao-entrega")) $("observacao-entrega").value = pedido.observacao_entrega || "";
+    if ($("observacao-retirada")) $("observacao-retirada").value = pedido.observacao_retirada || "";
     if ($("distancia-km")) $("distancia-km").value = pedido.distancia_cobrada_km || pedido.distancia_km || 0;
     if ($("frete")) $("frete").value = pedido.valor_frete || 0;
     state.rotaCalculada = pedido.endereco?.selectionToken && pedido.origem_token
@@ -237,11 +291,14 @@ async function carregarPedidoParaEdicao(id) {
       routeSummary.textContent = `Rota salva: ${state.rotaCalculada.distanciaKm.toFixed(2)} km ida${state.rotaCalculada.distanciaRetornoKm ? ` + ${state.rotaCalculada.distanciaRetornoKm.toFixed(2)} km retorno` : ""} • Considerada: ${state.rotaCalculada.distanciaCobradaKm.toFixed(2)} km • ${state.rotaCalculada.formula} • Frete: ${fmt(state.rotaCalculada.valorFrete)}`;
     }
     if ($("desconto")) $("desconto").value = pedido.valor_desconto || 0;
-    if ($("pago")) $("pago").value = pedido.valor_pago || 0;
+    if ($("pago")) $("pago").value = valorPago.toFixed(2);
+    if ($("forma-pagamento") && pagamentos.length) $("forma-pagamento").value = pagamentos[0].forma_pagamento || "PIX";
+    if ($("obs-pagamento") && pagamentos.length) $("obs-pagamento").value = pagamentos[0].observacao || "";
     if ($("observacoes")) $("observacoes").value = pedido.observacoes || "";
 
     // marca modo edição
     state.editingId = pedido.id;
+    state.editingStatusDocumento = pedido.status_documento || "PEDIDO";
 
     // Atualiza título da página/header
     const pageMeta = document.querySelector('.page-meta');
@@ -278,7 +335,7 @@ async function carregarPedidoParaEdicao(id) {
 
   } catch (err) {
     console.error(err);
-    window.FestAlert?.error?.('Erro ao carregar pedido', err.message || 'Não foi possível carregar o pedido.');
+    avisar('error', 'Erro ao carregar pedido', err.message || 'Não foi possível carregar o pedido.');
   }
 }
 
@@ -459,7 +516,7 @@ function validarFormulario() {
   const pago =
     Number($("pago")?.value || 0);
 
-  if (pago < 0) {
+  if (!Number.isFinite(pago) || pago < 0) {
     throw new Error("Valor pago inválido.");
   }
 
@@ -468,10 +525,35 @@ function validarFormulario() {
   const distancia =
     Number($("distancia-km")?.value || 0);
 
-  if (distancia < 0) {
+  if (!Number.isFinite(distancia) || distancia < 0) {
     throw new Error("Distância inválida.");
   }
 
+  const valorFrete = Number($("frete")?.value || 0);
+  if (!Number.isFinite(valorFrete) || valorFrete < 0) {
+    throw new Error("Valor do frete inválido.");
+  }
+  if (!Number.isFinite(desconto) || desconto > valorFrete + state.itens.reduce(
+    (soma, item) => soma + Number(item.preco) * Number(item.quantidade),
+    0
+  )) {
+    throw new Error("O desconto não pode exceder o valor do pedido.");
+  }
+  if (pago > valorFrete + state.itens.reduce(
+    (soma, item) => soma + Number(item.preco) * Number(item.quantidade),
+    0
+  ) - desconto) {
+    throw new Error("O valor pago não pode exceder o total do pedido.");
+  }
+  if (pago > 0 && !$("forma-pagamento")?.value) {
+    throw new Error("Selecione a forma de pagamento.");
+  }
+  if (state.itens.some((item) =>
+    !Number.isSafeInteger(Number(item.quantidade)) || Number(item.quantidade) <= 0 ||
+    !Number.isFinite(Number(item.preco)) || Number(item.preco) < 0
+  )) {
+    throw new Error("Revise as quantidades e os valores dos itens.");
+  }
 }
 export function inicializarPedido() {
   const btnSalvarTela = $("btn-salvar-pedido");
@@ -530,13 +612,16 @@ if (btnSalvarTela) {
         dataEvento: pedido.data_evento,
         dataEntrega: pedido.data_entrega,
         dataRetirada: pedido.data_retirada,
+        localEvento: pedido.local_evento,
+        observacaoEntrega: pedido.observacao_entrega,
+        observacaoRetirada: pedido.observacao_retirada,
         orcamento: pedido.status_documento === "ORCAMENTO"
 
       });
 
     } catch (erro) {
 
-      window.FestAlert?.error?.('Erro ao carregar pedido', erro.message || 'Não foi possível carregar os dados do pedido.');
+      avisar('error', 'Erro ao carregar pedido', erro.message || 'Não foi possível carregar os dados do pedido.');
 
     }
 

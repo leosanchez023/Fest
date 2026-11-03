@@ -19,13 +19,12 @@ function texto(value) {
 }
 
 function validarTelefone(telefone) {
-    if (!telefone) return true;
+    if (!telefone) return false;
     const digits = telefone.replace(/\D/g, "");
     return digits.length >= 10 && digits.length <= 11 && telefone.length <= 20;
 }
 
 function validarCpf(cpf) {
-    if (!cpf) return true;
     return cpf.replace(/\D/g, "").length === 11 && cpf.length <= 20;
 }
 
@@ -149,12 +148,12 @@ export async function listar(options = {}) {
     const page = Math.max(1, parseInt(options.page, 10) || 1);
     const requestedLimit = parseInt(options.limit, 10) || 10;
     const limit = [10, 25, 50].includes(requestedLimit) ? requestedLimit : 10;
-    const { rows, total } = await model.findWithFilter({ q, page, limit });
+    const { rows, total, page: currentPage } = await model.findWithFilter({ q, page, limit });
 
     return {
         clientes: rows,
         total,
-        page,
+        page: currentPage,
         limit,
         totalPages: Math.max(1, Math.ceil(total / limit))
     };
@@ -183,7 +182,9 @@ export async function atualizar(id, input) {
     if (existente && Number(existente.id) !== clienteId) {
         throw erroCliente("Já existe outro cliente utilizando este CPF.", 409);
     }
-    return model.atualizarClienteComEndereco(clienteId, dados, cliente.id_endereco);
+    const atualizado = await model.atualizarClienteComEndereco(clienteId, dados, cliente.id_endereco);
+    if (!atualizado) throw erroCliente("Cliente não encontrado.", 404);
+    return atualizado;
 }
 
 export async function deletar(id) {
@@ -192,9 +193,11 @@ export async function deletar(id) {
     if (!cliente) throw erroCliente("Cliente não encontrado.", 404);
 
     try {
-        await model.excluir(clienteId);
+        const excluido = await model.excluir(clienteId);
+        if (!excluido) throw erroCliente("Cliente não encontrado.", 404);
     } catch (error) {
-        if (error.code === "ER_ROW_IS_REFERENCED_2") {
+        if (error.status) throw error;
+        if (error.code === "23503") {
             throw erroCliente("Este cliente possui pedidos cadastrados e não pode ser excluído.", 409);
         }
         throw error;

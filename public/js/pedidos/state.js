@@ -13,5 +13,6 @@ export const state = {
   tipoItem: "PRODUTO",
   itens: [],
   tabAtiva: "buscar",
-  editingId: null
+  editingId: null,
+  editingStatusDocumento: null
 };

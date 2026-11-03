@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import db from "../database/connection.js";
 import * as service from "../src/modules/orcamentos/orcamentos.service.js";
 
-const originalGetConnection = db.getConnection;
+const originalConnect = db.connect;
 const originalQuery = db.query;
 const statements = [];
 let nextItemId = 83;
@@ -10,33 +10,39 @@ let nextPedidoId = 72;
 
 function fakeConnection({ pedido, itens = [], componentes = [] }) {
   return {
-    async beginTransaction() {},
-    async commit() {},
-    async rollback() {},
     release() {},
     async query(sql, params = []) {
       statements.push({ sql, params });
-      if (sql.includes("SELECT * FROM pedidos")) return [[pedido]];
-      if (sql.includes("SELECT * FROM pedido_itens")) return [itens];
-      if (sql.includes("SELECT id, produto_id, combo_id, tipo_item")) return [itens];
-      if (sql.includes("SELECT produto_id, quantidade_por_unidade")) return [componentes];
+      if (["BEGIN", "COMMIT", "ROLLBACK"].includes(sql)) return { rows: [], rowCount: null };
+      if (sql.includes("SELECT * FROM pedidos")) return { rows: [pedido], rowCount: 1 };
+      if (sql.includes("SELECT * FROM pedido_itens")) return { rows: itens, rowCount: itens.length };
+      if (sql.includes("SELECT id, produto_id, combo_id, tipo_item")) return { rows: itens, rowCount: itens.length };
+      if (sql.includes("SELECT controla_estoque FROM produtos")) {
+        return { rows: [{ controla_estoque: true }], rowCount: 1 };
+      }
+      if (sql.includes("SELECT produto_id, quantidade_por_unidade")) {
+        return { rows: componentes, rowCount: componentes.length };
+      }
       if (sql.includes("SELECT * FROM produtos")) {
         const produtoId = Number(params[0]);
-        return [[{
+        const rows = [{
           id: produtoId,
           estoque: 20,
           estoque_reservado: 0,
           estoque_em_uso: 0,
           estoque_manutencao: 0,
           estoque_danificado: 0,
-          estoque_minimo: 0
-        }]];
+          estoque_minimo: 0,
+          controla_estoque: true
+        }];
+        return { rows, rowCount: rows.length };
       }
-      if (sql.includes("FROM reservas_estoque")) return [[]];
-      if (sql.includes("INSERT INTO pedidos")) return [{ insertId: nextPedidoId }];
-      if (sql.includes("INSERT INTO pedido_itens")) return [{ insertId: nextItemId }];
-      if (sql.includes("SELECT produto_id, quantidade")) return [[]];
-      return [{ affectedRows: 1, insertId: 91 }];
+      if (sql.includes("FROM reservas_estoque")) return { rows: [], rowCount: 0 };
+      if (sql.includes("INSERT INTO reservas_estoque")) return { rows: [{ id: 91 }], rowCount: 1 };
+      if (sql.includes("INSERT INTO pedidos")) return { rows: [{ id: nextPedidoId }], rowCount: 1 };
+      if (sql.includes("INSERT INTO pedido_itens")) return { rows: [{ id: nextItemId }], rowCount: 1 };
+      if (sql.includes("SELECT produto_id, quantidade")) return { rows: [], rowCount: 0 };
+      return { rows: [], rowCount: 1 };
     }
   };
 }
@@ -54,7 +60,7 @@ try {
     { id: 2, pedido_id: 44, produto_id: 20, tipo_item: "VENDA", quantidade: 2, combo_id: null }
   ];
   const connection = fakeConnection({ pedido, itens });
-  db.getConnection = async () => connection;
+  db.connect = async () => connection;
 
   assert.equal(await service.converterParaPedido(44), true);
   const saleUpdate = statements.find(({ sql }) => sql.includes("UPDATE produtos SET estoque = estoque -"));
@@ -102,7 +108,7 @@ try {
       quantidade_total: 6
     }]
   });
-  db.getConnection = async () => duplicateConnection;
+  db.connect = async () => duplicateConnection;
   assert.equal(await service.duplicarOrcamento(44), 72);
   const copiedComponent = statements.find(({ sql }) => sql.includes("INSERT INTO pedido_item_componentes"));
   assert.deepEqual(copiedComponent.params, [83, 72, 10, 3, 6]);
@@ -111,7 +117,7 @@ try {
   statements.length = 0;
   db.query = async (sql, params) => {
     statements.push({ sql, params });
-    return [{ affectedRows: 1 }];
+    return { rows: [], rowCount: 1 };
   };
   assert.equal(await service.excluirOrcamento(44), true);
   assert.match(statements[0].sql, /UPDATE pedidos\s+SET status = 'CANCELADO'/);
@@ -120,7 +126,7 @@ try {
 
   console.log("Testes simulados de conversão mista/idempotente, cópia de combos e cancelamento seguro ok");
 } finally {
-  db.getConnection = originalGetConnection;
+  db.connect = originalConnect;
   db.query = originalQuery;
   await db.end();
 }

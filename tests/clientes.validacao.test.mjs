@@ -21,7 +21,9 @@ const casosInvalidos = [
     [{ ...dadosValidos, nome: "M" }, /nome válido/i, "nome inválido"],
     [{ ...dadosValidos, email: "email-invalido" }, /e-mail válido/i, "e-mail inválido"],
     [{ ...dadosValidos, cpf: "123" }, /CPF válido/i, "CPF inválido"],
+    [{ ...dadosValidos, cpf: "" }, /CPF válido/i, "CPF obrigatório"],
     [{ ...dadosValidos, telefone: "123" }, /telefone válido/i, "telefone inválido"],
+    [{ ...dadosValidos, telefone: "" }, /telefone válido/i, "telefone obrigatório"],
     [{ ...dadosValidos, rua: "" }, /rua válida/i, "rua inválida"],
     [{ ...dadosValidos, estado: "XX" }, /estado válida/i, "estado inválido"],
     [{ ...dadosValidos, cep: "123" }, /CEP válido/i, "CEP inválido"]

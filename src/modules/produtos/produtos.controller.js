@@ -2,6 +2,7 @@ import * as service from "./produtos.service.js";
 import * as fornecedoresService from "../fornecedores/fornecedores.service.js";
 
 const statusEstoqueLabels = {
+  NAO_CONTROLADO: "Sem controle de estoque",
   DISPONIVEL: "Disponível",
   INDISPONIVEL: "Indisponível",
   BAIXO_ESTOQUE: "Estoque baixo",
@@ -11,6 +12,7 @@ const statusEstoqueLabels = {
   DANIFICADO: "Danificado"
 };
 const statusEstoqueClasses = {
+  NAO_CONTROLADO: "muted",
   DISPONIVEL: "success",
   INDISPONIVEL: "danger",
   BAIXO_ESTOQUE: "warning",
@@ -179,6 +181,26 @@ export async function atualizarQuantidadesEstoque(req, res) {
     res.status(err.code ? 500 : 400).json({
       sucesso: false,
       erro: err.code ? "Não foi possível atualizar o estoque." : err.message
+    });
+  }
+}
+
+export async function atualizarStatus(req, res) {
+  try {
+    const ativo = req.body.ativo;
+    if (typeof ativo !== "boolean") {
+      return res.status(400).json({ sucesso: false, erro: "Estado do produto inválido." });
+    }
+    const produto = await service.atualizarStatus(req.params.id, ativo);
+    return res.json({
+      sucesso: true,
+      mensagem: ativo ? "Produto ativado." : "Produto inativado.",
+      produto
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 400).json({
+      sucesso: false,
+      erro: error.message
     });
   }
 }
@@ -450,7 +472,7 @@ try{
 
 await service.atualizar(
  req.params.id,
- req.body
+ { ...req.body, usuario_id: req.user?.id || null }
 );
 
 
@@ -494,44 +516,18 @@ res.redirect("/produtos");
 // ===============================
 
 export async function deletar(req,res){
-
-
-try{
-
-
-await service.deletar(
- req.params.id
-);
-
-
-
-  req.body.pedido_id || null
-res.json({
-
- sucesso:true,
-
- mensagem:
- "Produto removido."
-
-});
-
-
-
-}catch(err){
-
-
-res.status(500).json({
-
- sucesso:false,
-
- erro:err.message
-
-});
-
-
-}
-
-
+  try {
+    await service.deletar(req.params.id);
+    return res.json({
+      sucesso: true,
+      mensagem: "Produto removido da listagem. Os pedidos e o histórico foram preservados."
+    });
+  } catch (err) {
+    return res.status(err.statusCode || (err.code ? 500 : 400)).json({
+      sucesso: false,
+      erro: err.code ? "Não foi possível remover o produto." : err.message
+    });
+  }
 }
 
 

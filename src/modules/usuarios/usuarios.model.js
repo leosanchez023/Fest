@@ -7,14 +7,14 @@ const userColumns = `
   u.email,
   u.telefone AS phone,
   u.cpf,
-  DATE_FORMAT(u.nascimento, '%Y-%m-%d') AS birth,
+  TO_CHAR(u.nascimento, 'YYYY-MM-DD') AS birth,
   u.cargo AS role,
   u.ativo AS active,
-  u.login_habilitado AS canLogin,
+  u.login_habilitado AS "canLogin",
   u.foto_path AS photo,
-  u.created_at AS createdAt,
-  u.updated_at AS updatedAt,
-  u.ultimo_acesso_em AS lastAccessAt
+  u.created_at AS "createdAt",
+  u.updated_at AS "updatedAt",
+  u.ultimo_acesso_em AS "lastAccessAt"
 `;
 
 const permissionColumns = PERMISSION_KEYS.map((key) => `COALESCE(p.${key}, 0) AS ${key}`).join(", ");
@@ -50,10 +50,10 @@ function hasAdminManagementGrants(actionGrants = {}) {
 export async function buscarAcoesUsuarios(ids, connection) {
   if (!ids.length) return {};
   const executor = getConnection(connection);
-  const [rows] = await executor.query(
+  const { rows } = await executor.query(
     `SELECT usuario_id, module_key AS module, action_key AS action
      FROM user_permission_actions
-     WHERE usuario_id IN (${ids.map(() => "?").join(", ")})`,
+     WHERE usuario_id IN (${ids.map((_, index) => `$${index + 1}`).join(", ")})`,
     ids
   );
   const grants = Object.create(null);
@@ -71,15 +71,16 @@ export async function buscarUsuariosComPermissoes(filters = {}) {
   const params = [];
   if (filters.search) {
     const search = `%${filters.search}%`;
-    clauses.push("(u.nome LIKE ? OR u.email LIKE ? OR u.telefone LIKE ? OR u.cpf LIKE ? OR u.cargo LIKE ?)");
+    const first = params.length + 1;
+    clauses.push(`(u.nome ILIKE $${first} OR u.email ILIKE $${first + 1} OR u.telefone ILIKE $${first + 2} OR u.cpf ILIKE $${first + 3} OR u.cargo ILIKE $${first + 4})`);
     params.push(search, search, search, search, search);
   }
   if (filters.active !== undefined) {
-    clauses.push("u.ativo = ?");
+    clauses.push(`u.ativo = $${params.length + 1}`);
     params.push(filters.active);
   }
   if (filters.role) {
-    clauses.push("u.cargo = ?");
+    clauses.push(`LOWER(u.cargo) = LOWER($${params.length + 1})`);
     params.push(filters.role);
   }
 
@@ -95,7 +96,9 @@ export async function buscarUsuariosComPermissoes(filters = {}) {
   const where = clauses.join(" AND ");
   const limit = filters.limit;
   const offset = filters.offset;
-  const [rows] = await db.query(
+  const limitPlaceholder = `$${params.length + 1}`;
+  const offsetPlaceholder = `$${params.length + 2}`;
+  const { rows } = await db.query(
     `SELECT ${userColumns}, ${permissionColumns}
      FROM usuario u
      LEFT JOIN user_permissions p
@@ -103,10 +106,11 @@ export async function buscarUsuariosComPermissoes(filters = {}) {
       AND p.id = (SELECT MIN(p2.id) FROM user_permissions p2 WHERE p2.usuario_id = u.id)
      WHERE ${where}
      ORDER BY ${sort} ${direction}, u.id ASC
-     LIMIT ? OFFSET ?`,
+     LIMIT ${limitPlaceholder} OFFSET ${offsetPlaceholder}`,
     [...params, limit, offset]
   );
-  const [[{ total }]] = await db.query(`SELECT COUNT(*) AS total FROM usuario u WHERE ${where}`, params);
+  const { rows: countRows } = await db.query(`SELECT COUNT(*) AS total FROM usuario u WHERE ${where}`, params);
+  const total = countRows[0]?.total || 0;
   const ids = rows.map((row) => row.id);
   const actionsByUser = await buscarAcoesUsuarios(ids);
   return {
@@ -125,27 +129,27 @@ export async function buscarUsuariosComPermissoes(filters = {}) {
 
 export async function buscarPerfilFuncionario(id, connection) {
   const executor = getConnection(connection);
-  const [rows] = await executor.query(
+  const { rows } = await executor.query(
     `SELECT ${userColumns}
      FROM usuario u
-     WHERE u.id = ?
+     WHERE u.id = $1
      LIMIT 1`,
     [id]
   );
   if (!rows.length) return null;
 
-  const [permissions] = await executor.query(
+  const { rows: permissions } = await executor.query(
     `SELECT ${PERMISSION_KEYS.join(", ")}
      FROM user_permissions
-     WHERE usuario_id = ?
+     WHERE usuario_id = $1
      ORDER BY id ASC
      LIMIT 1`,
     [id]
   );
-  const [actionRows] = await executor.query(
+  const { rows: actionRows } = await executor.query(
     `SELECT module_key AS module, action_key AS action
      FROM user_permission_actions
-     WHERE usuario_id = ?`,
+     WHERE usuario_id = $1`,
     [id]
   );
   const profile = rows[0];
@@ -158,10 +162,10 @@ export async function buscarPerfilFuncionario(id, connection) {
 
 export async function buscarUsuarioParaEdicao(id, connection, lock = false) {
   const executor = getConnection(connection);
-  const [rows] = await executor.query(
+  const { rows } = await executor.query(
     `SELECT id, nome, email, telefone, cpf, nascimento, cargo, ativo, login_habilitado, foto_path, senha
      FROM usuario
-     WHERE id = ?
+     WHERE id = $1
      LIMIT 1${lock ? " FOR UPDATE" : ""}`,
     [id]
   );
@@ -169,8 +173,8 @@ export async function buscarUsuarioParaEdicao(id, connection, lock = false) {
 }
 
 export async function buscarPorEmail(email) {
-  const [rows] = await db.query(
-    "SELECT id, email FROM usuario WHERE email = ? LIMIT 1",
+  const { rows } = await db.query(
+    "SELECT id, email FROM usuario WHERE LOWER(email) = $1 LIMIT 1",
     [email]
   );
   return rows;
@@ -178,11 +182,11 @@ export async function buscarPorEmail(email) {
 
 export async function emailOuCpfEmUso(email, cpf, ignoredId, connection) {
   const executor = getConnection(connection);
-  const [rows] = await executor.query(
+  const { rows } = await executor.query(
     `SELECT id
      FROM usuario
-     WHERE (email = ? OR (? IS NOT NULL AND cpf = ?))
-       AND id <> ?
+     WHERE (LOWER(email) = $1 OR ($2::text IS NOT NULL AND cpf = $3))
+       AND id <> $4
      LIMIT 1`,
     [email, cpf, cpf, ignoredId]
   );
@@ -191,10 +195,11 @@ export async function emailOuCpfEmUso(email, cpf, ignoredId, connection) {
 
 export async function inserirUsuario(data, connection) {
   const executor = getConnection(connection);
-  const [result] = await executor.query(
+  const { rows } = await executor.query(
     `INSERT INTO usuario
       (nome, email, senha, telefone, cpf, nascimento, cargo, ativo, login_habilitado, foto_path)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     RETURNING id`,
     [
       data.nome,
       data.email,
@@ -208,7 +213,7 @@ export async function inserirUsuario(data, connection) {
       data.foto_path ?? null
     ]
   );
-  return result.insertId;
+  return rows[0].id;
 }
 
 export async function atualizarUsuario(id, data, connection) {
@@ -226,16 +231,16 @@ export async function atualizarUsuario(id, data, connection) {
   };
   const updates = Object.entries(data).filter(([key, value]) => columns[key] && value !== undefined);
   if (!updates.length) return;
-  const assignments = updates.map(([key]) => `${columns[key]} = ?`).join(", ");
+  const assignments = updates.map(([key], index) => `${columns[key]} = $${index + 1}`).join(", ");
   await getConnection(connection).query(
-    `UPDATE usuario SET ${assignments} WHERE id = ?`,
+    `UPDATE usuario SET ${assignments} WHERE id = $${updates.length + 1}`,
     [...updates.map(([, value]) => value), id]
   );
 }
 
 async function replaceActionGrants(table, keyColumn, keyValue, grants, connection) {
   const executor = getConnection(connection);
-  await executor.query(`DELETE FROM ${table} WHERE ${keyColumn} = ?`, [keyValue]);
+  await executor.query(`DELETE FROM ${table} WHERE ${keyColumn} = $1`, [keyValue]);
   const rows = [];
   for (const module of PERMISSION_KEYS) {
     for (const action of ACTION_KEYS) {
@@ -243,7 +248,11 @@ async function replaceActionGrants(table, keyColumn, keyValue, grants, connectio
     }
   }
   if (!rows.length) return;
-  const placeholders = rows.map(() => "(?, ?, ?)").join(", ");
+  let parameterIndex = 0;
+  const placeholders = rows.map(() => {
+    const values = [1, 2, 3].map(() => `$${++parameterIndex}`);
+    return `(${values.join(", ")})`;
+  }).join(", ");
   await executor.query(
     `INSERT INTO ${table} (${keyColumn}, module_key, action_key) VALUES ${placeholders}`,
     rows.flat()
@@ -252,20 +261,20 @@ async function replaceActionGrants(table, keyColumn, keyValue, grants, connectio
 
 export async function substituirPermissoes(id, permissions, actionGrants, connection) {
   const executor = getConnection(connection);
-  const [existing] = await executor.query(
-    "SELECT id FROM user_permissions WHERE usuario_id = ? ORDER BY id FOR UPDATE",
+  const { rows: existing } = await executor.query(
+    "SELECT id FROM user_permissions WHERE usuario_id = $1 ORDER BY id FOR UPDATE",
     [id]
   );
   const values = PERMISSION_KEYS.map((key) => Number(permissions[key] || 0));
   if (existing.length) {
     await executor.query(
-      `UPDATE user_permissions SET ${PERMISSION_KEYS.map((key) => `${key} = ?`).join(", ")} WHERE usuario_id = ?`,
+      `UPDATE user_permissions SET ${PERMISSION_KEYS.map((key, index) => `${key} = $${index + 1}`).join(", ")} WHERE usuario_id = $${PERMISSION_KEYS.length + 1}`,
       [...values, id]
     );
   } else {
     await executor.query(
       `INSERT INTO user_permissions (usuario_id, ${PERMISSION_KEYS.join(", ")})
-       VALUES (?, ${PERMISSION_KEYS.map(() => "?").join(", ")})`,
+       VALUES ($1, ${PERMISSION_KEYS.map((_, index) => `$${index + 2}`).join(", ")})`,
       [id, ...values]
     );
   }
@@ -279,18 +288,18 @@ export async function substituirPermissoes(id, permissions, actionGrants, connec
 export async function buscarPermissoesPerfil(cargo, connection) {
   if (!cargo) return null;
   const executor = getConnection(connection);
-  const [rows] = await executor.query(
+  const { rows } = await executor.query(
     `SELECT ${PERMISSION_KEYS.join(", ")}
      FROM funcionario_perfis_permissoes
-     WHERE cargo = ?
+     WHERE LOWER(cargo) = LOWER($1)
      LIMIT 1`,
     [cargo]
   );
   if (!rows.length) return null;
-  const [actionRows] = await executor.query(
+  const { rows: actionRows } = await executor.query(
     `SELECT module_key AS module, action_key AS action
      FROM funcionario_perfil_acoes
-     WHERE cargo = ?`,
+     WHERE LOWER(cargo) = LOWER($1)`,
     [cargo]
   );
   return {
@@ -300,12 +309,12 @@ export async function buscarPermissoesPerfil(cargo, connection) {
 }
 
 export async function listarPerfisPermissoes() {
-  const [rows] = await db.query(
-    `SELECT cargo AS role, ${PERMISSION_KEYS.join(", ")}, updated_at AS updatedAt
+  const { rows } = await db.query(
+    `SELECT cargo AS role, ${PERMISSION_KEYS.join(", ")}, updated_at AS "updatedAt"
      FROM funcionario_perfis_permissoes
      ORDER BY cargo ASC`
   );
-  const [actionRows] = await db.query(
+  const { rows: actionRows } = await db.query(
     "SELECT cargo AS role, module_key AS module, action_key AS action FROM funcionario_perfil_acoes"
   );
   const grantsByRole = new Map();
@@ -326,30 +335,31 @@ export async function listarPerfisPermissoes() {
 
 export async function salvarPerfilPermissoes(cargo, permissions, actionGrants, actorId, connection) {
   const executor = getConnection(connection);
-  const [existing] = await executor.query(
-    "SELECT cargo FROM funcionario_perfis_permissoes WHERE cargo = ? FOR UPDATE",
+  const { rows: existing } = await executor.query(
+    "SELECT cargo FROM funcionario_perfis_permissoes WHERE LOWER(cargo) = LOWER($1) FOR UPDATE",
     [cargo]
   );
+  const cargoPersistido = existing[0]?.cargo || cargo;
   const values = PERMISSION_KEYS.map((key) => Number(permissions[key] || 0));
   if (existing.length) {
     await executor.query(
       `UPDATE funcionario_perfis_permissoes
-       SET ${PERMISSION_KEYS.map((key) => `${key} = ?`).join(", ")}, updated_by = ?
-       WHERE cargo = ?`,
-      [...values, actorId, cargo]
+       SET ${PERMISSION_KEYS.map((key, index) => `${key} = $${index + 1}`).join(", ")}, updated_by = $${PERMISSION_KEYS.length + 1}
+       WHERE LOWER(cargo) = LOWER($${PERMISSION_KEYS.length + 2})`,
+      [...values, actorId, cargoPersistido]
     );
   } else {
     await executor.query(
       `INSERT INTO funcionario_perfis_permissoes (cargo, ${PERMISSION_KEYS.join(", ")}, updated_by)
-       VALUES (?, ${PERMISSION_KEYS.map(() => "?").join(", ")}, ?)`,
+       VALUES ($1, ${PERMISSION_KEYS.map((_, index) => `$${index + 2}`).join(", ")}, $${PERMISSION_KEYS.length + 2})`,
       [cargo, ...values, actorId]
     );
   }
-  await replaceActionGrants("funcionario_perfil_acoes", "cargo", cargo, actionGrants, connection);
+  await replaceActionGrants("funcionario_perfil_acoes", "cargo", cargoPersistido, actionGrants, connection);
 }
 
 export async function listarAdministradoresAtivos(connection) {
-  const [rows] = await getConnection(connection).query(
+  const { rows } = await getConnection(connection).query(
     `SELECT u.id
      FROM usuario u
      INNER JOIN user_permissions p ON p.usuario_id = u.id
@@ -378,7 +388,7 @@ export async function listarAdministradoresAtivos(connection) {
 export async function registrarAuditoria(connection, actorId, targetId, action, details) {
   await getConnection(connection).query(
     `INSERT INTO funcionario_auditoria (actor_id, target_user_id, action, details)
-     VALUES (?, ?, ?, ?)`,
+     VALUES ($1, $2, $3, $4)` ,
     [actorId ?? null, targetId ?? null, action, JSON.stringify(details ?? {})]
   );
 }
@@ -389,56 +399,57 @@ export async function registrarEventoLogin(req, userId, email, result, reason) {
   const userAgent = String(req.get?.("user-agent") || "").slice(0, 255) || null;
   await db.query(
     `INSERT INTO funcionario_login_eventos (usuario_id, email_tentado, resultado, motivo, ip, user_agent)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+     VALUES ($1, $2, $3, $4, $5, $6)`,
     [userId ?? null, emailAttempted, result, reason, ip, userAgent]
   );
 }
 
 export async function atualizarUltimoAcesso(userId) {
-  await db.query("UPDATE usuario SET ultimo_acesso_em = CURRENT_TIMESTAMP WHERE id = ?", [userId]);
+  await db.query("UPDATE usuario SET ultimo_acesso_em = CURRENT_TIMESTAMP WHERE id = $1", [userId]);
 }
 
 export async function buscarEventosFuncionario(id, limit = 50) {
-  const [rows] = await db.query(
-    `SELECT id, resultado AS result, motivo AS reason, ip, user_agent AS userAgent, created_at AS createdAt
+  const { rows } = await db.query(
+    `SELECT id, resultado AS result, motivo AS reason, ip, user_agent AS "userAgent", created_at AS "createdAt"
      FROM funcionario_login_eventos
-     WHERE usuario_id = ?
+     WHERE usuario_id = $1
      ORDER BY created_at DESC, id DESC
-     LIMIT ?`,
+     LIMIT $2`,
     [id, limit]
   );
   return rows;
 }
 
 export async function buscarAtividadeFuncionario(id, limit = 50) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT a.id, a.action, a.action AS description, 'Funcionários' AS module,
-            a.created_at AS createdAt, a.created_at AS at,
-            actor.nome AS who, actor.nome AS actorName
+            a.created_at AS "createdAt", a.created_at AS at,
+            actor.nome AS who, actor.nome AS "actorName"
      FROM funcionario_auditoria a
      LEFT JOIN usuario actor ON actor.id = a.actor_id
-     WHERE a.target_user_id = ?
+     WHERE a.target_user_id = $1
      ORDER BY a.created_at DESC, a.id DESC
-     LIMIT ?`,
+     LIMIT $2`,
     [id, limit]
   );
   return rows;
 }
 
 export async function resumirSegurancaFuncionario(id) {
-  const [[summary]] = await db.query(
+  const { rows: summaryRows } = await db.query(
     `SELECT
-       SUM(resultado = 'success') AS accessCount,
-       SUM(resultado = 'failure') AS failedAttempts,
-       MAX(CASE WHEN resultado = 'success' THEN created_at END) AS lastLogin
+       COUNT(*) FILTER (WHERE resultado = 'success') AS "accessCount",
+       COUNT(*) FILTER (WHERE resultado = 'failure') AS "failedAttempts",
+       MAX(CASE WHEN resultado = 'success' THEN created_at END) AS "lastLogin"
      FROM funcionario_login_eventos
-     WHERE usuario_id = ?`,
+     WHERE usuario_id = $1`,
     [id]
   );
-  const [lastEvent] = await db.query(
-    `SELECT ip AS lastIp
+  const summary = summaryRows[0] || {};
+  const { rows: lastEvent } = await db.query(
+    `SELECT ip AS "lastIp"
      FROM funcionario_login_eventos
-     WHERE usuario_id = ? AND resultado = 'success'
+     WHERE usuario_id = $1 AND resultado = 'success'
      ORDER BY created_at DESC, id DESC
      LIMIT 1`,
     [id]
@@ -455,33 +466,36 @@ export async function listarAuditoria({ targetId, actorId, action, limit, offset
   const clauses = ["1 = 1"];
   const params = [];
   if (targetId !== undefined) {
-    clauses.push("target_user_id = ?");
+    clauses.push(`target_user_id = $${params.length + 1}`);
     params.push(targetId);
   }
   if (actorId !== undefined) {
-    clauses.push("actor_id = ?");
+    clauses.push(`actor_id = $${params.length + 1}`);
     params.push(actorId);
   }
   if (action) {
-    clauses.push("action = ?");
+    clauses.push(`action = $${params.length + 1}`);
     params.push(action);
   }
   const where = clauses.join(" AND ");
-  const [rows] = await db.query(
-    `SELECT a.id, a.actor_id AS actorId, a.target_user_id AS targetUserId,
-            a.action, a.details, a.created_at AS createdAt, a.created_at AS at,
-            actor.nome AS who, actor.nome AS actorName, 'Funcionários' AS module
+  const limitPlaceholder = `$${params.length + 1}`;
+  const offsetPlaceholder = `$${params.length + 2}`;
+  const { rows } = await db.query(
+    `SELECT a.id, a.actor_id AS "actorId", a.target_user_id AS "targetUserId",
+            a.action, a.details, a.created_at AS "createdAt", a.created_at AS at,
+            actor.nome AS who, actor.nome AS "actorName", 'Funcionários' AS module
      FROM funcionario_auditoria a
      LEFT JOIN usuario actor ON actor.id = a.actor_id
      WHERE ${where}
      ORDER BY a.created_at DESC, a.id DESC
-     LIMIT ? OFFSET ?`,
+     LIMIT ${limitPlaceholder} OFFSET ${offsetPlaceholder}`,
     [...params, limit, offset]
   );
-  const [[{ total }]] = await db.query(
+  const { rows: countRows } = await db.query(
     `SELECT COUNT(*) AS total FROM funcionario_auditoria WHERE ${where}`,
     params
   );
+  const total = countRows[0]?.total || 0;
   return { rows, total: Number(total) };
 }
 
@@ -491,54 +505,58 @@ export async function listarEventosSeguranca({ result, email, limit, offset }) {
   if (result) {
     clauses.push(`EXISTS (
       SELECT 1 FROM funcionario_login_eventos filter_event
-      WHERE filter_event.usuario_id = u.id AND filter_event.resultado = ?
+      WHERE filter_event.usuario_id = u.id AND filter_event.resultado = $${params.length + 1}
     )`);
     params.push(result);
   }
   if (email) {
     clauses.push(`EXISTS (
       SELECT 1 FROM funcionario_login_eventos filter_event
-      WHERE filter_event.usuario_id = u.id AND filter_event.email_tentado LIKE ?
+      WHERE filter_event.usuario_id = u.id AND filter_event.email_tentado ILIKE $${params.length + 1}
     )`);
     params.push(`%${email}%`);
   }
   const where = clauses.join(" AND ");
-  const [rows] = await db.query(
-    `SELECT u.id AS userId, u.nome AS name, u.cargo AS role,
-            u.ativo AS active, u.login_habilitado AS canLogin,
-            u.created_at AS createdAt, u.ultimo_acesso_em AS lastAccess,
-            COALESCE(stats.accessCount, 0) AS accessCount,
-            COALESCE(stats.failedAttempts, 0) AS failedAttempts,
-            stats.lastLogin,
+  const limitPlaceholder = `$${params.length + 1}`;
+  const offsetPlaceholder = `$${params.length + 2}`;
+  const { rows } = await db.query(
+    `SELECT u.id AS "userId", u.nome AS name, u.cargo AS role,
+            u.ativo AS active, u.login_habilitado AS "canLogin",
+            u.created_at AS "createdAt", u.ultimo_acesso_em AS "lastAccess",
+            COALESCE(stats."accessCount", 0) AS "accessCount",
+            COALESCE(stats."failedAttempts", 0) AS "failedAttempts",
+            stats."lastLogin",
             (SELECT login.ip
              FROM funcionario_login_eventos login
              WHERE login.usuario_id = u.id AND login.resultado = 'success'
              ORDER BY login.created_at DESC, login.id DESC
-             LIMIT 1) AS lastIp
+             LIMIT 1) AS "lastIp"
      FROM usuario u
      LEFT JOIN (
        SELECT usuario_id,
-              SUM(resultado = 'success') AS accessCount,
-              SUM(resultado = 'failure') AS failedAttempts,
-              MAX(CASE WHEN resultado = 'success' THEN created_at END) AS lastLogin
+              COUNT(*) FILTER (WHERE resultado = 'success') AS "accessCount",
+              COUNT(*) FILTER (WHERE resultado = 'failure') AS "failedAttempts",
+              MAX(CASE WHEN resultado = 'success' THEN created_at END) AS "lastLogin"
        FROM funcionario_login_eventos
        GROUP BY usuario_id
      ) stats ON stats.usuario_id = u.id
      WHERE ${where}
      ORDER BY u.nome ASC, u.id ASC
-     LIMIT ? OFFSET ?`,
+     LIMIT ${limitPlaceholder} OFFSET ${offsetPlaceholder}`,
     [...params, limit, offset]
   );
-  const [[{ total }]] = await db.query(
+  const { rows: countRows } = await db.query(
     `SELECT COUNT(*) AS total FROM usuario u WHERE ${where}`,
     params
   );
-  const [[counts]] = await db.query(
+  const total = countRows[0]?.total || 0;
+  const { rows: countRowsForEvents } = await db.query(
     `SELECT
-       SUM(resultado = 'success') AS successes,
-       SUM(resultado = 'failure') AS failures
+       COUNT(*) FILTER (WHERE resultado = 'success') AS successes,
+       COUNT(*) FILTER (WHERE resultado = 'failure') AS failures
      FROM funcionario_login_eventos`
   );
+  const counts = countRowsForEvents[0] || {};
   return {
     rows,
     total: Number(total),
@@ -547,7 +565,7 @@ export async function listarEventosSeguranca({ result, email, limit, offset }) {
 }
 
 export async function getUsuarios() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT u.id, u.nome, u.email, u.telefone, u.cpf, u.nascimento, u.cargo,
             u.ativo, u.login_habilitado, u.foto_path, u.created_at, u.updated_at,
             u.ultimo_acesso_em, ${PERMISSION_KEYS.join(", ")}

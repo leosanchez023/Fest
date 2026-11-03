@@ -43,6 +43,11 @@ router.put(
   controller.atualizarQuantidadesEstoque
 );
 
+router.patch(
+  "/api/:id/status",
+  controller.atualizarStatus
+);
+
 
 // Dashboard estoque
 router.get(

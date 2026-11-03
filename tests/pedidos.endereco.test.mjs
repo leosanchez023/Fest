@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import db from "../database/connection.js";
+import { assertTestDatabase } from "./helpers/test-database.js";
 import {
   criarPedido,
   atualizarPedido,
@@ -195,8 +196,9 @@ function photonResponse(query) {
 }
 
 try {
-  const [existingConfig] = await db.query("SELECT * FROM configuracoes_entrega WHERE id = 1");
-  previousDeliveryConfig = existingConfig[0] || null;
+  await assertTestDatabase(db);
+  const { rows: [existingConfig] } = await db.query("SELECT * FROM configuracoes_entrega WHERE id = 1");
+  previousDeliveryConfig = existingConfig || null;
   globalThis.fetch = async (url, options = {}) => {
     const target = new URL(url);
     if (target.hostname === "photon.komoot.io") {
@@ -533,18 +535,19 @@ try {
     }
     return new Response(JSON.stringify({ code: "Ok", routes: [{ distance: 12500 }] }), { status: 200 });
   };
-  const [cliente] = await db.query(
-    "INSERT INTO cliente (nome, email) VALUES (?, ?)",
+  const { rows: [cliente] } = await db.query(
+    "INSERT INTO cliente (nome, email) VALUES ($1, $2) RETURNING id",
     [`__TESTE_ROTA_${tag}`, `__rota_${tag}@example.test`]
   );
-  clienteId = cliente.insertId;
-  const [produto] = await db.query(
+  clienteId = cliente.id;
+  const { rows: [produto] } = await db.query(
     `INSERT INTO produtos
       (nome, tipo_produto, estoque, ativo, preco_venda, preco_aluguel)
-     VALUES (?, 'PRODUTO', 2, 1, 50, 0)`,
+     VALUES ($1, 'PRODUTO', 2, 1, 50, 0)
+     RETURNING id`,
     [`__TESTE_ROTA_${tag}`]
   );
-  produtoId = produto.insertId;
+  produtoId = produto.id;
 
   const makeOrder = (address = destination) => ({
     cliente_id: clienteId,
@@ -569,12 +572,12 @@ try {
   const secondOrder = await criarPedido(makeOrder());
   pedidosIds.push(firstOrder.pedidoId, secondOrder.pedidoId);
 
-  const [saved] = await db.query(
+  const { rows: saved } = await db.query(
     `SELECT p.endereco_id, p.endereco_origem, p.origem_lat, p.origem_lon,
             p.destino_lat, p.destino_lon, p.distancia_km, p.valor_frete, p.valor_total,
             e.rua, e.numero, e.bairro, e.cidade, e.estado, e.cep, e.referencia
      FROM pedidos p JOIN endereco e ON e.id = p.endereco_id
-     WHERE p.id IN (?, ?) ORDER BY p.id`,
+     WHERE p.id IN ($1, $2) ORDER BY p.id`,
     pedidosIds
   );
   assert.equal(saved.length, 2);
@@ -596,21 +599,21 @@ try {
     endereco_id: null,
     observacoes: ""
   });
-  const [updated] = await db.query(
-    "SELECT distancia_km, distancia_cobrada_km, destino_aproximado, valor_frete, valor_total FROM pedidos WHERE id = ?",
+  const { rows: [updated] } = await db.query(
+    "SELECT distancia_km, distancia_cobrada_km, destino_aproximado, valor_frete, valor_total FROM pedidos WHERE id = $1",
     [firstOrder.pedidoId]
   );
-  assert.equal(Number(updated[0].distancia_km), 12.5);
-  assert.equal(Number(updated[0].valor_frete), 31.25);
-  assert.equal(Number(updated[0].valor_total), 81.25);
-  assert.equal(Number(updated[0].destino_aproximado), 0, `O número 43 deve ser geocodificado pelo resultado exato do Photon. Consultas: ${JSON.stringify(photonCalls)}`);
-  assert.equal(Number(updated[0].distancia_cobrada_km), 12.5);
+  assert.equal(Number(updated.distancia_km), 12.5);
+  assert.equal(Number(updated.valor_frete), 31.25);
+  assert.equal(Number(updated.valor_total), 81.25);
+  assert.equal(Number(updated.destino_aproximado), 0, `O número 43 deve ser geocodificado pelo resultado exato do Photon. Consultas: ${JSON.stringify(photonCalls)}`);
+  assert.equal(Number(updated.distancia_cobrada_km), 12.5);
   assert.ok(photonCalls.some((call) => call.query.includes("43")), "O número digitado deve participar de uma nova busca no Photon.");
-  const [orderCount] = await db.query(
-    "SELECT COUNT(*) AS total FROM pedidos WHERE id IN (?, ?)",
+  const { rows: [orderCount] } = await db.query(
+    "SELECT COUNT(*) AS total FROM pedidos WHERE id IN ($1, $2)",
     pedidosIds
   );
-  assert.equal(Number(orderCount[0].total), 2, "Editar deve atualizar o pedido, sem criar duplicata.");
+  assert.equal(Number(orderCount.total), 2, "Editar deve atualizar o pedido, sem criar duplicata.");
 
   await assert.rejects(
     () => atualizarPedido(secondOrder.pedidoId, {
@@ -624,13 +627,13 @@ try {
 } finally {
   globalThis.fetch = originalFetch;
   if (pedidosIds.length) {
-    await db.query("DELETE FROM pedido_item_componentes WHERE pedido_id IN (?, ?)", pedidosIds);
-    await db.query("DELETE FROM pedido_itens WHERE pedido_id IN (?, ?)", pedidosIds);
-    await db.query("DELETE FROM pedidos WHERE id IN (?, ?)", pedidosIds);
+    await db.query("DELETE FROM pedido_item_componentes WHERE pedido_id IN ($1, $2)", pedidosIds);
+    await db.query("DELETE FROM pedido_itens WHERE pedido_id IN ($1, $2)", pedidosIds);
+    await db.query("DELETE FROM pedidos WHERE id IN ($1, $2)", pedidosIds);
   }
-  if (clienteId) await db.query("DELETE FROM cliente WHERE id = ?", [clienteId]);
-  if (produtoId) await db.query("DELETE FROM produtos WHERE id = ?", [produtoId]);
-  await db.query("DELETE FROM endereco WHERE rua = ?", [street]);
+  if (clienteId) await db.query("DELETE FROM cliente WHERE id = $1", [clienteId]);
+  if (produtoId) await db.query("DELETE FROM produtos WHERE id = $1", [produtoId]);
+  await db.query("DELETE FROM endereco WHERE rua = $1", [street]);
   await db.query("DELETE FROM configuracoes_entrega WHERE id = 1");
   if (previousDeliveryConfig) {
     const columns = [
@@ -640,7 +643,7 @@ try {
       "distancia_maxima_km", "sentido_distancia"
     ];
     await db.query(
-      `INSERT INTO configuracoes_entrega (${columns.join(", ")}) VALUES (${columns.map(() => "?").join(", ")})`,
+      `INSERT INTO configuracoes_entrega (${columns.join(", ")}) VALUES (${columns.map((_, index) => `$${index + 1}`).join(", ")})`,
       columns.map((column) => previousDeliveryConfig[column])
     );
   }

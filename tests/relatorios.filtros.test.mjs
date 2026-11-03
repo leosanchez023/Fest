@@ -11,10 +11,10 @@ const pedidos = construirFiltros({
   extra: "Venda",
   q: "Maria"
 });
-assert.match(pedidos.pedidosSql, /p\.data_pedido >= \?/);
-assert.match(pedidos.pedidosSql, /DATE_ADD\(\?, INTERVAL 1 DAY\)/);
-assert.match(pedidos.pedidosSql, /p\.status IN \(\?,\?,\?,\?\)/);
-assert.match(pedidos.pedidosSql, /p\.tipo_pedido = \?/);
+assert.match(pedidos.pedidosSql, /p\.data_pedido >= \$1/);
+assert.match(pedidos.pedidosSql, /::date \+ INTERVAL '1 day'/);
+assert.match(pedidos.pedidosSql, /p\.status IN \(\$6,\$7,\$8,\$9\)/);
+assert.match(pedidos.pedidosSql, /p\.tipo_pedido = \$10/);
 assert.deepEqual(pedidos.pedidosParams, [
   "2026-01-01", "2026-01-31", "%Maria%", "%Maria%", "%Maria%",
   "CONFIRMADO", "EM_PREPARO", "CONFERENCIA", "PENDENTE", "VENDA"
@@ -27,7 +27,7 @@ const financeiro = construirFiltros({
   extra: "Pix"
 });
 assert.match(financeiro.pedidosSql, /COALESCE\(p\.valor_total, 0\) - COALESCE\(pg\.total_pago, 0\) \+ COALESCE\(pg\.reembolsos, 0\)/);
-assert.match(financeiro.pedidosSql, /pf\.forma_pagamento = \?/);
+assert.match(financeiro.pedidosSql, /pf\.forma_pagamento = \$1/);
 assert.deepEqual(financeiro.pedidosParams, ["PIX"]);
 
 const estoque = construirFiltros({
@@ -38,7 +38,7 @@ const estoque = construirFiltros({
   q: "mesa"
 });
 assert.match(estoque.produtosSql, /estoque_minimo/);
-assert.match(estoque.produtosSql, /categoria = \?/);
+assert.match(estoque.produtosSql, /categoria = \$4/);
 assert.deepEqual(estoque.produtosParams, ["%mesa%", "%mesa%", "%mesa%", "Mesas"]);
 
 assert.throws(

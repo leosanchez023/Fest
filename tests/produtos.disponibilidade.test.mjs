@@ -10,7 +10,9 @@ const queries = [];
 try {
   db.query = async (sql, params = []) => {
     queries.push({ sql, params });
-    return sql.includes("INSERT INTO produtos") ? [{ insertId: 99 }] : [[]];
+    return sql.includes("INSERT INTO produtos")
+      ? { rows: [{ id: 99 }], rowCount: 1 }
+      : { rows: [], rowCount: 0 };
   };
 
   await findAll({
@@ -25,7 +27,7 @@ try {
   assert.deepEqual(listQuery.params, ["%mesa%", "%mesa%", "%mesa%", "%mesa%", "festa", "3", 2, "BAIXO_ESTOQUE"]);
   assert.match(listQuery.sql, /AS disponivel/);
   assert.match(listQuery.sql, /AS status_estoque/);
-  assert.match(listQuery.sql, /ORDER BY disponivel DESC, p\.nome ASC/);
+  assert.match(listQuery.sql, /ORDER BY disponivel DESC NULLS LAST, p\.nome ASC/);
   assert.ok(
     listQuery.sql.indexOf("THEN 'INDISPONIVEL'") < listQuery.sql.indexOf("THEN 'BAIXO_ESTOQUE'"),
     "Indisponibilidade deve preceder estoque baixo"
@@ -43,7 +45,7 @@ try {
   });
   const insertQuery = queries[queries.length - 1];
   assert.doesNotMatch(insertQuery.sql, /\btipo_produto\b|\btipo\b/);
-  assert.equal((insertQuery.sql.match(/\?/g) || []).length, insertQuery.params.length);
+  assert.equal((insertQuery.sql.match(/\$\d+/g) || []).length, insertQuery.params.length);
 
   await atualizar(99, {
     nome: "Mesa atualizada",

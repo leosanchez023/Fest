@@ -3,10 +3,13 @@ import * as service from './estoque.service.js';
 export async function index(req, res) {
   try {
     const dados = await service.resumoEstoque();
-    const [produtos] = await (await import('../../../database/connection.js')).default.query(`
+    const { rows: produtos } = await (await import('../../../database/connection.js')).default.query(`
       SELECT p.*, 
-             (p.estoque - p.estoque_reservado - p.estoque_em_uso - p.estoque_manutencao - p.estoque_danificado) AS disponivel,
+             CASE WHEN p.controla_estoque THEN
+               (p.estoque - p.estoque_reservado - p.estoque_em_uso - p.estoque_manutencao - p.estoque_danificado)
+               ELSE NULL END AS disponivel,
              CASE
+               WHEN NOT p.controla_estoque THEN 'NAO_CONTROLADO'
                WHEN (p.estoque - p.estoque_reservado - p.estoque_em_uso - p.estoque_manutencao - p.estoque_danificado) <= 0 THEN 'INDISPONIVEL'
                WHEN p.estoque_manutencao > 0 THEN 'MANUTENCAO'
                WHEN p.estoque_danificado > 0 THEN 'DANIFICADO'
@@ -16,7 +19,7 @@ export async function index(req, res) {
                ELSE 'DISPONIVEL'
              END AS status_estoque
       FROM produtos p
-      WHERE p.ativo = 1
+      WHERE p.ativo = 1 AND p.controla_estoque
       ORDER BY p.nome ASC
     `);
 

@@ -8,6 +8,7 @@
   });
 
   const statusLabel = {
+    NAO_CONTROLADO: 'Sem controle de estoque',
     DISPONIVEL: 'Disponível',
     RESERVADO: 'Reservado',
     EM_USO: 'Em uso',
@@ -19,6 +20,7 @@
   };
 
   const statusClasse = {
+    NAO_CONTROLADO: 'badge-muted',
     DISPONIVEL: 'badge-success',
     RESERVADO: 'badge-info',
     EM_USO: 'badge-purple',
@@ -57,9 +59,10 @@
 
     tbody.innerHTML = produtos.map((produto) => {
       const status = produto.status_estoque || 'DISPONIVEL';
-      const disponivel = Number(produto.disponivel ?? 0);
+      const controlaEstoque = produto.controla_estoque !== false;
+      const disponivel = produto.disponivel === null ? null : Number(produto.disponivel ?? 0);
       const minimo = Number(produto.estoque_minimo || 0);
-      const disponibilidadeStatus = disponivel <= 0 ? 'INDISPONIVEL'
+      const disponibilidadeStatus = !controlaEstoque ? 'NAO_CONTROLADO' : disponivel <= 0 ? 'INDISPONIVEL'
         : disponivel <= minimo ? 'BAIXO_ESTOQUE' : 'DISPONIVEL';
       return `<tr>
         <td>${escapeHtml(produto.nome)}</td>
@@ -68,16 +71,25 @@
         <td>${Number(produto.estoque_em_uso || 0)}</td>
         <td>${Number(produto.estoque_manutencao || 0)}</td>
         <td>${Number(produto.estoque_danificado || 0)}</td>
-        <td title="Calculado: estoque físico menos reservado, em uso, manutenção e danificado">${Number(produto.disponivel || 0)}</td>
+        <td title="Calculado apenas para produtos com controle de estoque">${disponivel === null ? '—' : disponivel}</td>
         <td>${Number(produto.estoque_minimo || 0)}</td>
         <td>
-          <span class="badge ${statusClasse[disponibilidadeStatus]}">${statusLabel[disponibilidadeStatus]} (${disponivel})</span>
+          <span class="badge ${statusClasse[disponibilidadeStatus]}">${statusLabel[disponibilidadeStatus]}${disponivel === null ? '' : ` (${disponivel})`}</span>
           <span class="badge ${statusClasse[status] || 'badge-muted'}">${statusLabel[status] || escapeHtml(status)}</span>
           <span class="badge ${Number(produto.ativo) === 1 ? 'badge-success' : 'badge-muted'}">${Number(produto.ativo) === 1 ? 'Ativo' : 'Inativo'}</span>
         </td>
         <td>
-          <button type="button" class="btn-edit" data-stock-edit="${Number(produto.id)}">Editar estoque</button>
-          <a href="/produtos/editar/${Number(produto.id)}" class="btn-edit">Editar cadastro</a>
+          <div class="actions product-actions">
+            <button type="button" class="iconbtn" data-product-menu="${Number(produto.id)}"
+              aria-label="Ações do produto ${escapeHtml(produto.nome)}" aria-expanded="false">
+              <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+            </button>
+            <div class="product-menu" id="menu-produto-${Number(produto.id)}" hidden>
+              <a href="/produtos/editar/${Number(produto.id)}">Editar cadastro</a>
+              ${controlaEstoque ? `<button type="button" data-stock-edit="${Number(produto.id)}">Editar estoque</button>` : ''}
+              <button type="button" data-product-delete="${Number(produto.id)}">Excluir produto</button>
+            </div>
+          </div>
         </td>
       </tr>`;
     }).join('');
@@ -104,6 +116,7 @@
   async function editarEstoque(id, row) {
     try {
       const produto = await jsonFetch(`/produtos/api/${id}`);
+      if (produto.controla_estoque === false) throw new Error('O controle de estoque está desativado para este produto.');
       const disponivel = Number(produto.estoque || 0) - Number(produto.estoque_reservado || 0)
         - Number(produto.estoque_em_uso || 0) - Number(produto.estoque_manutencao || 0)
         - Number(produto.estoque_danificado || 0);
@@ -168,7 +181,8 @@
       const resposta = await jsonFetch('/estoque/resumo');
       const dados = resposta.data || {};
       document.getElementById('kpi-total').textContent = Number(dados.total_produtos || 0);
-      document.getElementById('kpi-disponivel').textContent = Number(dados.disponivel || 0);
+      document.getElementById('kpi-ativos').textContent = Number(dados.produtos_ativos || 0);
+      document.getElementById('kpi-inativos').textContent = Number(dados.produtos_inativos || 0);
       document.getElementById('kpi-reservados').textContent = Number(dados.estoque_reservado || 0);
       document.getElementById('kpi-manutencao').textContent = Number(dados.estoque_manutencao || 0);
       document.getElementById('kpi-danificados').textContent = Number(dados.estoque_danificado || 0);
@@ -188,19 +202,93 @@
       chip.classList.add('active');
       carregarProdutosControle();
     }));
-    document.getElementById('estoque-tbody')?.addEventListener('click', (event) => {
+    document.getElementById('estoque-tbody')?.addEventListener('click', async (event) => {
       const target = event.target.closest('[data-stock-edit], [data-stock-save], [data-stock-cancel]');
+      const menuButton = event.target.closest('[data-product-menu]');
+      if (menuButton) {
+        const id = menuButton.dataset.productMenu;
+        const menu = document.getElementById(`menu-produto-${id}`);
+        const abrir = menu?.hidden;
+        document.querySelectorAll('.product-menu').forEach((item) => { item.hidden = true; });
+        document.querySelectorAll('[data-product-menu]').forEach((item) => item.setAttribute('aria-expanded', 'false'));
+        if (menu && abrir) {
+          menu.hidden = false;
+          menuButton.setAttribute('aria-expanded', 'true');
+        }
+        return;
+      }
+      const deleteButton = event.target.closest('[data-product-delete]');
+      if (deleteButton) {
+        await window.deletarProduto?.(deleteButton.dataset.productDelete);
+        return;
+      }
       if (!target) return;
       const row = target.closest('tr');
       if (target.hasAttribute('data-stock-edit')) editarEstoque(target.dataset.stockEdit, row);
       if (target.hasAttribute('data-stock-save')) salvarEstoque(target.dataset.stockSave, row, target);
       if (target.hasAttribute('data-stock-cancel')) carregarProdutosControle();
     });
+
+    const formulario = document.getElementById('produto-form');
+    const campoControle = document.getElementById('produto-controla-estoque');
+    const campoEstoque = document.getElementById('produto-estoque');
+    const campoSituacao = document.getElementById('produto-ativo');
+    if (formulario && campoSituacao) {
+      formulario.dataset.situacaoOriginal = campoSituacao.value;
+      let confirmacaoPendente = false;
+      formulario.addEventListener('submit', async (event) => {
+        if (confirmacaoPendente || campoSituacao.value === formulario.dataset.situacaoOriginal) return;
+        event.preventDefault();
+        const ativo = campoSituacao.value === '1';
+        const acao = ativo ? 'reativar' : 'inativar';
+        const resultado = await window.FestAlert?.confirm?.(
+          `${ativo ? 'Reativar' : 'Inativar'} produto`,
+          `Confirma ${acao} este produto? A alteração não modifica o controle nem a disponibilidade do estoque.`
+        ) ?? { isConfirmed: window.confirm(`Confirma ${acao} este produto? A alteração não modifica o controle nem a disponibilidade do estoque.`) };
+        if (!resultado?.isConfirmed) {
+          campoSituacao.value = formulario.dataset.situacaoOriginal;
+          return;
+        }
+        confirmacaoPendente = true;
+        if (event.submitter) formulario.requestSubmit(event.submitter);
+        else formulario.requestSubmit();
+      });
+    }
+    if (formulario && campoControle && campoEstoque) {
+      formulario.dataset.controleOriginal = campoControle.value;
+      campoControle.addEventListener('change', () => {
+        const ativando = formulario.dataset.controleOriginal === '0' && campoControle.value === '1';
+        campoEstoque.required = ativando;
+        campoEstoque.min = ativando ? '1' : '0';
+        if (ativando) {
+          const inicial = window.prompt('Informe a quantidade inicial de estoque:');
+          if (inicial === null) {
+            campoControle.value = '0';
+            campoEstoque.required = false;
+            campoEstoque.min = '0';
+          } else {
+            campoEstoque.value = inicial;
+          }
+        }
+      });
+    }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     configurarControle();
     carregarResumoEstoque();
     carregarProdutosControle();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('.product-actions')) return;
+    document.querySelectorAll('.product-menu').forEach((menu) => { menu.hidden = true; });
+    document.querySelectorAll('[data-product-menu], [data-product-list-menu]').forEach((button) => button.setAttribute('aria-expanded', 'false'));
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    document.querySelectorAll('.product-menu').forEach((menu) => { menu.hidden = true; });
+    document.querySelectorAll('[data-product-menu], [data-product-list-menu]').forEach((button) => button.setAttribute('aria-expanded', 'false'));
   });
 })();

@@ -19,6 +19,7 @@ export async function index(req, res) {
 export async function listar(req, res) {
   try {
     const combos = await service.listarCombos();
+    res.set('Cache-Control', 'no-store');
     res.json(combos);
   } catch (error) {
     res.status(500).json({ erro: error.message });

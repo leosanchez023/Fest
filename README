@@ -81,7 +81,7 @@ Entre seus principais diferenciais destacam-se:
 - Separação entre Controllers, Services e Models.
 - Interface moderna e intuitiva.
 - Código modularizado.
-- Banco de dados relacional utilizando MySQL.
+- Banco de dados relacional PostgreSQL hospedado no Supabase.
 - Organização por módulos.
 - Estrutura preparada para crescimento.
 - Fácil manutenção.
@@ -250,7 +250,7 @@ B --> C[Routes]
 C --> D[Controllers]
 D --> E[Services]
 E --> F[Models]
-F --> G[(MySQL)]
+F --> G[(PostgreSQL / Supabase)]
 
 ```
 
@@ -309,9 +309,9 @@ Fest/
 |   │   │
 |   │   └── backups/                           # Backups completos do banco de dados.
 |   |
-│   ├── migrations/                      # Scripts para criação e alteração da estrutura do banco.
-│   ├── seed.sql                         # Dados iniciais para o sistema.
-│   ├── schema.sql                       # Estrutura completa do banco de dados.
+│   ├── migrations/                      # Migrations históricas e PostgreSQL.
+│   ├── schema.postgresql.sql            # Estrutura PostgreSQL consolidada.
+│   ├── schema.sql                       # Estrutura histórica MySQL.
 │   ├── procedures/                      # Procedures e funções SQL (quando utilizadas).
 │   └── backups/                         # Backups SQL armazenados junto ao banco.
 |
@@ -444,7 +444,7 @@ Fest/
 | Node.js         | Ambiente de execução JavaScript.             |
 | Express.js      | Framework para desenvolvimento da aplicação. |
 | Express Session | Gerenciamento de sessões.                    |
-| MySQL2          | Comunicação com o banco de dados.            |
+| pg              | Comunicação do backend com PostgreSQL.        |
 | bcrypt          | Criptografia de senhas.                      |
 | dotenv          | Gerenciamento das variáveis de ambiente.     |
 
@@ -465,7 +465,7 @@ Fest/
 
 | Tecnologia | Descrição                                         |
 | ---------- | ------------------------------------------------- |
-| MySQL      | Banco de dados relacional utilizado pelo sistema. |
+| PostgreSQL | Banco de dados relacional hospedado no Supabase. |
 
 ---
 
@@ -476,7 +476,7 @@ Fest/
 | Git                | Controle de versão.              |
 | GitHub             | Hospedagem do repositório.       |
 | Visual Studio Code | Desenvolvimento da aplicação.    |
-| MySQL Workbench    | Administração do banco de dados. |
+| Supabase Dashboard | Administração do banco de dados. |
 
 ---
 
@@ -544,7 +544,7 @@ Antes de executar o projeto, certifique-se de possuir as ferramentas abaixo inst
 | ------------------ | -----------------: |
 | Node.js            |   22.x ou superior |
 | npm                |   10.x ou superior |
-| MySQL Server       |                8.x |
+| PostgreSQL / Supabase |             Atual |
 | Git                |      Última versão |
 | Visual Studio Code |        Recomendado |
 
@@ -566,11 +566,8 @@ npm -v
 git --version
 ```
 
-```bash
-mysql --version
-```
-
-Caso todos os comandos retornem suas respectivas versões, o ambiente está pronto para executar o projeto.
+O banco PostgreSQL é provisionado no Supabase. Para desenvolvimento local,
+instale PostgreSQL 15 ou superior e configure `DATABASE_SSL=disable`.
 
 ---
 
@@ -616,8 +613,8 @@ Entre elas:
 - Express
 - Express Handlebars
 - Express Session
-- MySQL2
-- Sequelize
+- pg
+- mysql2 (somente para a importação controlada dos dados antigos)
 - bcrypt
 - dotenv
 - Passport
@@ -648,27 +645,27 @@ Na raiz do projeto.
 Exemplo:
 
 ```env
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=fest
-DB_USER=root
-DB_PASSWORD=sua_senha
-
-SESSION_SECRET=uma_chave_super_segura
-PORT=3000
+DATABASE_URL=postgresql://postgres.<PROJECT_REF>:<URL_ENCODED_PASSWORD>@<SESSION_POOLER_HOST>:5432/postgres
+DATABASE_CA_CERT=./certs/prod-ca-2021.crt
+DB_POOL_MAX=10
+SESSION_SECRET=<SEGREDO_ALEATORIO_LONGO>
 ```
 
-## Descrição das variáveis
-
-| Variável       | Descrição                                   |
-| -------------- | ------------------------------------------- |
-| DB_HOST        | Endereço do servidor MySQL                  |
-| DB_PORT        | Porta utilizada pelo banco                  |
-| DB_NAME        | Nome do banco de dados                      |
-| DB_USER        | Usuário do banco                            |
-| DB_PASSWORD    | Senha do banco                              |
-| SESSION_SECRET | Chave utilizada para criptografia da sessão |
-| PORT           | Porta onde a aplicação será executada       |
+Copie `.env.example` para `.env` e substitua os marcadores pelos dados da
+conexão PostgreSQL do projeto Supabase. O backend conecta diretamente usando
+`pg`; `SUPABASE_URL`, `SUPABASE_ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY` não são
+necessárias. Nunca exponha a string de conexão no navegador.
+Quando a conexão exigir uma CA específica, baixe o certificado do projeto em
+**Database Settings → SSL Configuration**, salve-o localmente como
+`certs/prod-ca-2021.crt` e configure `DATABASE_CA_CERT` com o caminho desse
+arquivo PEM. A conexão valida o certificado e o hostname do servidor
+(`rejectUnauthorized: true`). Não inclua `sslmode`, `sslrootcert` ou outros
+parâmetros SSL na `DATABASE_URL` ao configurar TLS pelo pool do `pg`, pois a
+biblioteca pode substituir a configuração SSL fornecida diretamente.
+Para o Session Pooler, use exatamente o usuário, host, porta e banco mostrados
+na URI oficial em **Connect → Session pooler** (o usuário costuma ter o formato
+`postgres.<PROJECT_REF>`). Codifique para URL caracteres reservados da senha,
+como `@`, `:`, `/`, `#`, `?` ou espaços.
 
 > **Importante:** Nunca publique o arquivo `.env` em repositórios públicos. Adicione-o ao arquivo `.gitignore` para evitar o envio de informações sensíveis.
 
@@ -676,74 +673,92 @@ PORT=3000
 
 # 🗄️ Configuração do Banco de Dados
 
-O projeto usa MySQL 8. O nome e a conexão do banco devem corresponder às
-variáveis `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` e `DB_NAME` do `.env`.
-O valor padrão de `DB_NAME` é `fest`.
-
-## Criar um banco novo
-
-Crie um banco novo e vazio com `utf8mb4`, usando a mesma conexão configurada
-para a aplicação. O exemplo abaixo usa os valores padrão; `-p` solicita a senha
-sem colocá-la no comando:
+O sistema usa PostgreSQL no Supabase. Para inicializar um banco novo, configure
+`DATABASE_URL` e execute:
 
 ```bash
-mysql --host=localhost --port=3306 --user=root --password \
-  -e "CREATE DATABASE fest CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
+npm run db:migrate
 ```
 
-Importe então o schema no banco criado:
+O comando cria o schema consolidado de `database/schema.postgresql.sql` somente
+em um banco `public` vazio, registra a migration aplicada e depois executa
+arquivos SQL PostgreSQL versionados em `database/migrations/postgresql/`. A
+migration `001_complete_mysql_coverage.sql` atualiza instalações que já tenham
+recebido o baseline anterior, adicionando as tabelas e colunas ausentes sem
+apagar registros. Não execute esse baseline em um banco que já tenha tabelas ou
+dados.
+
+### Executar o schema manualmente no Supabase
+
+Como alternativa, em um projeto Supabase novo e vazio, abra o SQL Editor,
+carregue o conteúdo completo de `database/schema.postgresql.sql` e execute-o
+uma única vez. Não execute o arquivo em um projeto que já contenha tabelas ou
+dados, e não aplique as migrations históricas do MySQL.
+
+O schema habilita RLS em todas as tabelas sem criar policies: usuários do
+Supabase Data API sem policies não terão acesso. O backend atual usa uma
+conexão PostgreSQL confiável no servidor; mantenha suas credenciais somente no
+backend e nunca exponha `DATABASE_URL` ou `service_role` no frontend. Se a
+aplicação passar a acessar tabelas pelo Data API ou por um papel PostgreSQL
+restrito, crie e teste policies específicas antes de habilitar esse acesso.
+
+### Criar o primeiro administrador
+
+Depois de executar o schema, a opção recomendada é configurar `INITIAL_ADMIN_NAME`,
+`INITIAL_ADMIN_EMAIL` e `INITIAL_ADMIN_PASSWORD` no `.env` local (o arquivo
+`.env` é ignorado pelo Git) e rode:
 
 ```bash
-mysql --host=localhost --port=3306 --user=root --password fest < database/schema.sql
+npm run db:seed:admin
 ```
 
-Substitua host, porta, usuário e nome do banco pelos valores do `.env`, se
-forem diferentes. No Windows PowerShell, o cliente `mysql` também pode receber
-o arquivo por entrada padrão:
+O script usa o pool PostgreSQL existente e o mesmo `bcrypt.hash(..., 10)` do
+cadastro de funcionários. Ele só cria o usuário quando a tabela `usuario`
+estiver vazia; define o cargo `Administrador`, habilita a conta e o login, e
+atribui todos os módulos e ações de permissão ao usuário e ao modelo de cargo.
+O nome e e-mail são validados, a senha deve ter pelo menos 8 caracteres e no
+máximo 72 bytes UTF-8. Não coloque credenciais no código nem as compartilhe em
+logs. O comando altera o banco e deve ser executado apenas uma vez, com
+`DATABASE_URL` apontando para o projeto correto.
 
-```powershell
-Get-Content .\database\schema.sql | mysql --host=localhost --port=3306 --user=root --password fest
+Como alternativa para executar pelo Supabase SQL Editor, use
+`database/seed.postgresql.sql` em um projeto cujo `public.usuario` esteja vazio.
+Substitua os três valores marcados no início do bloco antes de executar. Nesse
+arquivo a senha fica em texto puro no SQL enviado ao editor e pode permanecer
+no histórico do editor; por isso, prefira o comando Node acima. O seed SQL
+gera o hash com `pgcrypto`, cria as permissões do usuário e do cargo
+`Administrador` e aborta se já houver qualquer usuário.
+
+## Importar uma instalação MySQL existente
+
+A origem MySQL permanece intacta. Primeiro configure o banco de destino vazio
+no Supabase e rode `npm run db:migrate`. Em seguida, adicione a URL de leitura
+da origem ao `.env`:
+
+```env
+MYSQL_SOURCE_URL=mysql://<USER>:<PASSWORD>@<HOST>:3306/<DATABASE>
 ```
 
-O arquivo `database/schema.sql` contém somente a estrutura final: não cria,
-apaga ou seleciona um banco, e não insere dados. Execute-o apenas no banco
-novo e vazio escolhido para a instalação; ele não deve ser usado para
-atualizar uma instalação existente.
+Revise que o destino está vazio e execute:
 
-## Dados iniciais e demonstração
+```bash
+npm run db:import:mysql
+```
 
-Não há registros de configuração ou permissões que precisem ser inseridos
-manualmente para criar a estrutura. O cadastro de usuários cria suas
-permissões pelo próprio sistema.
+O importador lê a origem em uma transação consistente somente de leitura,
+exige correspondência de tabelas e colunas, preserva IDs e valores, grava o
+destino dentro de uma única transação e sincroniza as sequences. Se a validação
+falhar, a transação do destino é revertida. Não execute em produção sem backup
+verificado e janela de manutenção; não forneça `MYSQL_SOURCE_URL` à aplicação.
+O destino precisa estar vazio; o importador não mescla dados nem retoma uma
+transferência parcial confirmada. A ordem física das colunas pode diferir,
+desde que os nomes e o conjunto de colunas correspondam exatamente.
 
-`npm run db:seed` executa `database/seed.sql`, que contém dados de demonstração,
-incluindo contas de exemplo. Não é necessário para inicializar o banco e não
-deve ser executado em produção nem sem revisar os dados que serão inseridos.
-`database/seed-devedores.sql` e `database/clear-devedores-test.sql` são
-utilitários de teste e limpeza de dados de teste; use-os somente em uma base
-dedicada a testes.
-
-## Instalações existentes e migrations
-
-Não importe `database/schema.sql` sobre uma base existente. Continue usando
-`npm run db:migrate` para aplicar as migrations históricas conforme o fluxo do
-projeto e mantenha os arquivos de `database/migrations` para rastreabilidade.
-O script atual aplica explicitamente
-`2026_09_07_pedido_itens_combos.sql`,
-`2026_10_10_pedidos_rota_frete.sql`,
-`2026_10_11_configuracoes_entrega.sql` e
-`2026_10_12_detalhes_rota_entrega.sql` e
-`2026_10_26_devolucao_idempotencia.sql` e
-`2026_10_26_funcionarios_admin.sql` e
-`2026_10_27_user_permissions_estoque.sql`; ele não mantém uma tabela de controle
-de migrations e não executa `2026_08_22_estoque_reestrutura.sql` nem
-`2026_09_05_pedidos_combos.sql`. Antes de atualizar uma instalação existente,
-confirme que seu estado já inclui as alterações necessárias dessas migrations
-anteriores. Não marque migrations como aplicadas manualmente sem verificar a
-estrutura.
-
-Para um banco novo, use somente o schema consolidado, sem executar as
-migrations históricas depois dele.
+Os arquivos `database/schema.sql`, `database/seed.sql` e as migrations SQL
+antigas são o registro histórico da estrutura MySQL. Não os aplique no
+PostgreSQL. O seed antigo não é executado automaticamente e não é necessário
+para inicializar a aplicação; usuários e permissões devem ser criados pelos
+fluxos normais do sistema.
 
 ## API administrativa de funcionários
 
@@ -876,7 +891,7 @@ A[Início da Aplicação]
 A --> B[Leitura do arquivo .env]
 B --> C[Inicialização do Express]
 C --> D[Configuração das Sessões]
-D --> E[Conexão com o MySQL]
+D --> E[Conexão com PostgreSQL]
 E --> F[Registro das Rotas]
 F --> G[Inicialização do Servidor]
 G --> H[Aplicação disponível na porta configurada]
@@ -944,7 +959,7 @@ A --> B[Routes]
 B --> C[Controller]
 C --> D[Service]
 D --> E[Model]
-E --> F[(MySQL)]
+E --> F[(PostgreSQL / Supabase)]
 ```
 
 Cada camada possui uma única responsabilidade, reduzindo dependências e aumentando a organização do projeto.
@@ -963,7 +978,7 @@ participant R as Route
 participant C as Controller
 participant S as Service
 participant M as Model
-participant DB as MySQL
+participant DB as PostgreSQL
 
 U->>R: Requisição HTTP
 R->>C: Encaminha requisição
@@ -1066,14 +1081,14 @@ Entre suas funções estão:
 - Consultas.
 - Relacionamentos entre tabelas.
 
-Toda interação com o MySQL ocorre por meio dessa camada.
+Toda interação com o PostgreSQL ocorre por meio dessa camada.
 
 ```mermaid
 flowchart LR
 
 Service --> Model
 
-Model --> Banco[(MySQL)]
+Model --> Banco[(PostgreSQL)]
 
 Banco --> Model
 
@@ -1677,7 +1692,8 @@ Com essa estrutura, o frontend do **Fest** torna-se mais organizado, escalável 
 
 # 🗄 Banco de Dados
 
-O **Fest** utiliza o **MySQL** como sistema gerenciador de banco de dados relacional.
+O **Fest** utiliza PostgreSQL hospedado no Supabase como sistema gerenciador de
+banco de dados relacional.
 
 Toda a estrutura foi planejada para garantir consistência das informações, integridade dos relacionamentos e facilidade de expansão do sistema.
 
@@ -1712,7 +1728,7 @@ B --> C[Service]
 
 C --> D[Model]
 
-D --> E[(MySQL)]
+D --> E[(PostgreSQL / Supabase)]
 ```
 
 Toda informação cadastrada no sistema percorre esse fluxo antes de ser armazenada no banco de dados.
@@ -2288,11 +2304,13 @@ Durante o desenvolvimento recomenda-se:
 
 # 🧪 Testes
 
-Para testar autenticação, sessão, autorização e falhas de conexão, use somente
-um banco isolado chamado `fest_auth_test`. Crie essa base vazia, importe
-`database/schema.sql`, aplique as migrations e então execute `npm run test:auth`.
-O teste verifica o nome da base antes de criar um usuário temporário e remove
-somente os dados que ele próprio criou. Não execute esse teste contra produção.
+Os testes que alteram dados exigem um banco PostgreSQL descartável cujo nome
+termine em `_test`. Para `npm test`, crie e migre, por exemplo, um banco
+`fest_test`, configure sua `DATABASE_URL` para ele e execute `npm test`.
+O teste de autenticação exige especificamente `fest_auth_test`; configure a URL
+para essa base vazia, aplique `npm run db:migrate` e execute
+`npm run test:auth`. Os testes verificam o nome do banco antes de alterar dados.
+Nunca execute testes de integração contra produção.
 
 Antes de enviar qualquer alteração, recomenda-se verificar:
 
@@ -2420,7 +2438,7 @@ A seguir estão listadas as funcionalidades planejadas para as próximas versõe
 - ✅ Controle financeiro
 - ✅ Controle de entregas
 - ✅ Interface Web
-- ✅ Banco de Dados MySQL
+- ✅ Banco de Dados PostgreSQL no Supabase
 
 ---
 
@@ -2513,7 +2531,8 @@ Sim. A aplicação pode ser executada em um servidor, permitindo o acesso por v�
 
 ## É possível utilizar outro banco de dados?
 
-O projeto foi desenvolvido utilizando **MySQL**, mas sua arquitetura permite adaptações para outros bancos relacionais com as devidas alterações na camada de acesso aos dados.
+O projeto utiliza PostgreSQL no Supabase; a camada de persistência concentra
+as consultas SQL e facilita a manutenção do acesso a dados.
 
 ---
 
@@ -2554,7 +2573,7 @@ Sim. Toda contribuição é bem-vinda. Consulte a seção **Guia de Contribuiç�
 - Express.js
 - Handlebars
 - JavaScript ES6
-- MySQL
+- PostgreSQL
 - Git
 - GitHub
 

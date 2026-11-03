@@ -24,13 +24,13 @@ try {
   );
 
   db.query = async (sql, params = []) => {
-      statements.push({ sql, params });
-    if (sql.includes("COUNT(*) AS total")) return [[{ total: 1 }]];
-    return [[{
+    statements.push({ sql, params });
+    if (sql.includes("COUNT(*) AS total")) return { rows: [{ total: 1 }], rowCount: 1 };
+    return { rows: [{
       id: 1,
       valor_pago: 100,
       valor_creditado: 75
-    }]];
+    }], rowCount: 1 };
   };
   const result = await buscarPedidos({
     pay: "Parcialmente Pago",
@@ -58,8 +58,8 @@ try {
     page: 2,
     limit: 50
   });
-  assert.match(statements[0].sql, /p\.data_entrega < CURDATE\(\)/);
-  assert.match(statements[0].sql, /p\.status = \?/);
+  assert.match(statements[0].sql, /p\.data_entrega < CURRENT_DATE/);
+  assert.match(statements[0].sql, /p\.status = \$7/);
   assert.deepEqual(statements[0].params, [
     "%Ana%", "%Ana%", "%Ana%", "%Ana%",
     "2026-10-01", "2026-10-31", "CONFIRMADO"

@@ -6,7 +6,10 @@ if (!Array.isArray(payload.pedidos) || !Array.isArray(payload.clientes) || !Arra
 
 const toDate = (value) => {
   if (value == null) return null;
-  const parsed = new Date(value);
+  const dateOnly = typeof value === 'string' ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(value) : null;
+  const parsed = dateOnly
+    ? new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+    : new Date(value);
   if (Number.isNaN(parsed.getTime())) throw new TypeError('A API retornou uma data inválida no relatório.');
   return parsed;
 };
@@ -239,7 +242,7 @@ function delta(cur, prev) {
 }
 
 /* ============ Estado e renderização ============ */
-const state={tab:'pedidos',from:addDays(HOJE,-89),to:HOJE,status:'',extra:'',q:'',sort:null,dir:1,page:1,size:10,chip:90,printing:false};
+const state={tab:'pedidos',from:addDays(HOJE,-89),to:HOJE,status:'',extra:'',q:'',sort:null,dir:1,page:1,size:10,chip:90};
 let currentRows=[], currentDef=null;
 let reportRequestId=0;
 
@@ -267,8 +270,6 @@ async function refreshReportData(){
     params.set('extraKey',def.extraFilter.key);
     if(state.extra) params.set('extra',state.extra);
   }
-  if(state.q) params.set('q',state.q);
-
   try{
     const response=await fetch(`/relatorios/data?${params.toString()}`,{headers:{Accept:'application/json'}});
     const data=await response.json();
@@ -309,27 +310,40 @@ function buildStatic(){
   $('#to').onchange=e=>{const value=parseIso(e.target.value);if(!value||Number.isNaN(value.getTime()))return syncInputs();state.to=value;state.chip=null;state.page=1;syncInputs();refreshReportData();};
   $('#status').onchange=e=>{state.status=e.target.value;state.page=1;refreshReportData();};
   $('#extraFilter').onchange=e=>{state.extra=e.target.value;state.page=1;refreshReportData();};
-  let searchTimer;
   $('#q').oninput=e=>{
     state.q=e.target.value.trim().toLowerCase();
     state.page=1;
-    clearTimeout(searchTimer);
-    searchTimer=setTimeout(refreshReportData,180);
+    render();
   };
   $('#thead').onclick=e=>{const th=e.target.closest('th');if(!th)return;const k=th.dataset.k;
     if(state.sort===k)state.dir*=-1;else{state.sort=k;state.dir=1;} render();};
   $('#prev').onclick=()=>{state.page--;render();};
   $('#next').onclick=()=>{state.page++;render();};
-  $('#btnCsv').onclick=exportCsv;
-  $('#btnPrint').onclick=()=>window.print();
-  window.addEventListener('beforeprint',()=>{state.printing=true;render();});
-  window.addEventListener('afterprint',()=>{state.printing=false;render();});
+  const csvButton=$('#btnCsv');
+  if(csvButton) csvButton.onclick=exportCsv;
+  $('#btnPrint').onclick=imprimirRelatorio;
   $('#menuBtn').onclick=()=>{
     const sidebar=document.getElementById('appSidebar');
     if (!sidebar) return;
     const isOpen = sidebar.classList.toggle('is-open');
     sidebar.setAttribute('aria-hidden', String(!isOpen));
   };
+}
+
+function imprimirRelatorio(){
+  const def=REPORTS[state.tab];
+  const params=new URLSearchParams({tab:state.tab});
+  if(def.dated){
+    params.set('from',iso(state.from));
+    params.set('to',iso(state.to));
+  }
+  if(state.status) params.set('status',state.status);
+  if(def.extraFilter){
+    params.set('extraKey',def.extraFilter.key);
+    if(state.extra) params.set('extra',state.extra);
+  }
+  if(state.q) params.set('q',state.q);
+  window.open(`/relatorios/imprimir?${params.toString()}`,'_blank','noopener');
 }
 
 function rowsFor(def,from,to){
@@ -409,7 +423,7 @@ function render(){
   const sorted=[...rows];
   if(state.sort){const k=state.sort;sorted.sort((a,b)=>{const x=a[k],y=b[k];return (x>y?1:x<y?-1:0)*state.dir;});}
   const pages=Math.max(1,Math.ceil(sorted.length/state.size)); state.page=Math.min(state.page,pages);
-  const slice=state.printing?sorted:sorted.slice((state.page-1)*state.size,state.page*state.size);
+  const slice=sorted.slice((state.page-1)*state.size,state.page*state.size);
   $('#tableTitle').textContent=def.title;
   $('#count').textContent=`${rows.length} registro${rows.length===1?'':'s'}`;
   $('#thead').innerHTML='<tr>'+def.cols.map(c=>`<th data-k="${c.k}" class="${c.r?'r':''}">${c.l}<span class="ar">${state.sort===c.k?(state.dir>0?'▲':'▼'):'↕'}</span></th>`).join('')+'</tr>';

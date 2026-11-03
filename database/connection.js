@@ -1,27 +1,34 @@
 import dotenv from "dotenv";
-import mysql from "mysql2/promise";
+import fs from "node:fs";
+import path from "node:path";
+import pg from "pg";
 
 dotenv.config();
 
-const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+const { Pool } = pg;
+const connectionString = process.env.DATABASE_URL;
+const caCertificatePath = process.env.DATABASE_CA_CERT;
+const caCertificate = caCertificatePath
+  ? fs.readFileSync(path.resolve(caCertificatePath), "utf8")
+  : undefined;
 
-try {
-  const connection = await db.getConnection();
-
-  console.log("Banco de dados CONECTADO");
-
-  connection.release();
-} catch (error) {
-  console.error("Erro ao conectar ao banco:", error.message);
+if (caCertificate && !caCertificate.includes("-----BEGIN CERTIFICATE-----")) {
+  throw new Error("DATABASE_CA_CERT deve apontar para um certificado CA em formato PEM.");
 }
 
-export default db;
+const pool = new Pool({
+  ...(connectionString ? { connectionString } : {}),
+  max: Number(process.env.DB_POOL_MAX) || 10,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 10_000,
+  ssl: {
+    rejectUnauthorized: true,
+    ...(caCertificate ? { ca: caCertificate } : {})
+  }
+});
+
+pool.on("error", (error) => {
+  console.error("Erro inesperado no pool PostgreSQL:", error);
+});
+
+export default pool;

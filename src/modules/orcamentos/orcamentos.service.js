@@ -16,35 +16,36 @@ function validarId(id) {
 
 export async function converterParaPedido(id) {
   id = validarId(id);
-  const conn = await db.getConnection();
+  const client = await db.connect();
+  const conn = client;
   try {
-    await conn.beginTransaction();
+    await client.query('BEGIN');
 
-    const [pedidos] = await conn.query(
+    const { rows: pedidos } = await conn.query(
       `SELECT * FROM pedidos
-       WHERE id = ?
+       WHERE id = $1
        FOR UPDATE`,
       [id]
     );
     const pedido = pedidos[0];
     if (!pedido || (pedido.status_documento !== 'ORCAMENTO' && pedido.status_documento !== 'PEDIDO')) {
-      await conn.rollback();
+      await client.query('ROLLBACK');
       return false;
     }
 
     // A committed conversion is a no-op on retries, preventing duplicate stock
     // movements and reservations after a lost response or repeated click.
     if (pedido.status_documento === 'PEDIDO') {
-      await conn.commit();
+      await client.query('COMMIT');
       return true;
     }
     if (pedido.status === 'CANCELADO') {
-      await conn.rollback();
+      await client.query('ROLLBACK');
       return false;
     }
 
-    const [itens] = await conn.query(
-      `SELECT * FROM pedido_itens WHERE pedido_id = ? FOR UPDATE`,
+    const { rows: itens } = await conn.query(
+      `SELECT * FROM pedido_itens WHERE pedido_id = $1 FOR UPDATE`,
       [id]
     );
     if (!itens.length) throw new Error('O orçamento precisa ter ao menos um produto.');
@@ -67,13 +68,13 @@ export async function converterParaPedido(id) {
     await conn.query(
       `UPDATE pedidos
        SET status_documento = 'PEDIDO', status = 'CONFIRMADO'
-       WHERE id = ?`,
+       WHERE id = $1`,
       [id]
     );
-    await conn.commit();
+    await client.query('COMMIT');
     return true;
   } catch (error) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     throw error;
   } finally {
     conn.release();
@@ -82,31 +83,32 @@ export async function converterParaPedido(id) {
 
 export async function excluirOrcamento(id) {
   id = validarId(id);
-  const [res] = await db.query(
+  const res = await db.query(
     `UPDATE pedidos
      SET status = 'CANCELADO'
-     WHERE id = ? AND status_documento = 'ORCAMENTO' AND status <> 'CANCELADO'`,
+     WHERE id = $1 AND status_documento = 'ORCAMENTO' AND status <> 'CANCELADO'`,
     [id]
   );
-  return res.affectedRows > 0;
+  return res.rowCount > 0;
 }
 
 export async function duplicarOrcamento(id) {
   id = validarId(id);
-  const conn = await db.getConnection();
+  const client = await db.connect();
+  const conn = client;
   try {
-    await conn.beginTransaction();
+    await client.query('BEGIN');
 
-    const [rows] = await conn.query(
+    const { rows: rows } = await conn.query(
       `SELECT * FROM pedidos
-       WHERE id = ? AND status_documento = 'ORCAMENTO' AND status <> 'CANCELADO'
+       WHERE id = $1 AND status_documento = 'ORCAMENTO' AND status <> 'CANCELADO'
        FOR UPDATE`,
       [id]
     );
     if (!rows.length) throw new Error('Orçamento não encontrado ou indisponível para duplicação.');
     const origem = rows[0];
 
-    const [ins] = await conn.query(
+    const ins = await conn.query(
       `INSERT INTO pedidos (
          cliente_id, endereco_id, usuario_id, data_pedido, data_evento, data_entrega, data_retirada,
          data_entrega_hora, data_retirada_hora, telefone_contato, endereco_origem,
@@ -114,8 +116,9 @@ export async function duplicarOrcamento(id) {
          distancia_km, distancia_retorno_km, distancia_cobrada_km, frete_formula,
          origem_aproximada, destino_aproximado, tipo_pedido, status, status_documento,
          valor_produtos, valor_frete, valor_desconto, valor_total, local_evento, observacoes
-       ) VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ORCAMENTO',
-         'ORCAMENTO', ?, ?, ?, ?, ?, ?)`,
+       ) VALUES ($1, $2, $3, NOW(), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, 'ORCAMENTO',
+         'ORCAMENTO', $22, $23, $24, $25, $26, $27)
+         RETURNING id`,
       [
         origem.cliente_id, origem.endereco_id, origem.usuario_id, origem.data_evento,
         origem.data_entrega, origem.data_retirada, origem.data_entrega_hora, origem.data_retirada_hora,
@@ -128,37 +131,38 @@ export async function duplicarOrcamento(id) {
       ]
     );
 
-    const novoId = ins.insertId;
+    const novoId = ins.rows[0].id;
 
-    const [itens] = await conn.query(
+    const { rows: itens } = await conn.query(
       `SELECT id, produto_id, combo_id, tipo_item, quantidade, valor_unitario, subtotal
-       FROM pedido_itens WHERE pedido_id = ? FOR UPDATE`,
+       FROM pedido_itens WHERE pedido_id = $1 FOR UPDATE`,
       [id]
     );
     if (!itens.length) throw new Error('O orçamento precisa ter ao menos um produto para ser duplicado.');
 
     for (const it of itens) {
-      const [itemInserido] = await conn.query(
+      const itemInserido = await conn.query(
         `INSERT INTO pedido_itens
           (pedido_id, produto_id, combo_id, tipo_item, quantidade, valor_unitario, subtotal)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id`,
         [novoId, it.produto_id, it.combo_id, it.tipo_item, it.quantidade, it.valor_unitario, it.subtotal]
       );
 
       if (it.combo_id) {
-        const [componentes] = await conn.query(
+        const { rows: componentes } = await conn.query(
           `SELECT produto_id, quantidade_por_unidade, quantidade_total
            FROM pedido_item_componentes
-           WHERE pedido_item_id = ? FOR UPDATE`,
+           WHERE pedido_item_id = $1 FOR UPDATE`,
           [it.id]
         );
         for (const componente of componentes) {
           await conn.query(
             `INSERT INTO pedido_item_componentes
               (pedido_item_id, pedido_id, produto_id, quantidade_por_unidade, quantidade_total)
-             VALUES (?, ?, ?, ?, ?)`,
+             VALUES ($1, $2, $3, $4, $5)`,
             [
-              itemInserido.insertId, novoId, componente.produto_id,
+              itemInserido.rows[0].id, novoId, componente.produto_id,
               componente.quantidade_por_unidade, componente.quantidade_total
             ]
           );
@@ -166,10 +170,10 @@ export async function duplicarOrcamento(id) {
       }
     }
 
-    await conn.commit();
+    await client.query('COMMIT');
     return novoId;
   } catch (err) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     throw err;
   } finally {
     conn.release();

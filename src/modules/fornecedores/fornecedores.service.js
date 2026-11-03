@@ -139,12 +139,19 @@ function validarFornecedor(dados, statusPadrao = "Ativo") {
 }
 
 function validarFiltros(query = {}) {
-  const q = typeof query.q === "string" ? query.q.trim() : "";
+  const q = typeof query.q === "string" ? query.q.trim().slice(0, 200) : "";
   const categoria = typeof query.categoria === "string" ? query.categoria : "";
   const status = typeof query.status === "string" ? query.status : "";
+  const requestedPage = typeof query.page === "string" ? Number(query.page) : query.page;
+  const requestedLimit = typeof query.limit === "string" ? Number(query.limit) : query.limit;
+  const page = Number.isSafeInteger(requestedPage) && requestedPage > 0
+    ? Math.min(requestedPage, 1_000_000)
+    : 1;
+  const limit = [10, 25, 50].includes(requestedLimit) ? requestedLimit : 10;
+
   if (categoria && !categorias.includes(categoria)) throw new Error("Categoria inválida.");
   if (status && !statusPermitidos.includes(status)) throw new Error("Status inválido.");
-  return { q, categoria, status };
+  return { q, categoria, status, page, limit };
 }
 
 export async function listar(query = {}) {

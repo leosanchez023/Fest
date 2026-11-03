@@ -45,16 +45,18 @@
 
             <div class="stat green">
                 <div class="top">
-                    <div class="label">Disponíveis</div>
-                    <div class="ico green"><i class="fa-solid fa-circle-check icon-md"></i></div>
+                    <div class="label">Ativos</div>
+                    <div class="ico green"><i class="fa-solid fa-box icon-md"></i></div>
                 </div>
+                <div id="kpi-ativos" class="value">0</div>
+            </div>
 
-                <div
-                    id="kpi-disponivel"
-                    class="value"
-                >
-                    0
+            <div class="stat">
+                <div class="top">
+                    <div class="label">Inativos</div>
+                    <div class="ico slate"><i class="fa-solid fa-box-archive icon-md"></i></div>
                 </div>
+                <div id="kpi-inativos" class="value">0</div>
             </div>
 
             <div class="stat blue">
@@ -312,7 +314,8 @@
             <th>Danificado</th>
             <th>Disponível</th>
             <th>Mínimo</th>
-                        <th>Status</th>
+                        <th>Disponibilidade</th>
+                        <th>Situação cadastral</th>
                         <th></th>
           </tr>
         </thead>
@@ -406,11 +409,37 @@
 
                         <input
                             name="estoque"
+                            id="produto-estoque"
                             type="number"
                             min="0"
                             value="{{produto.estoque}}"
                         >
                     </div>
+
+                    <div>
+                        <label for="produto-controla-estoque">Controle de estoque</label>
+                        <select name="controla_estoque" id="produto-controla-estoque">
+                            {{#if produto}}
+                                <option value="1" {{#if produto.controla_estoque}}selected{{/if}}>Controlado</option>
+                                <option value="0" {{#unless produto.controla_estoque}}selected{{/unless}}>Não controlado</option>
+                            {{else}}
+                                <option value="1" selected>Controlado</option>
+                                <option value="0">Não controlado</option>
+                            {{/if}}
+                        </select>
+                        <small>Desativado: o produto não gera movimentos nem limita disponibilidade.</small>
+                    </div>
+
+                    {{#if produto}}
+                    <div class="field">
+                        <label for="produto-ativo">Situação cadastral</label>
+                        <select name="ativo" id="produto-ativo" required>
+                          <option value="1" {{#if produto.ativo}}selected{{/if}}>Ativo</option>
+                          <option value="0" {{#unless produto.ativo}}selected{{/unless}}>Inativo</option>
+                        </select>
+                        <small>A situação cadastral não altera a disponibilidade do estoque.</small>
+                    </div>
+                    {{/if}}
 
                     <div>
                         <label>Preço Venda (R$)</label>
@@ -530,23 +559,21 @@
                         <td>{{this.estoque}}</td>
                         <td>{{this.disponivel}}</td>
                         <td><span class="badge badge-{{this.status_estoque_class}}">{{this.status_estoque_label}}</span></td>
+                        <td><span class="badge {{#if this.ativo}}badge-success{{else}}badge-muted{{/if}}">{{#if this.ativo}}Ativo{{else}}Inativo{{/if}}</span></td>
                         <td>{{moeda this.preco_venda}} R$</td>
                         <td>{{moeda this.preco_aluguel}} R$</td>
 
                         <td class="actions">
-
-                            <a href="/produtos/editar/{{this.id}}" class="btn-edit">
-                                Editar
-                            </a>
-
-                            <button
-                                type="button"
-                                onclick="deletarProduto({{this.id}})"
-                                class="btn-delete"
-                            >
-                                Excluir
-                            </button>
-
+                            <div class="actions product-actions">
+                                <button class="iconbtn" type="button" aria-label="Ações do produto {{this.nome}}"
+                                        aria-expanded="false" data-product-list-menu="{{this.id}}">
+                                    <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                                </button>
+                                <div class="product-menu" id="menu-lista-produto-{{this.id}}" hidden>
+                                    <a href="/produtos/editar/{{this.id}}">Editar produto</a>
+                                    <button type="button" data-product-list-delete="{{this.id}}">Excluir produto</button>
+                                </div>
+                            </div>
                         </td>
 
                     </tr>

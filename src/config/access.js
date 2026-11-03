@@ -72,20 +72,20 @@ function permissionForPath(path) {
 
 export async function landingPageForUser(userId) {
   const moduleKeys = [...new Set(landingPageCandidates.map(([, module]) => module))];
-  const [permissionRows] = await db.query(
+  const { rows: permissionRows } = await db.query(
     `SELECT ${moduleKeys.join(", ")}
      FROM user_permissions
-     WHERE usuario_id = ?
+     WHERE usuario_id = $1
      ORDER BY id ASC
      LIMIT 1`,
     [userId]
   );
   if (!permissionRows.length) return "/sem-permissoes";
 
-  const [actionRows] = await db.query(
+  const { rows: actionRows } = await db.query(
     `SELECT module_key
      FROM user_permission_actions
-     WHERE usuario_id = ? AND action_key = 'view'`,
+     WHERE usuario_id = $1 AND action_key = 'view'`,
     [userId]
   );
   const viewableModules = new Set(actionRows.map((row) => row.module_key));
@@ -112,11 +112,11 @@ export async function protegerAplicacao(req, res, next) {
   const entrada = permissionForPath(req.path);
 
   try {
-    const [permissionRows] = await db.query(
+    const { rows: permissionRows } = await db.query(
       `SELECT dashboard, clientes, produtos, pedidos, entregas, retiradas,
               pagamentos, estoque, relatorios, funcionarios, fornecedor, cadastro_admin
        FROM user_permissions
-       WHERE usuario_id = ?
+       WHERE usuario_id = $1
        LIMIT 1`,
       [req.user.id]
     );
@@ -127,9 +127,9 @@ export async function protegerAplicacao(req, res, next) {
       return denyPermission(res, req, { noPermissions: true });
     }
 
-    const [rows] = await db.query(
-      `SELECT ?? AS permitido FROM user_permissions WHERE usuario_id = ? LIMIT 1`,
-      [entrada[1], req.user.id]
+    const { rows } = await db.query(
+      `SELECT ${entrada[1]} AS permitido FROM user_permissions WHERE usuario_id = $1 LIMIT 1`,
+      [req.user.id]
     );
     if (!rows.length || Number(rows[0].permitido) !== 1) {
       return denyPermission(res, req);
@@ -137,10 +137,10 @@ export async function protegerAplicacao(req, res, next) {
 
     const action = permissionActionForRequest(req);
     if (action) {
-      const [actionRows] = await db.query(
+      const { rows: actionRows } = await db.query(
         `SELECT 1 AS permitido
          FROM user_permission_actions
-         WHERE usuario_id = ? AND module_key = ? AND action_key = ?
+         WHERE usuario_id = $1 AND module_key = $2 AND action_key = $3
          LIMIT 1`,
         [req.user.id, entrada[1], action]
       );

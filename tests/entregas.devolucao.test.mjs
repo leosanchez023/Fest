@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 import db from "../database/connection.js";
 
-const originalGetConnection = db.getConnection;
+const originalConnect = db.connect;
 
 function createConnection({ pedidoItem, componentes = [] }) {
   let quantidadeDevolvida = Number(pedidoItem.quantidade_devolvida || 0);
@@ -26,71 +26,81 @@ function createConnection({ pedidoItem, componentes = [] }) {
     get committed() {
       return committed;
     },
-    async beginTransaction() {},
-    async commit() {
-      committed = true;
-    },
-    async rollback() {
-      rolledBack = true;
-    },
     release() {},
     async query(sql, params = []) {
+      if (sql === "BEGIN") return { rows: [], rowCount: null };
+      if (sql === "COMMIT") {
+        committed = true;
+        return { rows: [], rowCount: null };
+      }
+      if (sql === "ROLLBACK") {
+        rolledBack = true;
+        return { rows: [], rowCount: null };
+      }
       if (sql.includes("SELECT id, status, status_documento FROM pedidos")) {
-        return [[{ id: 1, status: "ENTREGUE", status_documento: "PEDIDO" }]];
+        return { rows: [{ id: 1, status: "ENTREGUE", status_documento: "PEDIDO" }], rowCount: 1 };
       }
       if (sql.includes("SELECT id, hash_requisicao FROM devolucoes")) {
         const devolucao = devolucoes.find((entry) => entry.chave === params[1]);
-        return [devolucao ? [{ id: devolucao.id, hash_requisicao: devolucao.hash }] : []];
+        return {
+          rows: devolucao ? [{ id: devolucao.id, hash_requisicao: devolucao.hash }] : [],
+          rowCount: devolucao ? 1 : 0
+        };
       }
       if (sql.includes("INSERT INTO devolucoes")) {
         devolucoes.push({ id: 50 + devolucoes.length, chave: params[3], hash: params[4] });
-        return [{ insertId: devolucoes.at(-1).id }];
+        return { rows: [{ id: devolucoes.at(-1).id }], rowCount: 1 };
       }
       if (sql.includes("SELECT id, pedido_id, produto_id, combo_id, tipo_item")) {
-        return [[{ ...pedidoItem, quantidade_devolvida: quantidadeDevolvida }]];
+        return { rows: [{ ...pedidoItem, quantidade_devolvida: quantidadeDevolvida }], rowCount: 1 };
       }
       if (sql.includes("SELECT produto_id, quantidade_por_unidade, quantidade_total")) {
-        return [componentes.map((componente) => ({ ...componente }))];
+        return { rows: componentes.map((componente) => ({ ...componente })), rowCount: componentes.length };
       }
       if (sql.includes("SELECT produto_id, quantidade_por_unidade") &&
           sql.includes("pedido_item_componentes")) {
-        return [componentes.map(({ produto_id, quantidade_por_unidade }) => ({
+        const rows = componentes.map(({ produto_id, quantidade_por_unidade }) => ({
           produto_id,
           quantidade_por_unidade
-        }))];
+        }));
+        return { rows, rowCount: rows.length };
       }
-      if (sql.includes("SELECT * FROM produtos WHERE id = ?")) {
-        return [[{ id: params[0], estoque_em_uso: 10 }]];
+      if (sql.includes("SELECT controla_estoque FROM produtos")) {
+        return { rows: [{ controla_estoque: true }], rowCount: 1 };
       }
-      if (sql.includes("UPDATE produtos") && sql.includes("estoque_em_uso = estoque_em_uso - ?")) {
+      if (sql.includes("SELECT * FROM produtos WHERE id = $1")) {
+        return { rows: [{ id: params[0], estoque_em_uso: 10 }], rowCount: 1 };
+      }
+      if (sql.includes("UPDATE produtos") && sql.includes("estoque_em_uso = estoque_em_uso - $1")) {
         inventoryUpdates.push({ sql, params: [...params] });
-        return [{ affectedRows: 1 }];
+        return { rows: [], rowCount: 1 };
       }
       if (sql.includes("INSERT INTO movimentacao_estoque") ||
           sql.includes("INSERT INTO estoque_historico")) {
         movementRecords.push({ sql, params: [...params] });
-        return [{ affectedRows: 1 }];
+        return { rows: [], rowCount: 1 };
       }
       if (sql.includes("UPDATE pedido_itens SET quantidade_devolvida")) {
         quantidadeDevolvida += Number(params[0]);
-        return [{ affectedRows: 1 }];
+        return { rows: [], rowCount: 1 };
       }
       if (sql.includes("UPDATE pedidos") && sql.includes("status")) {
         orderStatusUpdates.push({ sql, params: [...params] });
-        return [{ affectedRows: 1 }];
+        return { rows: [], rowCount: 1 };
       }
       if (sql.includes("INSERT INTO devolucao_itens")) {
         returnRecords.push([...params]);
-        return [{ affectedRows: 1 }];
+        return { rows: [], rowCount: 1 };
       }
       if (sql.includes("INSERT INTO ocorrencias")) {
-        return [{ affectedRows: 1 }];
+        return { rows: [], rowCount: 1 };
       }
       if (sql.includes("SELECT") && sql.includes("AS qtd_total") && sql.includes("FROM pedido_itens")) {
-        return [[{
+        const rows = [{
           qtd_total: Number(pedidoItem.quantidade),
           qtd_devolvida: quantidadeDevolvida
-        }]];
+        }];
+        return { rows, rowCount: rows.length };
       }
       throw new Error(`Unexpected test SQL: ${sql}`);
     }
@@ -114,7 +124,7 @@ try {
     quantidade_devolvida: 0
   };
   const rentalConnection = createConnection({ pedidoItem: rentalItem });
-  db.getConnection = async () => rentalConnection;
+  db.connect = async () => rentalConnection;
 
   await enviarDevolucao(1, {
     itens: [{ id: 7, quantidade_boa: 1 }],
@@ -129,7 +139,7 @@ try {
 
   const missingItem = { ...rentalItem, id: 10, quantidade: 3, quantidade_entregue: 3 };
   const missingConnection = createConnection({ pedidoItem: missingItem });
-  db.getConnection = async () => missingConnection;
+  db.connect = async () => missingConnection;
   await enviarDevolucao(1, {
     itens: [{ id: 10, quantidade_boa: 1, quantidade_faltando: 2 }],
     usuario_id: 4
@@ -141,7 +151,7 @@ try {
   assert.match(missingConnection.orderStatusUpdates[0].sql, /status = 'PENDENTE'/, "A devolução parcial deve manter o pedido pendente");
 
   const missingOnlyConnection = createConnection({ pedidoItem: missingItem });
-  db.getConnection = async () => missingOnlyConnection;
+  db.connect = async () => missingOnlyConnection;
   await enviarDevolucao(1, {
     itens: [{ id: 10, quantidade_faltando: 3 }],
     usuario_id: 4
@@ -152,7 +162,7 @@ try {
   assert.equal(missingOnlyConnection.returnRecords[0][3], 3);
 
   const duplicateConnection = createConnection({ pedidoItem: missingItem });
-  db.getConnection = async () => duplicateConnection;
+  db.connect = async () => duplicateConnection;
   const requisicaoDuplicada = { itens: [{ id: 10, quantidade_boa: 1, quantidade_faltando: 2 }] };
   await enviarDevolucao(1, requisicaoDuplicada, "repeated-partial-return");
   const repetida = await enviarDevolucao(1, requisicaoDuplicada, "repeated-partial-return");
@@ -179,14 +189,14 @@ try {
       quantidade_total: 4
     }]
   });
-  db.getConnection = async () => comboConnection;
+  db.connect = async () => comboConnection;
   await enviarDevolucao(1, { itens: [{ id: 8, quantidade_boa: 1 }] });
   assert.equal(comboConnection.inventoryUpdates.length, 1, "Combo alugado deve devolver seus componentes");
   assert.equal(Number(comboConnection.inventoryUpdates[0].params[0]), 2, "Deve aplicar o fator do componente");
 
   const saleItem = { ...rentalItem, id: 9, tipo_item: "VENDA" };
   const saleConnection = createConnection({ pedidoItem: saleItem });
-  db.getConnection = async () => saleConnection;
+  db.connect = async () => saleConnection;
   await assert.rejects(
     enviarDevolucao(1, { itens: [{ id: 9, quantidade_boa: 1 }] }),
     /Itens de venda não podem ser registrados como devolução de estoque alugado/
@@ -294,6 +304,6 @@ try {
 
   console.log("Testes simulados de devolução de aluguel, venda, combo e envio único ok");
 } finally {
-  db.getConnection = originalGetConnection;
+  db.connect = originalConnect;
   await db.end();
 }

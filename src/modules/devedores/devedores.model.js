@@ -9,19 +9,19 @@ function buildFilters({ client = "", overdue = "all", periodFrom = null } = {}) 
   const params = [];
 
   if (client) {
-    where.push("c.nome LIKE ?");
+    where.push("c.nome ILIKE $1");
     params.push(`%${client}%`);
   }
 
   if (periodFrom) {
-    where.push("COALESCE(p.data_evento, DATE(p.data_pedido)) >= ?");
+    where.push(`COALESCE(p.data_evento, DATE(p.data_pedido)) >= $${params.length + 1}`);
     params.push(periodFrom);
   }
 
   const minimumOverdue = Number(overdue);
   if (Number.isInteger(minimumOverdue) && minimumOverdue > 0) {
-    where.push("p.data_evento IS NOT NULL AND p.data_evento < CURDATE()");
-    where.push("DATEDIFF(CURDATE(), p.data_evento) >= ?");
+    where.push("p.data_evento IS NOT NULL AND p.data_evento < CURRENT_DATE");
+    where.push(`CURRENT_DATE - p.data_evento >= $${params.length + 1}`);
     params.push(minimumOverdue);
   }
 
@@ -41,8 +41,8 @@ const debtorSelect = `
     COALESCE(SUM(pg.valor), 0) AS total_pago,
     p.valor_total - COALESCE(SUM(pg.valor), 0) AS saldo_pendente,
     CASE
-      WHEN p.data_evento IS NOT NULL AND p.data_evento < CURDATE()
-      THEN DATEDIFF(CURDATE(), p.data_evento)
+      WHEN p.data_evento IS NOT NULL AND p.data_evento < CURRENT_DATE
+      THEN CURRENT_DATE - p.data_evento
       ELSE 0
     END AS dias_em_atraso,
     p.status
@@ -52,12 +52,12 @@ const debtorSelect = `
   WHERE {{where}}
   GROUP BY p.id, p.cliente_id, c.nome, c.telefone, p.tipo_pedido,
            p.data_evento, p.data_pedido, p.valor_total, p.status
-  HAVING saldo_pendente > 0
+  HAVING p.valor_total - COALESCE(SUM(pg.valor), 0) > 0
 `;
 
 export async function listarDevedores(filtros) {
   const { where, params } = buildFilters(filtros);
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `${debtorSelect.replace("{{where}}", where)} ORDER BY dias_em_atraso DESC, saldo_pendente DESC, c.nome ASC`,
     params
   );
@@ -66,12 +66,12 @@ export async function listarDevedores(filtros) {
 
 export async function resumoDevedores(filtros) {
   const { where, params } = buildFilters(filtros);
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT
        COUNT(*) AS total_pedidos,
        COUNT(DISTINCT cliente_id) AS total_clientes,
        COALESCE(SUM(saldo_pendente), 0) AS valor_em_aberto,
-       SUM(dias_em_atraso > 0) AS pedidos_em_atraso,
+       COUNT(*) FILTER (WHERE dias_em_atraso > 0) AS pedidos_em_atraso,
        COALESCE(SUM(CASE WHEN dias_em_atraso > 0 THEN saldo_pendente ELSE 0 END), 0) AS valor_vencido
      FROM (${debtorSelect.replace("{{where}}", where)}) devedores`,
     params

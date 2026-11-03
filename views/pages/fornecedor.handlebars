@@ -37,9 +37,10 @@
             class="search-input"
             id="search"
             placeholder="Pesquisar fornecedor..."
+            value="{{q}}"
         >
 
-        <select id="filter-category">
+        <select id="filter-category" data-current-category="{{categoria}}">
             <option value="">Todas as categorias</option>
             <option value="Alimentos">Alimentos</option>
             <option value="Bebidas">Bebidas</option>
@@ -48,10 +49,16 @@
             <option value="Transporte">Transporte</option>
         </select>
 
-        <select id="filter-status">
+        <select id="filter-status" data-current-status="{{status}}">
             <option value="">Todos os status</option>
             <option value="Ativo">Ativo</option>
             <option value="Inativo">Inativo</option>
+        </select>
+
+        <select id="supplier-page-size" aria-label="Fornecedores por página" data-current-limit="{{limit}}">
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
         </select>
 
         <button id="btn-search-suppliers" class="btn btn-secondary" type="button">Pesquisar</button>
@@ -77,7 +84,7 @@
         </table>
     </div>
 
-  <div class="pagination" id="pagination"></div>
+  <nav class="pagination" id="pagination" aria-label="Paginação de fornecedores"></nav>
 
 </main>
 

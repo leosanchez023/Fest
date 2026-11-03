@@ -10,15 +10,17 @@ export async function findAll(filtros = {}) {
     disponivelMinimo = "",
     ordenacao = "nome"
   } = filtros;
-  const disponivelSql = `(COALESCE(p.estoque, 0) - COALESCE(p.estoque_reservado, 0)
+  const disponivelCalculadaSql = `(COALESCE(p.estoque, 0) - COALESCE(p.estoque_reservado, 0)
        - COALESCE(p.estoque_em_uso, 0) - COALESCE(p.estoque_manutencao, 0)
        - COALESCE(p.estoque_danificado, 0))`;
+  const disponivelSql = `CASE WHEN COALESCE(p.controla_estoque, TRUE)
+       THEN ${disponivelCalculadaSql} ELSE NULL END`;
   const ordenacoesPermitidas = {
     nome: "p.nome ASC",
     codigo: "p.codigo ASC, p.nome ASC",
     categoria: "p.categoria ASC, p.nome ASC",
     estoque: "p.estoque DESC, p.nome ASC",
-    disponivel: "disponivel DESC, p.nome ASC",
+    disponivel: "disponivel DESC NULLS LAST, p.nome ASC",
     preco_venda: "p.preco_venda DESC, p.nome ASC",
     preco_aluguel: "p.preco_aluguel DESC, p.nome ASC"
   };
@@ -26,10 +28,11 @@ export async function findAll(filtros = {}) {
     SELECT p.id, p.nome, p.codigo, p.categoria, p.fornecedor_id, p.imagem,
       p.estoque, p.preco_venda, p.preco_aluguel, p.estoque_reservado,
       p.estoque_em_uso, p.estoque_manutencao, p.estoque_danificado,
-      p.estoque_minimo, p.ativo, f.nome AS fornecedor,
+      p.estoque_minimo, p.controla_estoque, p.ativo, f.nome AS fornecedor,
       p.estoque_reservado AS reservado,
       ${disponivelSql} AS disponivel,
       CASE
+        WHEN NOT COALESCE(p.controla_estoque, TRUE) THEN 'NAO_CONTROLADO'
         WHEN ${disponivelSql} <= 0 THEN 'INDISPONIVEL'
         WHEN ${disponivelSql} <= COALESCE(p.estoque_minimo, 0) THEN 'BAIXO_ESTOQUE'
         WHEN COALESCE(p.estoque_manutencao, 0) > 0 THEN 'MANUTENCAO'
@@ -45,56 +48,68 @@ export async function findAll(filtros = {}) {
   const params = [];
 
   if (busca) {
-    sql += " AND (p.nome LIKE ? OR p.codigo LIKE ? OR p.categoria LIKE ? OR f.nome LIKE ?)";
+    const first = params.length + 1;
+    sql += ` AND (p.nome ILIKE $${first} OR p.codigo ILIKE $${first + 1} OR p.categoria ILIKE $${first + 2} OR f.nome ILIKE $${first + 3})`;
     params.push(`%${busca}%`, `%${busca}%`, `%${busca}%`, `%${busca}%`);
   }
   if (categoria) {
-    sql += " AND p.categoria = ?";
+    sql += ` AND p.categoria = $${params.length + 1}`;
     params.push(categoria);
   }
   if (fornecedor) {
-    sql += " AND p.fornecedor_id = ?";
+    sql += ` AND p.fornecedor_id = $${params.length + 1}`;
     params.push(fornecedor);
   }
   if (disponivelMinimo !== "" && Number.isSafeInteger(Number(disponivelMinimo)) && Number(disponivelMinimo) >= 0) {
-    sql += ` AND ${disponivelSql} >= ?`;
+    sql += ` AND ${disponivelSql} >= $${params.length + 1}`;
     params.push(Number(disponivelMinimo));
   }
   if (ativo !== "" && (ativo === "0" || ativo === "1")) {
-    sql += " AND p.ativo = ?";
+    sql += ` AND p.ativo = $${params.length + 1}`;
     params.push(Number(ativo));
   }
   if (status) {
-    sql += " HAVING status_estoque = ?";
+    const statusSql = `CASE
+        WHEN NOT COALESCE(p.controla_estoque, TRUE) THEN 'NAO_CONTROLADO'
+        WHEN ${disponivelSql} <= 0 THEN 'INDISPONIVEL'
+        WHEN ${disponivelSql} <= COALESCE(p.estoque_minimo, 0) THEN 'BAIXO_ESTOQUE'
+        WHEN COALESCE(p.estoque_manutencao, 0) > 0 THEN 'MANUTENCAO'
+        WHEN COALESCE(p.estoque_danificado, 0) > 0 THEN 'DANIFICADO'
+        WHEN COALESCE(p.estoque_reservado, 0) > 0 THEN 'RESERVADO'
+        WHEN COALESCE(p.estoque_em_uso, 0) > 0 THEN 'EM_USO'
+        ELSE 'DISPONIVEL'
+      END`;
+    sql += ` AND ${statusSql} = $${params.length + 1}`;
     params.push(status);
   }
   sql += ` ORDER BY ${ordenacoesPermitidas[ordenacao] || ordenacoesPermitidas.nome}`;
 
-  const [rows] = await db.query(sql, params);
+  const { rows } = await db.query(sql, params);
   return rows;
 }
 
 export async function buscarPorId(id) {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT p.id, p.nome, p.codigo, p.categoria, p.fornecedor_id, p.imagem,
        p.estoque, p.preco_venda, p.preco_aluguel, p.estoque_reservado,
        p.estoque_em_uso, p.estoque_manutencao, p.estoque_danificado,
-       p.estoque_minimo, p.ativo, f.nome AS fornecedor
+       p.estoque_minimo, p.controla_estoque, p.ativo, f.nome AS fornecedor
      FROM produtos p
      LEFT JOIN fornecedores f ON f.id = p.fornecedor_id
-     WHERE p.id = ?`,
+     WHERE p.id = $1`,
     [id]
   );
   return rows[0];
 }
 
 export async function create(dados) {
-  const [result] = await db.query(
+  const { rows } = await db.query(
     `INSERT INTO produtos
       (nome, codigo, categoria, fornecedor_id, imagem,
        estoque, preco_venda, preco_aluguel, estoque_reservado, estoque_em_uso,
-       estoque_manutencao, estoque_danificado, estoque_minimo, ativo)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?, 1)`,
+       estoque_manutencao, estoque_danificado, estoque_minimo, controla_estoque, ativo)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, 0, 0, 0, $9, $10, 1)
+     RETURNING id`,
     [
       dados.nome,
       dados.codigo || null,
@@ -104,18 +119,19 @@ export async function create(dados) {
       Number(dados.estoque || 0),
       Number(dados.precoVenda || 0),
       Number(dados.precoAluguel || 0),
-      Number(dados.estoque_minimo || 0)
+      Number(dados.estoque_minimo || 0),
+      dados.controla_estoque !== false
     ]
   );
-  return { id: result.insertId };
+  return { id: rows[0].id };
 }
 
-export async function atualizar(id, dados) {
-  await db.query(
+export async function atualizar(id, dados, conn = db) {
+  await conn.query(
     `UPDATE produtos SET
-       nome = ?, codigo = ?, categoria = ?, fornecedor_id = ?, imagem = ?, preco_venda = ?,
-       preco_aluguel = ?, estoque_minimo = ?, updatedAt = NOW()
-     WHERE id = ?`,
+       nome = $1, codigo = $2, categoria = $3, fornecedor_id = $4, imagem = $5, preco_venda = $6,
+       preco_aluguel = $7, estoque_minimo = $8, ativo = $9, "updatedAt" = NOW()
+     WHERE id = $10`,
     [
       dados.nome,
       dados.codigo || null,
@@ -125,13 +141,22 @@ export async function atualizar(id, dados) {
       Number(dados.precoVenda || 0),
       Number(dados.precoAluguel || 0),
       Number(dados.estoque_minimo || 0),
+      dados.ativo === false ? 0 : 1,
       id
     ]
   );
 }
 
 export async function excluir(id) {
-  await db.query("UPDATE produtos SET ativo = 0 WHERE id = ?", [id]);
+  await db.query("UPDATE produtos SET ativo = 0 WHERE id = $1", [id]);
+}
+
+export async function atualizarStatus(id, ativo) {
+  await db.query(
+    'UPDATE produtos SET ativo = $1, "updatedAt" = NOW() WHERE id = $2',
+    [ativo ? 1 : 0, id]
+  );
+  return { id: Number(id), ativo };
 }
 
 export async function dashboard() {

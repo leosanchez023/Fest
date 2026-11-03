@@ -17,13 +17,15 @@ function camposDestino() {
   };
 }
 
-function enderecoCorrespondeASelecao() {
-  const selected = state.enderecoSelecionado;
+export function enderecoCorrespondeASelecao(selected, actual) {
   if (!selected?.selectionToken) return false;
-  const actual = camposDestino();
-  return ["rua", "bairro", "cidade", "estado", "cep"].every(
+  return ["rua", "cidade", "estado", "cep"].every(
     (field) => String(selected[field] || "").trim() === actual[field]
   );
+}
+
+export function valorDaSugestaoOuAtual(suggested, current) {
+  return String(suggested || "").trim() || current || "";
 }
 
 function mostrarEstado(list, message, error = false) {
@@ -176,11 +178,11 @@ function createAutocomplete({
     }
   };
 
-  const scheduleSearch = () => {
+  const scheduleSearch = (event) => {
     clearTimeout(debounceTimer);
     requestId += 1;
     controller?.abort();
-    onTyping();
+    onTyping(event);
     if (peerList) closeList(peerList);
     const query = input.value.trim();
     if (query.length < minimoCaracteres) {
@@ -234,7 +236,7 @@ function selectDestination(place, list) {
   const previousNumber = $("end-numero").value.trim();
   const previousNeighborhood = $("end-bairro").value.trim();
   $("end-rua").value = place.rua || place.descricao || "";
-  $("end-bairro").value = place.bairro || previousNeighborhood;
+  $("end-bairro").value = valorDaSugestaoOuAtual(place.bairro, previousNeighborhood);
   $("end-cidade").value = place.cidade || "";
   $("end-estado").value = place.estado || "";
   $("end-cep").value = place.cep || "";
@@ -307,9 +309,7 @@ async function carregarConfiguracaoEntrega() {
     state.configEntrega = data;
     if (data.configurado) {
       preencherConfiguracao(data.configuracao);
-      if (status) status.textContent = data.configuracao.origem_aproximada
-        ? "Configuração salva. A origem usa um ponto aproximado, pois o número exato não foi localizado."
-        : "Origem padrão e regra de frete configuradas.";
+      if (status) status.textContent = "Origem padrão e regra de frete configuradas.";
     } else if (status) {
       status.textContent = "Configure a origem padrão e a regra de frete antes de calcular ou salvar pedidos.";
     }
@@ -355,9 +355,7 @@ async function salvarConfiguracaoDeEntrega() {
     state.configEntrega = { configurado: true, configuracao: data.configuracao };
     state.configEntregaSelecionada = null;
     preencherConfiguracao(data.configuracao);
-    if ($("entrega-config-status")) $("entrega-config-status").textContent = data.configuracao.origem_aproximada
-      ? "Configuração salva. A origem usa um ponto aproximado, pois o número exato não foi localizado."
-      : "Origem padrão e regra de frete configuradas.";
+    if ($("entrega-config-status")) $("entrega-config-status").textContent = "Origem padrão e regra de frete configuradas.";
     if (feedback) feedback.textContent = "Configurações salvas. A nova regra será usada nos próximos cálculos.";
     invalidarRota("As configurações de entrega foram alteradas. Recalcule o frete deste pedido.");
   } catch (error) {
@@ -415,12 +413,17 @@ export function inicializarEndereco() {
       }),
       contextInputs: ["origem-config-bairro", "origem-config-cidade", "origem-config-estado", "origem-config-cep"]
         .map((id) => $(id)).filter(Boolean),
-      onTyping: () => { state.configEntregaSelecionada = null; },
+      onTyping: (event) => {
+        if (event.target === originInput) state.configEntregaSelecionada = null;
+      },
       onSelect: (place) => {
         $("origem-config-query").value = place.descricao || displayDetails(place).slice(0, 2).join(", ");
         $("origem-config-rua").value = place.rua || "";
         if (place.numero && !$("origem-config-numero").value.trim()) $("origem-config-numero").value = place.numero;
-        $("origem-config-bairro").value = place.bairro || "";
+        $("origem-config-bairro").value = valorDaSugestaoOuAtual(
+          place.bairro,
+          $("origem-config-bairro").value.trim()
+        );
         $("origem-config-cidade").value = place.cidade || "";
         $("origem-config-estado").value = place.estado || "";
         $("origem-config-cep").value = place.cep || "";
@@ -428,7 +431,7 @@ export function inicializarEndereco() {
         closeList(originList);
       }
     });
-    for (const id of ["origem-config-rua", "origem-config-bairro", "origem-config-cidade", "origem-config-estado", "origem-config-cep"]) {
+    for (const id of ["origem-config-rua", "origem-config-cidade", "origem-config-estado", "origem-config-cep"]) {
       $(id)?.addEventListener("input", () => { state.configEntregaSelecionada = null; });
     }
   }
@@ -445,7 +448,10 @@ export function inicializarEndereco() {
       cep: $("end-cep")?.value.trim() || ""
     }),
     onTyping: () => {
-      if (state.enderecoSelecionado && !enderecoCorrespondeASelecao()) {
+      if (state.enderecoSelecionado && !enderecoCorrespondeASelecao(
+        state.enderecoSelecionado,
+        camposDestino()
+      )) {
         state.enderecoSelecionado = null;
         state.podeManterRotaSalva = false;
         invalidarRota("O destino mudou. Selecione outra sugestão e recalcule.");

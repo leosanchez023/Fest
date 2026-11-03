@@ -23,15 +23,15 @@ function hasAdminManagementGrants(actionGrants = {}) {
 }
 
 async function transaction(callback) {
-  const connection = await db.getConnection();
+  const connection = await db.connect();
   try {
     // Mantém alterações do usuário, permissões e auditoria na mesma transação.
-    await connection.beginTransaction();
+    await connection.query("BEGIN");
     const result = await callback(connection);
-    await connection.commit();
+    await connection.query("COMMIT");
     return result;
   } catch (error) {
-    await connection.rollback();
+    await connection.query("ROLLBACK");
     throw error;
   } finally {
     connection.release();

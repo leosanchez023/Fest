@@ -75,6 +75,21 @@
         <input id="data-retirada" class="input" type="date">
       </div>
 
+      <div class="field">
+        <label>Local do evento</label>
+        <input id="local-evento" class="input" maxlength="255">
+      </div>
+
+      <div class="field" style="grid-column: span 3">
+        <label>Instruções de entrega</label>
+        <textarea id="observacao-entrega" class="input" rows="2"></textarea>
+      </div>
+
+      <div class="field" style="grid-column: span 3">
+        <label>Instruções de retirada</label>
+        <textarea id="observacao-retirada" class="input" rows="2"></textarea>
+      </div>
+
     </div>
   </div>
 
@@ -97,7 +112,7 @@
         <input id="prod-qtd" class="input" type="number" min="1" value="1">
       </div>
 
-      <button id="btn-add-item" class="btn btn-teal"><i class="fa-solid fa-plus icon-sm"></i> Adicionar</button>
+      <button type="button" id="btn-add-item" class="btn btn-teal"><i class="fa-solid fa-plus icon-sm"></i> Adicionar</button>
 
     </div>
 
@@ -290,6 +305,7 @@
     <div class="actions">
 
     <button
+      type="button"
       id="btn-salvar-pedido"
       class="btn btn-green">
       <i class="fa-solid fa-floppy-disk icon-sm"></i> Salvar
@@ -328,6 +344,9 @@
             <div class="mp-field"><label>Data do evento</label><span id="mp-data-evento">—</span></div>
             <div class="mp-field"><label>Data da entrega</label><span id="mp-data-entrega">—</span></div>
             <div class="mp-field"><label>Data da retirada</label><span id="mp-data-retirada">—</span></div>
+            <div class="mp-field"><label>Local do evento</label><span id="mp-local-evento">—</span></div>
+            <div class="mp-field" style="grid-column:1/-1"><label>Instruções de entrega</label><span id="mp-observacao-entrega">—</span></div>
+            <div class="mp-field" style="grid-column:1/-1"><label>Instruções de retirada</label><span id="mp-observacao-retirada">—</span></div>
           </div>
         </section>
 
@@ -366,7 +385,6 @@
             <div class="mp-field"><label>CEP</label><span id="mp-fr-cep">—</span></div>
             <div class="mp-field"><label>Complemento / referência</label><span id="mp-fr-referencia">—</span></div>
             <div class="mp-field"><label>Distância</label><span id="mp-fr-km">—</span></div>
-            <div class="mp-field"><label>Regra aplicada</label><span id="mp-fr-formula">—</span></div>
             <div class="mp-field"><label>Valor do frete</label><span id="mp-fr-valor">—</span></div>
           </div>
         </section>
@@ -400,16 +418,14 @@
           <div class="mp-total"><span>Total geral</span><b id="mp-rs-total">R$ 0,00</b></div>
         </section>
 
-        <!-- 8. STATUS -->
-        <div class="mp-status-row" id="mp-status"></div>
       </div>
 
       <!-- 9. RODAPÉ -->
       <footer class="mp-footer">
         <button class="mp-btn mp-btn--gray"  data-mp-close><i class="fa-solid fa-xmark"></i> Cancelar</button>
-        <button class="mp-btn mp-btn--green" id="btn-confirmar-modal"><i class="fa-solid fa-check"></i> Confirmar Pedido</button>
-        <button class="mp-btn mp-btn--blue"  id="btn-gerar-orcamento-modal"><i class="fa-solid fa-file-invoice-dollar"></i> Gerar Orçamento</button>
-        <button class="mp-btn mp-btn--dark"  id="btn-imprimir-pedido"><i class="fa-solid fa-print"></i> Imprimir</button>
+        <button type="button" class="mp-btn mp-btn--green" id="btn-confirmar-modal"><i class="fa-solid fa-check"></i> Confirmar Pedido</button>
+        <button type="button" class="mp-btn mp-btn--blue" id="btn-gerar-orcamento-modal"><i class="fa-solid fa-file-invoice-dollar"></i> Gerar Orçamento</button>
+        <button type="button" class="mp-btn mp-btn--dark" id="btn-imprimir-pedido"><i class="fa-solid fa-print"></i> Imprimir</button>
       </footer>
     </div>
   </div>
@@ -452,7 +468,7 @@ const ModalPedido = (() => {
 
     /* ---------- Tipo ---------- */
 
-    set("mp-tipo-pedido", p.tipo || "Pedido");
+    set("mp-tipo-pedido", p.tipo || "—");
 
     /* ---------- Cliente ---------- */
 
@@ -466,6 +482,9 @@ const ModalPedido = (() => {
     set("mp-data-evento", p.dataEvento);
     set("mp-data-entrega", p.dataEntrega);
     set("mp-data-retirada", p.dataRetirada);
+    set("mp-local-evento", p.localEvento);
+    set("mp-observacao-entrega", p.observacaoEntrega);
+    set("mp-observacao-retirada", p.observacaoRetirada);
 
     /* ---------- Produtos ---------- */
 
@@ -520,8 +539,6 @@ const ModalPedido = (() => {
       "mp-fr-km",
       fr.km != null ? `${Number(fr.km).toFixed(2)} km` : "—"
     );
-    set("mp-fr-formula", fr.formula);
-
     const valorFrete = $("mp-fr-valor");
     if (valorFrete) {
       valorFrete.innerHTML = frete > 0
@@ -589,44 +606,6 @@ const ModalPedido = (() => {
     set("mp-rs-restante", brl(restante));
     set("mp-rs-total", brl(total));
 
-    /* ---------- Status ---------- */
-
-    const status = [];
-
-    if (restante === 0) {
-
-      status.push(["green", "<i class=\"fa-solid fa-circle-check\"></i> Pedido Completo"]);
-
-    } else if (pago > 0) {
-
-      status.push(["amber", "<i class=\"fa-solid fa-clock\"></i> Pagamento Parcial"]);
-
-    } else {
-      status.push(["red", "<i class=\"fa-solid fa-triangle-exclamation\"></i> Pagamento Pendente"]);
-    }
-
-    status.push(
-      frete > 0
-        ? ["blue", "<i class=\"fa-solid fa-truck\"></i> Frete Calculado"]
-        : ["slate", "<i class=\"fa-solid fa-box\"></i> Sem Frete"]
-    );
-
-    status.push(
-      p.orcamento
-        ? ["slate", "<i class=\"fa-solid fa-file-invoice-dollar\"></i> Orçamento"]
-        : ["dark", "<i class=\"fa-solid fa-file-invoice\"></i> Pedido"]
-    );
-
-    const statusEl = $("mp-status");
-
-    if (statusEl) {
-
-      statusEl.innerHTML = status
-        .map(([cor, texto]) =>
-          `<span class="mp-badge mp-badge--${cor}">${texto}</span>`
-        )
-        .join("");
-    }
   }
 
   /* ================= Abrir ================= */
@@ -724,5 +703,3 @@ const ModalPedido = (() => {
 
 window.ModalPedido = ModalPedido;
 </script>
-
-

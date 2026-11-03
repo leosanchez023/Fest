@@ -1,6 +1,10 @@
 import * as model from "./produtos.model.js";
 import * as estoqueService from "../estoque/estoque.service.js";
 
+function booleano(valor, padrao = false) {
+  if (valor === undefined || valor === null || valor === "") return padrao;
+  return valor === true || valor === 1 || valor === "1" || valor === "true";
+}
 
 // ======================================
 // LISTAR
@@ -40,6 +44,12 @@ export async function criar(dados) {
   }
 
 
+  const controlaEstoque = booleano(dados.controla_estoque, true);
+  const estoque = Number(dados.estoque ?? 0);
+  if (!Number.isSafeInteger(estoque) || estoque < 0) {
+    throw new Error("Estoque inicial deve ser um inteiro não negativo.");
+  }
+
   return await model.create({
 
     nome: dados.nome.trim(),
@@ -52,8 +62,8 @@ export async function criar(dados) {
       dados.fornecedor_id || null,
 
 
-    estoque:
-      Number(dados.estoque || 0),
+    estoque: controlaEstoque ? estoque : 0,
+    controla_estoque: controlaEstoque,
 
 
     precoVenda:
@@ -90,13 +100,15 @@ export async function atualizar(id, dados) {
   const produtoAtual = await model.buscarPorId(id);
   if (!produtoAtual) throw new Error("Produto não encontrado.");
 
+  const controleAtual = estoqueService.controlaEstoque(produtoAtual);
+  const controleDesejado = booleano(dados.controla_estoque, controleAtual);
   const estoqueAtual = Number(produtoAtual.estoque || 0);
   const estoqueDesejado = Number(dados.estoque ?? estoqueAtual);
   if (!Number.isFinite(estoqueDesejado) || estoqueDesejado < 0) {
     throw new Error("Estoque inválido.");
   }
 
-  if (estoqueDesejado !== estoqueAtual) {
+  if (controleDesejado === controleAtual && controleDesejado && estoqueDesejado !== estoqueAtual) {
     await estoqueService.registrarAjuste({
       produtoId: Number(id),
       quantidade: estoqueDesejado - estoqueAtual,
@@ -105,9 +117,7 @@ export async function atualizar(id, dados) {
     });
   }
 
-  return await model.atualizar(
-    id,
-    {
+  const dadosAtualizados = {
 
       nome: dados.nome.trim(),
 
@@ -121,7 +131,7 @@ export async function atualizar(id, dados) {
 
       imagem: dados.imagem === undefined ? produtoAtual.imagem : dados.imagem,
 
-      estoque: estoqueDesejado,
+      estoque: controleDesejado ? estoqueDesejado : estoqueAtual,
 
 
       precoVenda: Number(dados.precoVenda ?? produtoAtual.preco_venda ?? 0),
@@ -129,10 +139,22 @@ export async function atualizar(id, dados) {
 
       precoAluguel: Number(dados.precoAluguel ?? produtoAtual.preco_aluguel ?? 0),
 
-      estoque_minimo: Number(dados.estoque_minimo ?? produtoAtual.estoque_minimo ?? 0)
+      estoque_minimo: Number(dados.estoque_minimo ?? produtoAtual.estoque_minimo ?? 0),
 
-    }
-  );
+      ativo: booleano(dados.ativo, Number(produtoAtual.ativo) === 1)
+
+  };
+
+  if (controleDesejado !== controleAtual) {
+    return await estoqueService.alterarControleEstoqueProduto({
+      produtoId: Number(id),
+      controlaEstoque: controleDesejado,
+      estoqueInicial: estoqueDesejado,
+      usuarioId: dados.usuario_id || null,
+      atualizarCadastro: (conn) => model.atualizar(id, dadosAtualizados, conn)
+    });
+  }
+  return await model.atualizar(id, dadosAtualizados);
 
 
 }
@@ -169,6 +191,15 @@ export async function deletar(id) {
 
   return await model.excluir(id);
 
+}
+
+export async function atualizarStatus(id, ativo) {
+  if (typeof ativo !== "boolean") {
+    throw new Error("Estado do produto inválido.");
+  }
+  const produto = await model.buscarPorId(id);
+  if (!produto) throw new Error("Produto não encontrado.");
+  return model.atualizarStatus(id, ativo);
 }
 
 

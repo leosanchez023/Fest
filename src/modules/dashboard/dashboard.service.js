@@ -75,7 +75,7 @@ const getPeriodWindow = (periodo) => {
 };
 
 export async function montarDadosDashboard(periodo = "30") {
-  const [pedidosRows] = await db.execute(`
+  const { rows: pedidosRows } = await db.query(`
     SELECT
       p.id,
       p.data_pedido,
@@ -102,7 +102,7 @@ export async function montarDadosDashboard(periodo = "30") {
     ORDER BY p.data_pedido DESC
   `);
 
-  const [produtosRows] = await db.execute(`
+  const { rows: produtosRows } = await db.query(`
     SELECT
       id,
       nome,

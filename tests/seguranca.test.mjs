@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import db from '../database/connection.js';
+import { assertTestDatabase } from './helpers/test-database.js';
 import { criarFuncionario, criarUsuario } from '../src/modules/usuarios/usuarios.service.js';
 
 process.env.NODE_ENV = 'test';
@@ -50,6 +51,7 @@ async function runSecurityChecks() {
 }
 
 try {
+  await assertTestDatabase(db);
   await runSecurityChecks();
 } finally {
   await db.end();

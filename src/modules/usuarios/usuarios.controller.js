@@ -9,7 +9,7 @@ import {
 } from "./funcionarios.photo.js";
 
 function sendApiError(res, error) {
-  const duplicate = error?.code === "ER_DUP_ENTRY";
+  const duplicate = error?.code === "23505";
   const status = error instanceof ApiError ? error.status : duplicate ? 409 : 500;
   const code = error instanceof ApiError ? error.code : duplicate ? "DUPLICATE_USER" : "INTERNAL_ERROR";
   const message = error instanceof ApiError

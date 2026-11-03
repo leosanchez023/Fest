@@ -5,10 +5,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
-    "test": "node tests/funcionarios.validation.test.mjs && node tests/funcionarios.photo.test.mjs && node tests/permission-actions.test.mjs && node tests/estoque.regras.test.mjs && node tests/entregas.devolucao.test.mjs && node tests/entregas.faltantes.test.mjs && node tests/estoque.integracao.test.mjs && node tests/seguranca.test.mjs",
+    "test": "node tests/funcionarios.validation.test.mjs && node tests/funcionarios.photo.test.mjs && node tests/permission-actions.test.mjs && node tests/combos.preco-status.test.mjs && node tests/pedidos.confirmacao.test.mjs && node tests/estoque.regras.test.mjs && node tests/entregas.devolucao.test.mjs && node tests/entregas.faltantes.test.mjs && node tests/estoque.integracao.test.mjs && node tests/seguranca.test.mjs && node tests/pedidos.criar-usuario.test.mjs && node tests/pedidos.configuracao-entrega.test.mjs && node tests/product-status-edit.test.mjs && node --test tests/postgresql-schema.test.mjs tests/initial-admin.seed.test.mjs tests/postgresql-seed.test.mjs tests/app-shell-layout.test.mjs",
     "test:auth": "node tests/authentication.integration.test.mjs",
+    "test:db": "node teste-conexao.js",
     "db:migrate": "node scripts/db/migrate.js",
-    "db:seed": "node scripts/db/seed.js"
+    "db:seed:admin": "node src/database/seeds/initial-admin.js",
+    "db:import:mysql": "node scripts/db/import-mysql-to-postgres.js"
   },
   "keywords": [],
   "author": "",
@@ -28,7 +30,7 @@
     "mysql2": "^3.19.1",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
-    "sequelize": "^6.37.8",
+    "pg": "^8.23.1",
     "supertest": "^7.3.0",
     "sweetalert2": "^11.26.25"
   }

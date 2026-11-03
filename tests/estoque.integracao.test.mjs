@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import db from '../database/connection.js';
+import { assertTestDatabase } from './helpers/test-database.js';
 import {
   calcularDisponibilidade,
   reservarEstoque,
@@ -26,45 +27,49 @@ let clienteId;
 let pedidoId;
 
 async function estadoProduto() {
-  const [rows] = await db.query(
+  const { rows } = await db.query(
     `SELECT estoque, estoque_reservado, estoque_em_uso, estoque_manutencao,
             estoque_danificado
-     FROM produtos WHERE id = ?`,
+     FROM produtos WHERE id = $1`,
     [produtoId]
   );
   return rows[0];
 }
 
 try {
-  const [produto] = await db.query(
+  await assertTestDatabase(db);
+  const { rows: [produto] } = await db.query(
     `INSERT INTO produtos
       (nome, estoque, estoque_reservado, estoque_em_uso, estoque_manutencao,
        estoque_danificado, estoque_minimo, ativo, tipo_produto)
-     VALUES (?, 10, 0, 0, 0, 0, 0, 1, 'PRODUTO')`,
+     VALUES ($1, 10, 0, 0, 0, 0, 0, 1, 'PRODUTO')
+     RETURNING id`,
     [`__TESTE_ESTOQUE_${tag}`]
   );
-  produtoId = produto.insertId;
+  produtoId = produto.id;
 
-  const [cliente] = await db.query(
-    'INSERT INTO cliente (nome, email) VALUES (?, ?)',
+  const { rows: [cliente] } = await db.query(
+    'INSERT INTO cliente (nome, email) VALUES ($1, $2) RETURNING id',
     [`__TESTE_ESTOQUE_${tag}`, `__teste_${tag}@example.test`]
   );
-  clienteId = cliente.insertId;
+  clienteId = cliente.id;
 
-  const [pedido] = await db.query(
+  const { rows: [pedido] } = await db.query(
     `INSERT INTO pedidos (cliente_id, status, status_documento, tipo_pedido)
-     VALUES (?, 'CONFIRMADO', 'PEDIDO', 'ALUGUEL')`,
+     VALUES ($1, 'CONFIRMADO', 'PEDIDO', 'ALUGUEL')
+     RETURNING id`,
     [clienteId]
   );
-  pedidoId = pedido.insertId;
+  pedidoId = pedido.id;
 
-  const [pedidoItem] = await db.query(
+  const { rows: [pedidoItem] } = await db.query(
     `INSERT INTO pedido_itens
       (pedido_id, produto_id, quantidade, valor_unitario, subtotal)
-     VALUES (?, ?, 3, 0, 0)`,
+     VALUES ($1, $2, 3, 0, 0)
+     RETURNING id`,
     [pedidoId, produtoId]
   );
-  const pedidoItemId = pedidoItem.insertId;
+  const pedidoItemId = pedidoItem.id;
 
   const concorrencia = await Promise.allSettled([
     reservarEstoque({ produtoId, quantidade: 6, pedidoId }),
@@ -87,24 +92,24 @@ try {
   assert.equal(estado.estoque_reservado, 0);
   assert.equal(calcularDisponibilidade(estado), 10);
 
-  const connDuplicataInicial = await db.getConnection();
+  const connDuplicataInicial = await db.connect();
   try {
     await reservarItensPedido({ conn: connDuplicataInicial, itens: [{ produto_id: produtoId, quantidade: 3 }], pedidoId });
   } finally {
     connDuplicataInicial.release();
   }
-  const connDuplicata = await db.getConnection();
+  const connDuplicata = await db.connect();
   try {
     await reservarItensPedido({ conn: connDuplicata, itens: [{ produto_id: produtoId, quantidade: 3 }], pedidoId });
   } finally {
     connDuplicata.release();
   }
-  const [reservasUnicas] = await db.query(
+  const { rows: [reservasUnicas] } = await db.query(
     `SELECT COUNT(*) AS total FROM reservas_estoque
-     WHERE pedido_id = ? AND produto_id = ? AND status = 'ATIVA'`,
+     WHERE pedido_id = $1 AND produto_id = $2 AND status = 'ATIVA'`,
     [pedidoId, produtoId]
   );
-  assert.equal(reservasUnicas[0].total, 1);
+  assert.equal(Number(reservasUnicas.total), 1);
   await liberarReserva({ produtoId, quantidade: 3, pedidoId });
 
   await registrarVenda({ produtoId, quantidade: 2, pedidoId });
@@ -166,16 +171,16 @@ try {
   assert.equal(estado.estoque_reservado, 0);
   assert.equal(calcularDisponibilidade(estado), 10);
 
-  const [movimentacoes] = await db.query(
-    'SELECT COUNT(*) AS total FROM movimentacao_estoque WHERE produto_id = ?',
+  const { rows: [movimentacoes] } = await db.query(
+    'SELECT COUNT(*) AS total FROM movimentacao_estoque WHERE produto_id = $1',
     [produtoId]
   );
-  const [historico] = await db.query(
-    'SELECT COUNT(*) AS total FROM estoque_historico WHERE produto_id = ?',
+  const { rows: [historico] } = await db.query(
+    'SELECT COUNT(*) AS total FROM estoque_historico WHERE produto_id = $1',
     [produtoId]
   );
-  assert.ok(Number(movimentacoes[0].total) >= 7);
-  assert.equal(movimentacoes[0].total, historico[0].total);
+  assert.ok(Number(movimentacoes.total) >= 7);
+  assert.equal(Number(movimentacoes.total), Number(historico.total));
 
   await reservarEstoque({ produtoId, quantidade: 3, pedidoId });
   await marcarEntregue(pedidoId, {
@@ -204,7 +209,7 @@ try {
     /situação que permita devolução/i
   );
 
-  await db.query('UPDATE pedidos SET valor_total = 10 WHERE id = ?', [pedidoId]);
+  await db.query('UPDATE pedidos SET valor_total = 10 WHERE id = $1', [pedidoId]);
   await inserirPagamentoPedido(pedidoId, { valor: 10, forma_pagamento: 'PIX' });
   await assert.rejects(
     () => inserirPagamentoPedido(pedidoId, { valor: 0.01, forma_pagamento: 'PIX' }),
@@ -214,20 +219,20 @@ try {
     () => inserirReembolso(pedidoId, { valor: 10.01, forma_pagamento: 'PIX' }),
     /exceder o valor efetivamente pago/i
   );
-  console.log('Teste de integração MySQL do estoque ok');
+  console.log('Teste de integração PostgreSQL do estoque ok');
 } finally {
   if (produtoId) {
-    await db.query('DELETE FROM ocorrencias WHERE pedido_id = ?', [pedidoId]);
-    await db.query('DELETE FROM pagamentos WHERE pedido_id = ?', [pedidoId]);
-    await db.query('DELETE FROM devolucao_itens WHERE devolucao_id IN (SELECT id FROM devolucoes WHERE pedido_id = ?)', [pedidoId]);
-    await db.query('DELETE FROM devolucoes WHERE pedido_id = ?', [pedidoId]);
-    await db.query('DELETE FROM estoque_historico WHERE produto_id = ?', [produtoId]);
-    await db.query('DELETE FROM movimentacao_estoque WHERE produto_id = ?', [produtoId]);
-    await db.query('DELETE FROM reservas_estoque WHERE produto_id = ?', [produtoId]);
-    await db.query('DELETE FROM pedido_itens WHERE pedido_id = ?', [pedidoId]);
-    await db.query('DELETE FROM pedidos WHERE id = ?', [pedidoId]);
-    await db.query('DELETE FROM produtos WHERE id = ?', [produtoId]);
-    await db.query('DELETE FROM cliente WHERE id = ?', [clienteId]);
+    await db.query('DELETE FROM ocorrencias WHERE pedido_id = $1', [pedidoId]);
+    await db.query('DELETE FROM pagamentos WHERE pedido_id = $1', [pedidoId]);
+    await db.query('DELETE FROM devolucao_itens WHERE devolucao_id IN (SELECT id FROM devolucoes WHERE pedido_id = $1)', [pedidoId]);
+    await db.query('DELETE FROM devolucoes WHERE pedido_id = $1', [pedidoId]);
+    await db.query('DELETE FROM estoque_historico WHERE produto_id = $1', [produtoId]);
+    await db.query('DELETE FROM movimentacao_estoque WHERE produto_id = $1', [produtoId]);
+    await db.query('DELETE FROM reservas_estoque WHERE produto_id = $1', [produtoId]);
+    await db.query('DELETE FROM pedido_itens WHERE pedido_id = $1', [pedidoId]);
+    await db.query('DELETE FROM pedidos WHERE id = $1', [pedidoId]);
+    await db.query('DELETE FROM produtos WHERE id = $1', [produtoId]);
+    await db.query('DELETE FROM cliente WHERE id = $1', [clienteId]);
   }
   await db.end();
 }

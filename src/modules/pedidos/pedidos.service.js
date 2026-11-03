@@ -67,6 +67,12 @@ export async function criarPedido(dados) {
   if (dados.valor_pago > valorTotal) {
     throw new Error("Valor pago maior que o total.");
   }
+  if (dados.valor_pago > 0 && !dados.forma_pagamento) {
+    throw new Error("Selecione a forma de pagamento para registrar o valor pago.");
+  }
+  if (dados.local_evento && dados.local_evento.length > 255) {
+    throw new Error("O local do evento excede o tamanho permitido.");
+  }
 
   // Monta o objeto que será salvo no banco
   const pedido = {
@@ -81,6 +87,9 @@ export async function criarPedido(dados) {
     data_evento: dados.data_evento,
     data_entrega: dados.data_entrega,
     data_retirada: dados.data_retirada,
+    local_evento: String(dados.local_evento || "").trim() || null,
+    observacao_entrega: String(dados.observacao_entrega || "").trim() || null,
+    observacao_retirada: String(dados.observacao_retirada || "").trim() || null,
     forma_pagamento: dados.forma_pagamento,
     observacao_pagamento:dados.observacao_pagamento,
     observacoes:dados.observacoes,
@@ -412,10 +421,11 @@ function sanitizarPedido(dados) {
 
     // Datas do pedido
     data_evento: dados.data_evento,
-
     data_entrega: dados.data_entrega,
-
     data_retirada: dados.data_retirada,
+    local_evento: dados.local_evento,
+    observacao_entrega: dados.observacao_entrega,
+    observacao_retirada: dados.observacao_retirada,
 
 
     // Forma de pagamento
@@ -692,7 +702,7 @@ export async function salvarConfiguracaoEntrega(dados = {}) {
     geocoded = await resolverNumeroEndereco(token, address);
   } else {
     const existing = await model.buscarConfiguracaoEntrega();
-    const sameLocation = existing && ["rua", "bairro", "cidade", "estado", "cep"]
+    const sameLocation = existing && ["rua", "cidade", "estado", "cep"]
       .every((field) => normalizeSearchText(address[field]) === normalizeSearchText(
         existing[`origem_${field === "rua" ? "rua" : field}`] || ""
       ));
@@ -777,10 +787,17 @@ export async function atualizarPedido(id, dados) {
     ...dados,
     endereco: sanitizarEndereco(dados.endereco),
     endereco_origem: normalizeSearchText(dados.endereco_origem).slice(0, 255),
+    local_evento: String(dados.local_evento || "").trim() || null,
+    observacao_entrega: String(dados.observacao_entrega || "").trim() || null,
+    observacao_retirada: String(dados.observacao_retirada || "").trim() || null,
+    valor_pago: dados.valor_pago === undefined ? undefined : Number(dados.valor_pago),
     origem_token: typeof dados.origem_token === "string" ? dados.origem_token : "",
     destino_token: typeof dados.destino_token === "string" ? dados.destino_token : "",
     rota: null
   };
+  if (pedido.local_evento && pedido.local_evento.length > 255) {
+    throw new Error("O local do evento excede o tamanho permitido.");
+  }
   if (pedido.recalcular_rota === true && pedido.destino_token) {
     const settings = await model.buscarConfiguracaoEntrega();
     pedido.rota = await calcularRotaEntrega({

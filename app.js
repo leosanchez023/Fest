@@ -13,6 +13,9 @@ import auth from "./src/config/auth.js";
 import { protegerAplicacao } from "./src/config/access.js";
 import { csrfProtection, addCsrfToken } from "./src/config/csrf.js";
 
+if (!process.env.DATABASE_URL && process.env.NODE_ENV !== "test") {
+    throw new Error("DATABASE_URL não configurada para conexão com PostgreSQL.");
+}
 
 
 const app = express();

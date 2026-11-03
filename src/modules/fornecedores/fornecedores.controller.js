@@ -14,16 +14,12 @@ function mensagemDoErro(erro) {
 }
 
 export async function listar(req, res) {
-  try {
-    const fornecedores = await service.listar(req.query);
-    return res.render("pages/fornecedor", { fornecedores });
-  } catch (erro) {
-    console.error("Erro ao listar fornecedores:", erro);
-    return res.status(500).render("pages/fornecedor", {
-      fornecedores: [],
-      error: "Não foi possível carregar os fornecedores."
-    });
-  }
+  return res.render("pages/fornecedor", {
+    q: typeof req.query.q === "string" ? req.query.q : "",
+    categoria: typeof req.query.categoria === "string" ? req.query.categoria : "",
+    status: typeof req.query.status === "string" ? req.query.status : "",
+    limit: typeof req.query.limit === "string" ? req.query.limit : "10"
+  });
 }
 
 export async function listarJSON(req, res) {
